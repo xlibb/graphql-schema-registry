@@ -10,4 +10,4 @@ license = ["Apache-2.0"]
 distribution = "2201.6.0"
 
 [[platform.java17.dependency]]
-path = "../native/build/libs/shadow-1.0.0-all.jar"
+path = "../native/build/libs/schema-registry-native-1.0.0.jar"
