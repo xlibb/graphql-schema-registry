@@ -9,18 +9,6 @@ distribution-version = "2201.8.0"
 
 [[package]]
 org = "ballerina"
-name = "io"
-version = "1.5.0"
-dependencies = [
-	{org = "ballerina", name = "jballerina.java"},
-	{org = "ballerina", name = "lang.value"}
-]
-modules = [
-	{org = "ballerina", packageName = "io", moduleName = "io"}
-]
-
-[[package]]
-org = "ballerina"
 name = "jballerina.java"
 version = "0.0.0"
 modules = [
@@ -32,14 +20,6 @@ org = "ballerina"
 name = "lang.error"
 version = "0.0.0"
 scope = "testOnly"
-dependencies = [
-	{org = "ballerina", name = "jballerina.java"}
-]
-
-[[package]]
-org = "ballerina"
-name = "lang.value"
-version = "0.0.0"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"}
 ]
@@ -62,11 +42,11 @@ org = "xlibb"
 name = "graphql_schema_registry"
 version = "1.0.0"
 dependencies = [
-	{org = "ballerina", name = "io"},
 	{org = "ballerina", name = "jballerina.java"},
 	{org = "ballerina", name = "test"}
 ]
 modules = [
-	{org = "xlibb", packageName = "graphql_schema_registry", moduleName = "graphql_schema_registry"}
+	{org = "xlibb", packageName = "graphql_schema_registry", moduleName = "graphql_schema_registry"},
+	{org = "xlibb", packageName = "graphql_schema_registry", moduleName = "graphql_schema_registry.commons"}
 ]
 
