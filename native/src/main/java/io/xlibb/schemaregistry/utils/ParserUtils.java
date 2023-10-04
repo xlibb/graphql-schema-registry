@@ -15,6 +15,7 @@ public class ParserUtils {
     public static final String SCHEMA_RECORD = "__Schema";
     public static final String TYPE_RECORD = "__Type";
     public static final String DIRECTIVE_RECORD = "__Directive";
+    public static final String DIRECTIVE_LOCATION_RECORD = "__DirectiveLocation";
     public static final String FIELD_RECORD = "__Field";
     public static final String INPUT_VALUE_RECORD = "__InputValue";
     public static final String ENUM_VALUE_RECORD = "__EnumValue";
@@ -34,6 +35,10 @@ public class ParserUtils {
     public static final BString DEFAULT_VALUE_FIELD = StringUtils.fromString("defaultValue");
     public static final BString ARGS_FIELD = StringUtils.fromString("args");
     public static final BString INTERFACES_FIELD = StringUtils.fromString("interfaces");
+    public static final BString DIRECTIVES_FIELD = StringUtils.fromString("directives");
+    public static final BString TYPES_FIELD = StringUtils.fromString("types");
+    public static final BString DIRECTIVE_LOCATIONS_FIELD = StringUtils.fromString("locations");
+    public static final BString DIRECTIVE_IS_REPEATABLE_FIELD = StringUtils.fromString("isRepeatable");
     
     public static BMap<BString, Object> createRecord(String type) {
         return ValueCreator.createRecordValue(ModuleUtils.getModule(), type);

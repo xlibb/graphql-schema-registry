@@ -2,6 +2,9 @@ import ballerina/io;
 public function main() {
 
     string schemaSdl = string `
+
+        directive @join__graph(name: String!, url: String!) on ENUM_VALUE        
+
         type Query {
             t(place: String = "Home"): T
             m: Media

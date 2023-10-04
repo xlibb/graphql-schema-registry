@@ -1,6 +1,9 @@
 package io.xlibb.schemaregistry;
 
+import graphql.language.DirectiveDefinition;
+import graphql.language.DirectiveLocation;
 import graphql.schema.GraphQLArgument;
+import graphql.schema.GraphQLDirective;
 import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLEnumValueDefinition;
 import graphql.schema.GraphQLFieldDefinition;
@@ -34,14 +37,17 @@ public class Parser {
     
     private GraphQLSchema schema;
     private Map<String, BMap<BString, Object>> types;
+    private Map<String, BMap<BString, Object>> directives;
     
     public Parser(BString schemaSdl) {
         types = new HashMap<>();
+        directives = new HashMap<>();
         schema = SchemaGenerator.createdMockedSchema(schemaSdl.getValue());
     }
 
     public BMap<BString, Object> parse() {
         addTypesShallow();
+        addDirectives();
         addTypesDeep();
         return generateSchemaRecord();
     }
@@ -62,6 +68,37 @@ public class Parser {
                 StringUtils.fromString(graphQLType.getDescription())
             );
             types.put(graphQLType.getName(), typeRecord);
+        }
+    }
+
+    private void addDirectives() {
+        for (GraphQLDirective directive : schema.getDirectives()) {
+            BMap<BString, Object> directiveRecord = ParserUtils.createRecord(ParserUtils.DIRECTIVE_RECORD);
+            directiveRecord.put(
+                ParserUtils.NAME_FIELD,
+                StringUtils.fromString(directive.getName())
+            );
+            directiveRecord.put(
+                ParserUtils.DESCRIPTION_FIELD,
+                StringUtils.fromString(directive.getDescription())
+            );
+            directiveRecord.put(
+                ParserUtils.ARGS_FIELD,
+                getArgumentsAsBMap(directive.getArguments())
+            );
+
+            DirectiveDefinition directiveDefinition = directive.getDefinition();
+            if (directiveDefinition != null) {
+                directiveRecord.put(
+                    ParserUtils.DIRECTIVE_LOCATIONS_FIELD,
+                    getDirectiveLocationsAsBArray(directiveDefinition.getDirectiveLocations())
+                );
+                directiveRecord.put(
+                    ParserUtils.DIRECTIVE_IS_REPEATABLE_FIELD,
+                    directiveDefinition.isRepeatable()
+                );
+            }
+            directives.put(directive.getName(), directiveRecord);
         }
     }
 
@@ -208,6 +245,14 @@ public class Parser {
         return enumValuesBArray;
     }
 
+    private BArray getDirectiveLocationsAsBArray(List<DirectiveLocation> locations) {
+        BString[] locationsArray = new BString[locations.size()];
+        for (int i = 0; i < locations.size(); i++) {
+            locationsArray[i] = StringUtils.fromString(locations.get(i).getName());
+        }
+        return ValueCreator.createArrayValue(locationsArray);
+    }
+
     private BMap<BString, Object> getFieldsAsBMap(List<GraphQLFieldDefinition> fields) {
         BMap<BString, Object> fieldsBArray = ValueCreator.createMapValue();
         for (GraphQLFieldDefinition fieldDefinition : fields) {
@@ -241,10 +286,15 @@ public class Parser {
     private BMap<BString, Object> generateSchemaRecord() {
         BMap<BString, Object> graphQLSchemaRecord = ParserUtils.createRecord(ParserUtils.SCHEMA_RECORD);
         BMap<BString, Object> schemaRecordTypes = ValueCreator.createMapValue();
+        BMap<BString, Object> schemaDirectives = ValueCreator.createMapValue();
         for (Map.Entry<String, BMap<BString, Object>> type : types.entrySet()) {
             schemaRecordTypes.put(StringUtils.fromString(type.getKey()), type.getValue());
         }
-        graphQLSchemaRecord.put(StringUtils.fromString("types") , schemaRecordTypes);
+        for (Map.Entry<String, BMap<BString, Object>> directive : directives.entrySet()) {
+            schemaDirectives.put(StringUtils.fromString(directive.getKey()), directive.getValue());
+        }
+        graphQLSchemaRecord.put(ParserUtils.TYPES_FIELD, schemaRecordTypes);
+        graphQLSchemaRecord.put(ParserUtils.DIRECTIVES_FIELD, schemaDirectives);
         return graphQLSchemaRecord;
     }
 

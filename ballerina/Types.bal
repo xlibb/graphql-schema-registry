@@ -23,7 +23,7 @@ public type __Directive record {|
     string name;
     string? description = ();
     __DirectiveLocation[] locations = [];
-    __InputValue[] args = [];
+    map<__InputValue> args;
     boolean isRepeatable;
 |};
 
