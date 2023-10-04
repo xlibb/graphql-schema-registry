@@ -7,7 +7,7 @@
 plugins {
     id 'de.undercouch.download'
     id 'com.github.spotbugs-base'
-}
+    }
 
 allprojects {
     group = project.group
@@ -15,8 +15,13 @@ allprojects {
 
     repositories {
         mavenLocal()
+
         maven {
             url = 'https://repo.maven.apache.org/maven2'
+        }
+
+        maven {
+            url = 'https://maven.wso2.org/nexus/content/repositories/releases/'
         }
     }
 }
