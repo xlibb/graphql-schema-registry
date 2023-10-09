@@ -48,13 +48,16 @@ public class FederationUtils {
         directive @provides(fields: FieldSet!) on FIELD_DEFINITION
         directive @key(fields: FieldSet!, resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
         directive @shareable repeatable on OBJECT | FIELD_DEFINITION
-        directive @inaccessible on FIELD_DEFINITION | OBJECT | INTERFACE | UNION | ARGUMENT_DEFINITION | SCALAR | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
-        directive @tag(name: String!) repeatable on FIELD_DEFINITION | INTERFACE | OBJECT | UNION | ARGUMENT_DEFINITION | SCALAR | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
+        directive @inaccessible on FIELD_DEFINITION | OBJECT | INTERFACE | UNION | ARGUMENT_DEFINITION | SCALAR 
+                                                    | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
+        directive @tag(name: String!) repeatable on FIELD_DEFINITION | INTERFACE | OBJECT | UNION | ARGUMENT_DEFINITION
+                                                    | SCALAR | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
         directive @override(from: String!) on FIELD_DEFINITION
         directive @composeDirective(name: String!) repeatable on SCHEMA
         directive @interfaceObject on OBJECT
         directive @authenticated on FIELD_DEFINITION | OBJECT | INTERFACE | SCALAR | ENUM
-        directive @requiresScopes(scopes: [[federation__Scope!]!]!) on FIELD_DEFINITION | OBJECT | INTERFACE | SCALAR | ENUM
+        directive @requiresScopes(scopes: [[federation__Scope!]!]!) on FIELD_DEFINITION | OBJECT | INTERFACE | SCALAR 
+                                                                                        | ENUM
             """;
     private static TypeDefinitionRegistry requiredFederationDefinitions = parser.parse(FEDERATION_REQUIRED_DEFINITIONS);
     private static TypeDefinitionRegistry possibleFederationDefinitions = parser.parse(FEDERATION_IMPORT_DEFINITIONS);
@@ -100,7 +103,7 @@ public class FederationUtils {
                 }
                 linkDirectiveImportDefinitions.add(importDirectiveDefinition);
             } else {
-                throw new UnsupportedOperationException( String.format(
+                throw new UnsupportedOperationException(String.format(
                         "Directive '%s' is not part of the Federation Specification", 
                         importDirectiveName));
             }

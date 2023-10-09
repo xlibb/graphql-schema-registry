@@ -4,19 +4,21 @@ public function main() {
     string schemaSdl = string `
         extend schema
             @link(url: "https://specs.apollo.dev/federation/v2.3",
-                import: ["@key", "@shareable"])        
+                import: ["@key", "@shareable", "@requiresScopes", "@inaccessible"])        
+
+        scalar CustomScalar @inaccessible
 
         type Query {
-            t(place: String = "Home"): T
+            t(place: String = "Home" @inaccessible, page: Int = 10): T
             m: Media
         }
                     
-        type T {
+        type T @key(fields: "id") {
             id: [S!]!
         }
                     
         type S @key(fields: "x") {
-            x: Int
+            x: Int @shareable
         }
         
         type R implements Ika & Oka @shareable {
@@ -25,9 +27,10 @@ public function main() {
             oka: Int
         }
 
-        input SearchQuery {
-            query: String!
+        input SearchQuery @inaccessible {
+            query: String! @inaccessible
             page: Int = 0
+            vals: [[Int!]!] = [[10,20], [20], [30]]
         }
 
         interface Ika implements Oka {
@@ -35,11 +38,15 @@ public function main() {
             oka: Int
         }
 
-        interface Oka {
+        interface Oka @key(fields: "oka") {
             oka: Int
         }
 
-        union Media = R | S
+        union Media @inaccessible = R | S
+
+        enum Ombe @inaccessible {
+            TYPE @inaccessible 
+        }
     `;
 
     Parser parser = new(schemaSdl, true);

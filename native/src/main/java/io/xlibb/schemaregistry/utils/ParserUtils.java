@@ -19,6 +19,8 @@ public class ParserUtils {
     public static final String FIELD_RECORD = "__Field";
     public static final String INPUT_VALUE_RECORD = "__InputValue";
     public static final String ENUM_VALUE_RECORD = "__EnumValue";
+    public static final String APPLIED_DIRECTIVE_RECORD = "__AppliedDirective";
+    public static final String APPLIED_DIRECTIVE_INPUT_VALUE_RECORD = "__AppliedDirectiveInputValue";
 
     // Field names of the GraphQL Introspection Type System
     public static final BString NAME_FIELD = StringUtils.fromString("name");
@@ -39,6 +41,9 @@ public class ParserUtils {
     public static final BString TYPES_FIELD = StringUtils.fromString("types");
     public static final BString DIRECTIVE_LOCATIONS_FIELD = StringUtils.fromString("locations");
     public static final BString DIRECTIVE_IS_REPEATABLE_FIELD = StringUtils.fromString("isRepeatable");
+    public static final BString APPLIED_DIRECTIVES_FIELD = StringUtils.fromString("appliedDirectives");
+    public static final BString DEFINITION_FIELD = StringUtils.fromString("definition");
+    public static final BString VALUE_FIELD = StringUtils.fromString("value");
 
     public static BMap<BString, Object> createRecord(String type) {
         return ValueCreator.createRecordValue(ModuleUtils.getModule(), type);
@@ -75,5 +80,9 @@ public class ParserUtils {
             default:
                 return null;
         }
+    }
+
+    public static void addValueToRecordField(BMap<BString, Object> record, BString field, Object value) {
+        record.put(field, value);
     }
 }

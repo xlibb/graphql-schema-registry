@@ -12,6 +12,7 @@ public type __Type record {|
     string? name = ();
     string? description = ();
     map<__Field>? fields = ();
+    map<__AppliedDirective>? appliedDirectives = ();
     __Type[]? interfaces = ();
     __Type[]? possibleTypes = ();
     __EnumValue[]? enumValues = ();
@@ -26,6 +27,16 @@ public type __Directive record {|
     map<__InputValue> args;
     boolean isRepeatable;
 |};
+
+type __AppliedDirective record {
+    map<__AppliedDirectiveInputValue> args;
+    __Directive definition;
+};
+
+type __AppliedDirectiveInputValue record {
+    any? value = ();
+    __InputValue definition;
+};
 
 public enum __DirectiveLocation {
     QUERY,
@@ -64,6 +75,7 @@ public type __Field record {|
     string name;
     string? description = ();
     map<__InputValue> args;
+    map<__AppliedDirective>? appliedDirectives = ();
     __Type 'type;
     boolean isDeprecated = false;
     string? deprecationReason = ();
@@ -72,6 +84,7 @@ public type __Field record {|
 public type __InputValue record {|
     string name;
     string? description = ();
+    map<__AppliedDirective>? appliedDirectives = ();
     __Type 'type;
     any? defaultValue = ();
 |};
@@ -79,6 +92,7 @@ public type __InputValue record {|
 public type __EnumValue record {|
     string name;
     string? description = ();
+    map<__AppliedDirective>? appliedDirectives = ();
     boolean isDeprecated = false;
     string? deprecationReason = ();
 |};
