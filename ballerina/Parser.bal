@@ -4,8 +4,8 @@ public class Parser {
 
     private handle jObj;
 
-    public function init(string schema) {
-        self.jObj = newParser(schema);
+    public function init(string schema, boolean isSubgraph) {
+        self.jObj = newParser(schema, isSubgraph);
     }
 
     public function parse() returns __Schema {
@@ -14,7 +14,7 @@ public class Parser {
 
 }
 
-function newParser(string schema) returns handle = @java:Constructor {
+function newParser(string schema, boolean isSubgraph) returns handle = @java:Constructor {
     'class: "io.xlibb.schemaregistry.Parser"
 } external;
 

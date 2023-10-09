@@ -39,7 +39,7 @@ public class ParserUtils {
     public static final BString TYPES_FIELD = StringUtils.fromString("types");
     public static final BString DIRECTIVE_LOCATIONS_FIELD = StringUtils.fromString("locations");
     public static final BString DIRECTIVE_IS_REPEATABLE_FIELD = StringUtils.fromString("isRepeatable");
-    
+
     public static BMap<BString, Object> createRecord(String type) {
         return ValueCreator.createRecordValue(ModuleUtils.getModule(), type);
     }

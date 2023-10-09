@@ -20,13 +20,18 @@ import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
 import graphql.schema.GraphQLUnionType;
+import graphql.schema.idl.RuntimeWiring;
 import graphql.schema.idl.SchemaGenerator;
+import graphql.schema.idl.SchemaParser;
+import graphql.schema.idl.TypeDefinitionRegistry;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
+import io.xlibb.schemaregistry.utils.FederationUtils;
 import io.xlibb.schemaregistry.utils.ParserUtils;
+import io.xlibb.schemaregistry.utils.ParserWiringFactory;
 import io.xlibb.schemaregistry.utils.TypeKind;
 
 import java.util.HashMap;
@@ -38,18 +43,32 @@ public class Parser {
     private GraphQLSchema schema;
     private Map<String, BMap<BString, Object>> types;
     private Map<String, BMap<BString, Object>> directives;
+    private SchemaParser parser;
     
-    public Parser(BString schemaSdl) {
+    public Parser(BString schemaSdl, boolean isSubgraph) {
         types = new HashMap<>();
         directives = new HashMap<>();
-        schema = SchemaGenerator.createdMockedSchema(schemaSdl.getValue());
+        parser = new SchemaParser();
+        TypeDefinitionRegistry schemaDefinitions = parser.parse(schemaSdl.getValue());
+        if (isSubgraph) {
+            TypeDefinitionRegistry federationDefinitions = FederationUtils.getFederationTypes(schemaDefinitions);
+            schemaDefinitions = schemaDefinitions.merge(federationDefinitions);
+        }
+        RuntimeWiring wiring = RuntimeWiring.newRuntimeWiring().wiringFactory(new ParserWiringFactory()).build();
+        schema = (new SchemaGenerator()).makeExecutableSchema(schemaDefinitions, wiring);
     }
 
     public BMap<BString, Object> parse() {
         addTypesShallow();
         addDirectives();
         addTypesDeep();
+        addRootOperationTypes();
         return generateSchemaRecord();
+    }
+
+    private void addRootOperationTypes() {
+        // TODO: Check union _Entity
+        // TODO: Add root operation types
     }
 
     private void addTypesShallow() {

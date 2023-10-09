@@ -2,8 +2,9 @@ import ballerina/io;
 public function main() {
 
     string schemaSdl = string `
-
-        directive @join__graph(name: String!, url: String!) on ENUM_VALUE        
+        extend schema
+            @link(url: "https://specs.apollo.dev/federation/v2.3",
+                import: ["@key", "@shareable"])        
 
         type Query {
             t(place: String = "Home"): T
@@ -14,11 +15,11 @@ public function main() {
             id: [S!]!
         }
                     
-        type S {
+        type S @key(fields: "x") {
             x: Int
         }
         
-        type R implements Ika & Oka {
+        type R implements Ika & Oka @shareable {
             t: T
             ika: String!
             oka: Int
@@ -41,7 +42,7 @@ public function main() {
         union Media = R | S
     `;
 
-    Parser parser = new(schemaSdl);
+    Parser parser = new(schemaSdl, true);
     __Schema schema = parser.parse();
 
     io:println(schema.toBalString());
