@@ -13,7 +13,7 @@ public function main() {
             m: Media
         }
                     
-        type T @key(fields: "id") {
+        type T @key(fields: "id", resolvable: false) {
             id: [S!]!
         }
                     
