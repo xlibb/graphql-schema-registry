@@ -34,7 +34,7 @@ type __AppliedDirective record {
 };
 
 type __AppliedDirectiveInputValue record {
-    any? value = ();
+    anydata? value = ();
     __InputValue definition;
 };
 
@@ -86,7 +86,7 @@ public type __InputValue record {|
     string? description = ();
     map<__AppliedDirective>? appliedDirectives = ();
     __Type 'type;
-    any? defaultValue = ();
+    anydata? defaultValue = ();
 |};
 
 public type __EnumValue record {|

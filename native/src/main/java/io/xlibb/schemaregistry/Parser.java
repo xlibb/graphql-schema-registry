@@ -7,7 +7,6 @@ import graphql.language.DirectiveLocation;
 import graphql.language.EnumValue;
 import graphql.language.FloatValue;
 import graphql.language.IntValue;
-import graphql.language.NullValue;
 import graphql.language.StringValue;
 import graphql.language.Value;
 import graphql.schema.GraphQLAppliedDirective;
@@ -285,21 +284,18 @@ public class Parser {
     }
 
     private Object getValueAsBType(Object valueObject) {
-        Class<?> valueClass = valueObject.getClass();
-        if (valueClass.equals(NullValue.class)) {
-            return null;
-        } else if (valueClass.equals(FloatValue.class)) {
+        if (valueObject instanceof FloatValue) {
             return ((FloatValue) valueObject).getValue().doubleValue();
-        } else if (valueClass.equals(IntValue.class)) {
+        } else if (valueObject instanceof IntValue) {
             return ((IntValue) valueObject).getValue().intValue();
-        } else if (valueClass.equals(StringValue.class)) {
+        } else if (valueObject instanceof StringValue) {
             return StringUtils.fromString(((StringValue) valueObject).getValue());
-        } else if (valueClass.equals(BooleanValue.class)) {
+        } else if (valueObject instanceof BooleanValue) {
             return ((BooleanValue) valueObject).isValue();
-        } else if (valueClass.equals(EnumValue.class)) {
+        } else if (valueObject instanceof EnumValue) {
             return StringUtils.fromString(((EnumValue) valueObject).getName());
-        } else if (valueClass.equals(ArrayValue.class)) {
-            ArrayType arrayType = TypeCreator.createArrayType(new BAnyType("any", ModuleUtils.getModule(), false));
+        } else if (valueObject instanceof ArrayValue) {
+            ArrayType arrayType = TypeCreator.createArrayType(new BAnyType("anydata", ModuleUtils.getModule(), false));
             BArray bArray = ValueCreator.createArrayValue(arrayType);
             for (Value<?> value : ((ArrayValue) valueObject).getValues()) {
                 bArray.append(getValueAsBType(value));
@@ -327,7 +323,7 @@ public class Parser {
         for (GraphQLAppliedDirectiveArgument argument : arguments) {
             BMap<BString, Object> appliedArgumentInputValueRecord = createRecord(APPLIED_DIRECTIVE_INPUT_VALUE_RECORD);
             appliedArgumentInputValueRecord.put(DEFINITION_FIELD, getTypeAsRecord(argument.getType()));
-            appliedArgumentInputValueRecord.put(VALUE_FIELD, getValueAsBType(argument.getArgumentValue()));
+            appliedArgumentInputValueRecord.put(VALUE_FIELD, getValueAsBType(argument.getArgumentValue().getValue()));
 
             argumentsBMap.put(StringUtils.fromString(argument.getName()), appliedArgumentInputValueRecord);
         }
