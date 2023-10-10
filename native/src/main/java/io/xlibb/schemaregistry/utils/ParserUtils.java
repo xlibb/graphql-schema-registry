@@ -11,6 +11,9 @@ import io.ballerina.runtime.api.values.BString;
 
 public class ParserUtils {
 
+    // Ballerina Types
+    public static final String ANYDATA = "anydata";
+
     // Types of the GraphQL Introspection Type System
     public static final String SCHEMA_RECORD = "__Schema";
     public static final String TYPE_RECORD = "__Type";
@@ -52,6 +55,12 @@ public class ParserUtils {
     public static final BString APPLIED_DIRECTIVES_FIELD = StringUtils.fromString("appliedDirectives");
     public static final BString DEFINITION_FIELD = StringUtils.fromString("definition");
     public static final BString VALUE_FIELD = StringUtils.fromString("value");
+
+    public enum ParsingMode {
+        SCHEMA,
+        SUBGRAPH_SCHEMA,
+        SUPERGRAPH_SCHEMA
+    }
 
     public static BMap<BString, Object> createRecord(String type) {
         return ValueCreator.createRecordValue(ModuleUtils.getModule(), type);

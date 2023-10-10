@@ -49,7 +49,7 @@ public function main() {
         }
     `;
 
-    Parser parser = new(schemaSdl, true);
+    Parser parser = new(schemaSdl, SUBGRAPH_SCHEMA);
     __Schema schema = parser.parse();
 
     io:println(schema.toBalString());
