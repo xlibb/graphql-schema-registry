@@ -36,7 +36,7 @@ public class ParserUtils {
     public static final BString ROOT_MUTATION_FIELD = StringUtils.fromString("mutationType");
     public static final BString ROOT_SUBSCRIPTION_FIELD = StringUtils.fromString("subscriptionType");
     public static final BString KIND_FIELD = StringUtils.fromString("kind");
-    public static final BString TYPE_FIELD = StringUtils.fromString("'type");
+    public static final BString TYPE_FIELD = StringUtils.fromString("type");
     public static final BString OF_TYPE_FIELD = StringUtils.fromString("ofType");
     public static final BString FIELDS_FIELD = StringUtils.fromString("fields");
     public static final BString DESCRIPTION_FIELD = StringUtils.fromString("description");

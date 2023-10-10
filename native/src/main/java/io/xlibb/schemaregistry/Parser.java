@@ -1,9 +1,9 @@
 package io.xlibb.schemaregistry;
 
+import graphql.introspection.Introspection.DirectiveLocation;
 import graphql.language.ArrayValue;
 import graphql.language.BooleanValue;
 import graphql.language.DirectiveDefinition;
-import graphql.language.DirectiveLocation;
 import graphql.language.EnumValue;
 import graphql.language.FloatValue;
 import graphql.language.IntValue;
@@ -48,6 +48,7 @@ import io.xlibb.schemaregistry.utils.ParserUtils.ParsingMode;
 import io.xlibb.schemaregistry.utils.ParserWiringFactory;
 import io.xlibb.schemaregistry.utils.TypeKind;
 
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -171,14 +172,14 @@ public class Parser {
                     ARGS_FIELD,
                     getInputValuesAsBMap(directive.getArguments())
                                  );
+            addValueToRecordField(
+                    directiveRecord,
+                    DIRECTIVE_LOCATIONS_FIELD,
+                    getDirectiveLocationsAsBArray(directive.validLocations())
+                                    );
 
             DirectiveDefinition directiveDefinition = directive.getDefinition();
             if (directiveDefinition != null) {
-                addValueToRecordField(
-                        directiveRecord,
-                        DIRECTIVE_LOCATIONS_FIELD,
-                        getDirectiveLocationsAsBArray(directiveDefinition.getDirectiveLocations())
-                                     );
                 addValueToRecordField(
                         directiveRecord,
                         DIRECTIVE_IS_REPEATABLE_FIELD,
@@ -457,13 +458,11 @@ public class Parser {
         return enumValuesBArray;
     }
 
-    private BArray getDirectiveLocationsAsBArray(List<DirectiveLocation> locations) {
-
-        BString[] locationsArray = new BString[locations.size()];
-        for (int i = 0; i < locations.size(); i++) {
-            locationsArray[i] = StringUtils.fromString(locations.get(i).getName());
-        }
-        return ValueCreator.createArrayValue(locationsArray);
+    private BArray getDirectiveLocationsAsBArray(EnumSet<DirectiveLocation> enumSet) {
+        List<BString> locationsArray = enumSet.stream().map(t -> StringUtils.fromString(t.name())).toList();
+        BString[] locationsBArray = new BString[enumSet.size()];
+        locationsArray.toArray(locationsBArray);
+        return ValueCreator.createArrayValue(locationsBArray);
     }
 
     private BMap<BString, Object> getFieldsAsBMap(List<GraphQLFieldDefinition> fields) {
