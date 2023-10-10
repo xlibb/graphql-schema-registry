@@ -22,8 +22,16 @@ public class ParserUtils {
     public static final String APPLIED_DIRECTIVE_RECORD = "__AppliedDirective";
     public static final String APPLIED_DIRECTIVE_INPUT_VALUE_RECORD = "__AppliedDirectiveInputValue";
 
+    // GraphQL Type names of the Root Operations
+    public static final String QUERY_TYPE_NAME = "Query";
+    public static final String MUTATION_TYPE_NAME = "Mutation";
+    public static final String SUBSCRIPTION_TYPE_NAME = "Subscription";
+
     // Field names of the GraphQL Introspection Type System
     public static final BString NAME_FIELD = StringUtils.fromString("name");
+    public static final BString ROOT_QUERY_FIELD = StringUtils.fromString("queryType");
+    public static final BString ROOT_MUTATION_FIELD = StringUtils.fromString("mutationType");
+    public static final BString ROOT_SUBSCRIPTION_FIELD = StringUtils.fromString("subscriptionType");
     public static final BString KIND_FIELD = StringUtils.fromString("kind");
     public static final BString TYPE_FIELD = StringUtils.fromString("'type");
     public static final BString OF_TYPE_FIELD = StringUtils.fromString("ofType");

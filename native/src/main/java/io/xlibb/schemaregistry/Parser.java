@@ -72,10 +72,16 @@ import static io.xlibb.schemaregistry.utils.ParserUtils.INPUT_VALUES_FIELD;
 import static io.xlibb.schemaregistry.utils.ParserUtils.INPUT_VALUE_RECORD;
 import static io.xlibb.schemaregistry.utils.ParserUtils.IS_DEPRECATED_FIELD;
 import static io.xlibb.schemaregistry.utils.ParserUtils.KIND_FIELD;
+import static io.xlibb.schemaregistry.utils.ParserUtils.MUTATION_TYPE_NAME;
 import static io.xlibb.schemaregistry.utils.ParserUtils.NAME_FIELD;
 import static io.xlibb.schemaregistry.utils.ParserUtils.OF_TYPE_FIELD;
 import static io.xlibb.schemaregistry.utils.ParserUtils.POSSIBLE_TYPES_FIELD;
+import static io.xlibb.schemaregistry.utils.ParserUtils.QUERY_TYPE_NAME;
+import static io.xlibb.schemaregistry.utils.ParserUtils.ROOT_MUTATION_FIELD;
+import static io.xlibb.schemaregistry.utils.ParserUtils.ROOT_QUERY_FIELD;
+import static io.xlibb.schemaregistry.utils.ParserUtils.ROOT_SUBSCRIPTION_FIELD;
 import static io.xlibb.schemaregistry.utils.ParserUtils.SCHEMA_RECORD;
+import static io.xlibb.schemaregistry.utils.ParserUtils.SUBSCRIPTION_TYPE_NAME;
 import static io.xlibb.schemaregistry.utils.ParserUtils.TYPE_RECORD;
 import static io.xlibb.schemaregistry.utils.ParserUtils.TYPES_FIELD;
 import static io.xlibb.schemaregistry.utils.ParserUtils.TYPE_FIELD;
@@ -110,17 +116,13 @@ public class Parser {
         addTypesShallow();
         addDirectives();
         addTypesDeep();
-        addRootOperationTypes();
         return generateSchemaRecord();
     }
 
-    private void addRootOperationTypes() {
-        // TODO: Check union _Entity
-        // TODO: Add root operation types
-        // TODO: Map exceptions to Ballerina Errors
-        // TODO: Add code-style to vscode
-        // TODO: change ballerina value type from "any" to "anydata"
-    }
+    // TODO: Check union _Entity
+    // TODO: Map exceptions to Ballerina Errors
+    // TODO: Add code-style to vscode
+    // TODO: "put" to another method
 
     private void addTypesShallow() {
         for (GraphQLNamedType graphQLType : schema.getTypeMap().values()) {
@@ -427,6 +429,10 @@ public class Parser {
                 directive.getValue()
             );
         }
+        graphQLSchemaRecord.put(ROOT_QUERY_FIELD, types.get(QUERY_TYPE_NAME));
+        graphQLSchemaRecord.put(ROOT_MUTATION_FIELD, types.get(MUTATION_TYPE_NAME));
+        graphQLSchemaRecord.put(ROOT_SUBSCRIPTION_FIELD, types.get(SUBSCRIPTION_TYPE_NAME));
+
         addValueToRecordField(graphQLSchemaRecord, TYPES_FIELD, schemaRecordTypes);
         addValueToRecordField(graphQLSchemaRecord, DIRECTIVES_FIELD, schemaDirectives);
         return graphQLSchemaRecord;
