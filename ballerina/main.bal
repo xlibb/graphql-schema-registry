@@ -1,5 +1,5 @@
 import ballerina/io;
-public function main() {
+public function main() returns error? {
 
     string schemaSdl = string `
         extend schema
@@ -44,13 +44,13 @@ public function main() {
 
         union Media @inaccessible = R | S
 
-        enum Ombe @inaccessible {
+        enum Ombe @inaccessible 
             TYPE @inaccessible 
         }
     `;
 
     Parser parser = new(schemaSdl, SUBGRAPH_SCHEMA);
-    __Schema schema = parser.parse();
+    __Schema schema = check parser.parse();
 
     io:println(schema.toBalString());
 

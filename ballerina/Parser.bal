@@ -8,7 +8,7 @@ public class Parser {
         self.jObj = newParser(schema, mode);
     }
 
-    public function parse() returns __Schema {
+    public function parse() returns __Schema|error {
         return <__Schema>parse(self.jObj);
     }
 

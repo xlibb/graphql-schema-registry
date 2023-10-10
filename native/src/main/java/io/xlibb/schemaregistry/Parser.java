@@ -94,12 +94,13 @@ import static io.xlibb.schemaregistry.utils.ParserUtils.createBArrayFromRecord;
 import static io.xlibb.schemaregistry.utils.ParserUtils.getTypeKindFromType;
 
 public class Parser {
-    
+
     private final GraphQLSchema schema;
     private final Map<String, BMap<BString, Object>> types;
     private final Map<String, BMap<BString, Object>> directives;
 
     public Parser(BString schemaSdl, BString modeStr) {
+
         types = new HashMap<>();
         directives = new HashMap<>();
         SchemaParser parser = new SchemaParser();
@@ -110,8 +111,10 @@ public class Parser {
                 TypeDefinitionRegistry federationDefinitions = FederationUtils.getFederationTypes(schemaDefinitions);
                 schemaDefinitions = schemaDefinitions.merge(federationDefinitions);
             }
-            case SUPERGRAPH_SCHEMA -> { }
-            case SCHEMA -> { }
+            case SUPERGRAPH_SCHEMA -> {
+            }
+            case SCHEMA -> {
+            }
         }
 
         RuntimeWiring wiring = RuntimeWiring.newRuntimeWiring().wiringFactory(new ParserWiringFactory()).build();
@@ -119,75 +122,75 @@ public class Parser {
     }
 
     public BMap<BString, Object> parse() {
+
         addTypesShallow();
         addDirectives();
         addTypesDeep();
         return generateSchemaRecord();
     }
 
-    // TODO: Check union _Entity
-    // TODO: Map exceptions to Ballerina Errors
-    // TODO: Add code-style to vscode
-
     private void addTypesShallow() {
+
         for (GraphQLNamedType graphQLType : schema.getTypeMap().values()) {
             BMap<BString, Object> typeRecord = createRecord(TYPE_RECORD);
             addValueToRecordField(
-                typeRecord,
-                KIND_FIELD,
-                StringUtils.fromString(getTypeKindFromType(graphQLType).toString())
-            );
+                    typeRecord,
+                    KIND_FIELD,
+                    StringUtils.fromString(getTypeKindFromType(graphQLType).toString())
+                                 );
             addValueToRecordField(
-                typeRecord,
-                NAME_FIELD,
-                StringUtils.fromString(graphQLType.getName())
-            );
+                    typeRecord,
+                    NAME_FIELD,
+                    StringUtils.fromString(graphQLType.getName())
+                                 );
             addValueToRecordField(
-                typeRecord,
-                DESCRIPTION_FIELD,
-                StringUtils.fromString(graphQLType.getDescription())
-            );
+                    typeRecord,
+                    DESCRIPTION_FIELD,
+                    StringUtils.fromString(graphQLType.getDescription())
+                                 );
             types.put(graphQLType.getName(), typeRecord);
         }
     }
 
     private void addDirectives() {
+
         for (GraphQLDirective directive : schema.getDirectives()) {
             BMap<BString, Object> directiveRecord = createRecord(DIRECTIVE_RECORD);
             addValueToRecordField(
-                directiveRecord, 
-                NAME_FIELD,
-                StringUtils.fromString(directive.getName())
-            );
+                    directiveRecord,
+                    NAME_FIELD,
+                    StringUtils.fromString(directive.getName())
+                                 );
             addValueToRecordField(
-                directiveRecord, 
-                DESCRIPTION_FIELD,
-                StringUtils.fromString(directive.getDescription())
-            );
+                    directiveRecord,
+                    DESCRIPTION_FIELD,
+                    StringUtils.fromString(directive.getDescription())
+                                 );
             addValueToRecordField(
-                directiveRecord, 
-                ARGS_FIELD,
-                getInputValuesAsBMap(directive.getArguments())
-            );
+                    directiveRecord,
+                    ARGS_FIELD,
+                    getInputValuesAsBMap(directive.getArguments())
+                                 );
 
             DirectiveDefinition directiveDefinition = directive.getDefinition();
             if (directiveDefinition != null) {
                 addValueToRecordField(
-                    directiveRecord, 
-                    DIRECTIVE_LOCATIONS_FIELD,
-                    getDirectiveLocationsAsBArray(directiveDefinition.getDirectiveLocations())
-                );
+                        directiveRecord,
+                        DIRECTIVE_LOCATIONS_FIELD,
+                        getDirectiveLocationsAsBArray(directiveDefinition.getDirectiveLocations())
+                                     );
                 addValueToRecordField(
-                    directiveRecord, 
-                    DIRECTIVE_IS_REPEATABLE_FIELD,
-                    directiveDefinition.isRepeatable()
-                );
+                        directiveRecord,
+                        DIRECTIVE_IS_REPEATABLE_FIELD,
+                        directiveDefinition.isRepeatable()
+                                     );
             }
             directives.put(directive.getName(), directiveRecord);
         }
     }
 
     private void addTypesDeep() {
+
         for (GraphQLNamedType graphQLType : schema.getTypeMap().values()) {
 
             BMap<BString, Object> typeRecord = types.get(graphQLType.getName());
@@ -200,71 +203,79 @@ public class Parser {
                 case INPUT_OBJECT -> populateInputTypeRecord(typeRecord, (GraphQLInputObjectType) graphQLType);
                 case INTERFACE -> populateInterfaceTypeRecord(typeRecord, (GraphQLInterfaceType) graphQLType);
                 case SCALAR -> populateScalarTypeRecord(typeRecord, (GraphQLScalarType) graphQLType);
-                default -> { }
+                default -> {
+                }
             }
         }
     }
 
     private void populateScalarTypeRecord(BMap<BString, Object> typeRecord, GraphQLScalarType scalarType) {
+
         addValueToRecordField(
-            typeRecord,
-            APPLIED_DIRECTIVES_FIELD, 
-            getAppliedDirectivesAsBMap(scalarType.getAppliedDirectives())
-        );
+                typeRecord,
+                APPLIED_DIRECTIVES_FIELD,
+                getAppliedDirectivesAsBMap(scalarType.getAppliedDirectives())
+                             );
     }
 
     private void populateInterfaceTypeRecord(BMap<BString, Object> typeRecord, GraphQLInterfaceType interfaceType) {
+
         addValueToRecordField(typeRecord, FIELDS_FIELD, getFieldsAsBMap(interfaceType.getFields()));
         addValueToRecordField(typeRecord, INTERFACES_FIELD, getInterfacesBArray(interfaceType.getInterfaces()));
         addValueToRecordField(
-            typeRecord,
-            APPLIED_DIRECTIVES_FIELD,
-            getAppliedDirectivesAsBMap(interfaceType.getAppliedDirectives())
-        );
+                typeRecord,
+                APPLIED_DIRECTIVES_FIELD,
+                getAppliedDirectivesAsBMap(interfaceType.getAppliedDirectives())
+                             );
     }
 
     private void populateInputTypeRecord(BMap<BString, Object> typeRecord, GraphQLInputObjectType inputObjectType) {
+
         addValueToRecordField(
-            typeRecord,
-            INPUT_VALUES_FIELD,
-            getInputValuesAsBMap(inputObjectType.getFields())
-        );
+                typeRecord,
+                INPUT_VALUES_FIELD,
+                getInputValuesAsBMap(inputObjectType.getFields())
+                             );
         addValueToRecordField(
-            typeRecord,
-            APPLIED_DIRECTIVES_FIELD,  
-            getAppliedDirectivesAsBMap(inputObjectType.getAppliedDirectives())
-        );
+                typeRecord,
+                APPLIED_DIRECTIVES_FIELD,
+                getAppliedDirectivesAsBMap(inputObjectType.getAppliedDirectives())
+                             );
     }
 
     private void populateUnionTypeRecord(BMap<BString, Object> typeRecord, GraphQLUnionType unionType) {
+
         addValueToRecordField(typeRecord, POSSIBLE_TYPES_FIELD, getPossibleTypesAsBArray(unionType.getTypes()));
         addValueToRecordField(
-            typeRecord,
-            APPLIED_DIRECTIVES_FIELD,
-            getAppliedDirectivesAsBMap(unionType.getAppliedDirectives())
-        );
+                typeRecord,
+                APPLIED_DIRECTIVES_FIELD,
+                getAppliedDirectivesAsBMap(unionType.getAppliedDirectives())
+                             );
     }
 
     private void populateObjectTypeRecord(BMap<BString, Object> typeRecord, GraphQLObjectType objectType) {
+
         addValueToRecordField(typeRecord, FIELDS_FIELD, getFieldsAsBMap(objectType.getFields()));
         addValueToRecordField(typeRecord, INTERFACES_FIELD, getInterfacesBArray(objectType.getInterfaces()));
         addValueToRecordField(
-            typeRecord,
-            APPLIED_DIRECTIVES_FIELD,
-            getAppliedDirectivesAsBMap(objectType.getAppliedDirectives())
-        );
+                typeRecord,
+                APPLIED_DIRECTIVES_FIELD,
+                getAppliedDirectivesAsBMap(objectType.getAppliedDirectives())
+                             );
     }
 
     private void populateEnumTypeRecord(BMap<BString, Object> typeRecord, GraphQLEnumType enumType) {
+
         addValueToRecordField(typeRecord, ENUM_FIELD, getEnumValuesAsBArray(enumType.getValues()));
         addValueToRecordField(
-            typeRecord,
-            APPLIED_DIRECTIVES_FIELD,
-            getAppliedDirectivesAsBMap(enumType.getAppliedDirectives())
-        );
+                typeRecord,
+                APPLIED_DIRECTIVES_FIELD,
+                getAppliedDirectivesAsBMap(enumType.getAppliedDirectives())
+                             );
     }
 
     private BArray getInterfacesBArray(List<GraphQLNamedOutputType> interfaces) {
+
         BArray interfacesBArray = createBArrayFromRecord(createRecord(TYPE_RECORD));
         for (GraphQLNamedOutputType graphQLType : interfaces) {
             interfacesBArray.append(getTypeAsRecord(graphQLType));
@@ -273,47 +284,49 @@ public class Parser {
     }
 
     private BMap<BString, Object> getInputValuesAsBMap(List<? extends GraphQLInputValueDefinition> fields) {
+
         BMap<BString, Object> inputValueRecordsMap = ValueCreator.createMapValue();
         for (GraphQLInputValueDefinition inputValueDefinition : fields) {
             BMap<BString, Object> inputValueRecord = createRecord(INPUT_VALUE_RECORD);
             addValueToRecordField(
-                inputValueRecord, 
-                APPLIED_DIRECTIVES_FIELD,  
-                getAppliedDirectivesAsBMap(inputValueDefinition.getAppliedDirectives())
-            );
+                    inputValueRecord,
+                    APPLIED_DIRECTIVES_FIELD,
+                    getAppliedDirectivesAsBMap(inputValueDefinition.getAppliedDirectives())
+                                 );
             addValueToRecordField(
-                inputValueRecord, 
-                NAME_FIELD,
-                StringUtils.fromString(inputValueDefinition.getName())
-            );
+                    inputValueRecord,
+                    NAME_FIELD,
+                    StringUtils.fromString(inputValueDefinition.getName())
+                                 );
             addValueToRecordField(
-                inputValueRecord, 
-                DESCRIPTION_FIELD,
-                StringUtils.fromString(inputValueDefinition.getDescription())
-            );
+                    inputValueRecord,
+                    DESCRIPTION_FIELD,
+                    StringUtils.fromString(inputValueDefinition.getDescription())
+                                 );
             addValueToRecordField(
-                inputValueRecord, 
-                TYPE_FIELD,
-                getTypeAsRecord(inputValueDefinition.getType())
-            );
+                    inputValueRecord,
+                    TYPE_FIELD,
+                    getTypeAsRecord(inputValueDefinition.getType())
+                                 );
             addValueToRecordField(
-                inputValueRecord, 
-                DEFAULT_VALUE_FIELD,
-                getInputDefaultAsBType(inputValueDefinition)
-            );
+                    inputValueRecord,
+                    DEFAULT_VALUE_FIELD,
+                    getInputDefaultAsBType(inputValueDefinition)
+                                 );
 
             addValueToRecordField(
-                inputValueRecordsMap, 
-                StringUtils.fromString(inputValueDefinition.getName()),
-                inputValueRecord
-            );
+                    inputValueRecordsMap,
+                    StringUtils.fromString(inputValueDefinition.getName()),
+                    inputValueRecord
+                                 );
         }
         return inputValueRecordsMap;
     }
 
     private Object getInputDefaultAsBType(GraphQLInputValueDefinition input) {
+
         Object defaultValue = null;
-        if (input.getClass().equals(GraphQLArgument.class) 
+        if (input.getClass().equals(GraphQLArgument.class)
                 && ((GraphQLArgument) input).hasSetDefaultValue()) {
             defaultValue = ((GraphQLArgument) input).getArgumentDefaultValue().getValue();
 
@@ -325,6 +338,7 @@ public class Parser {
     }
 
     private Object getValueAsBType(Object valueObject) {
+
         if (valueObject instanceof FloatValue) {
             return ((FloatValue) valueObject).getValue().doubleValue();
         } else if (valueObject instanceof IntValue) {
@@ -348,54 +362,57 @@ public class Parser {
     }
 
     private Object getAppliedDirectivesAsBMap(List<GraphQLAppliedDirective> appliedDirectives) {
+
         BMap<BString, Object> appliedDirectivesBMap = ValueCreator.createMapValue();
         for (GraphQLAppliedDirective directive : appliedDirectives) {
             BMap<BString, Object> appliedDirectiveRecord = createRecord(APPLIED_DIRECTIVE_RECORD);
             addValueToRecordField(
-                appliedDirectiveRecord,
-                ARGS_FIELD,  
-                getAppliedDirectiveArgumentsAsBMap(directive.getArguments())
-            );
+                    appliedDirectiveRecord,
+                    ARGS_FIELD,
+                    getAppliedDirectiveArgumentsAsBMap(directive.getArguments())
+                                 );
             addValueToRecordField(
-                appliedDirectiveRecord,
-                DEFINITION_FIELD,
-                directives.get(directive.getName())
-            );
+                    appliedDirectiveRecord,
+                    DEFINITION_FIELD,
+                    directives.get(directive.getName())
+                                 );
 
             addValueToRecordField(
-                appliedDirectivesBMap,
-                StringUtils.fromString(directive.getName()),
-                appliedDirectiveRecord
-            );
+                    appliedDirectivesBMap,
+                    StringUtils.fromString(directive.getName()),
+                    appliedDirectiveRecord
+                                 );
         }
         return appliedDirectivesBMap;
     }
 
     private Object getAppliedDirectiveArgumentsAsBMap(List<GraphQLAppliedDirectiveArgument> arguments) {
+
         BMap<BString, Object> argumentsBMap = ValueCreator.createMapValue();
         for (GraphQLAppliedDirectiveArgument argument : arguments) {
             BMap<BString, Object> appliedArgumentInputValueRecord = createRecord(APPLIED_DIRECTIVE_INPUT_VALUE_RECORD);
             addValueToRecordField(
-                appliedArgumentInputValueRecord,
-                DEFINITION_FIELD,
-                getTypeAsRecord(argument.getType())
-            );
+                    appliedArgumentInputValueRecord,
+                    DEFINITION_FIELD,
+                    getTypeAsRecord(argument.getType())
+                                 );
             addValueToRecordField(
-                appliedArgumentInputValueRecord,
-                VALUE_FIELD,
-                getValueAsBType(argument.getArgumentValue().getValue())
-            );
+                    appliedArgumentInputValueRecord,
+                    VALUE_FIELD,
+                    getValueAsBType(argument.getArgumentValue().getValue())
+                                 );
 
             addValueToRecordField(
-                argumentsBMap,
-                StringUtils.fromString(argument.getName()),
-                appliedArgumentInputValueRecord
-            );
+                    argumentsBMap,
+                    StringUtils.fromString(argument.getName()),
+                    appliedArgumentInputValueRecord
+                                 );
         }
         return argumentsBMap;
     }
 
     private BArray getPossibleTypesAsBArray(List<GraphQLNamedOutputType> namedTypes) {
+
         BArray possibleTypesBArray = createBArrayFromRecord(createRecord(TYPE_RECORD));
         for (GraphQLNamedOutputType graphQLNamedOutputType : namedTypes) {
             possibleTypesBArray.append(getTypeAsRecord(graphQLNamedOutputType));
@@ -404,34 +421,35 @@ public class Parser {
     }
 
     private BArray getEnumValuesAsBArray(List<GraphQLEnumValueDefinition> enumValueDefinitions) {
+
         BArray enumValuesBArray = createBArrayFromRecord(createRecord(ENUM_VALUE_RECORD));
         for (GraphQLEnumValueDefinition enumValueDefinition : enumValueDefinitions) {
             BMap<BString, Object> enumValueRecord = createRecord(ENUM_VALUE_RECORD);
             addValueToRecordField(
-                enumValueRecord, 
-                APPLIED_DIRECTIVES_FIELD,  
-                getAppliedDirectivesAsBMap(enumValueDefinition.getAppliedDirectives())
-            );
+                    enumValueRecord,
+                    APPLIED_DIRECTIVES_FIELD,
+                    getAppliedDirectivesAsBMap(enumValueDefinition.getAppliedDirectives())
+                                 );
             addValueToRecordField(
-                enumValueRecord, 
-                NAME_FIELD,
-                StringUtils.fromString(enumValueDefinition.getName())
-            );
+                    enumValueRecord,
+                    NAME_FIELD,
+                    StringUtils.fromString(enumValueDefinition.getName())
+                                 );
             addValueToRecordField(
-                enumValueRecord, 
-                DESCRIPTION_FIELD,
-                StringUtils.fromString(enumValueDefinition.getDescription())
-            );
+                    enumValueRecord,
+                    DESCRIPTION_FIELD,
+                    StringUtils.fromString(enumValueDefinition.getDescription())
+                                 );
             addValueToRecordField(
-                enumValueRecord, 
-                IS_DEPRECATED_FIELD,
-                enumValueDefinition.isDeprecated()
-            );
+                    enumValueRecord,
+                    IS_DEPRECATED_FIELD,
+                    enumValueDefinition.isDeprecated()
+                                 );
             addValueToRecordField(
-                enumValueRecord, 
-                DEPRECATION_REASON_FIELD,
-                StringUtils.fromString(enumValueDefinition.getDeprecationReason())
-            );
+                    enumValueRecord,
+                    DEPRECATION_REASON_FIELD,
+                    StringUtils.fromString(enumValueDefinition.getDeprecationReason())
+                                 );
 
             enumValuesBArray.append(enumValueRecord);
         }
@@ -440,6 +458,7 @@ public class Parser {
     }
 
     private BArray getDirectiveLocationsAsBArray(List<DirectiveLocation> locations) {
+
         BString[] locationsArray = new BString[locations.size()];
         for (int i = 0; i < locations.size(); i++) {
             locationsArray[i] = StringUtils.fromString(locations.get(i).getName());
@@ -448,6 +467,7 @@ public class Parser {
     }
 
     private BMap<BString, Object> getFieldsAsBMap(List<GraphQLFieldDefinition> fields) {
+
         BMap<BString, Object> fieldsBArray = ValueCreator.createMapValue();
         for (GraphQLFieldDefinition fieldDefinition : fields) {
             BMap<BString, Object> fieldRecord = createRecord(FIELD_RECORD);
@@ -455,29 +475,30 @@ public class Parser {
             addValueToRecordField(fieldRecord, TYPE_FIELD, getTypeAsRecord(fieldDefinition.getType()));
             addValueToRecordField(fieldRecord, ARGS_FIELD, getInputValuesAsBMap(fieldDefinition.getArguments()));
             addValueToRecordField(
-                fieldRecord, 
-                APPLIED_DIRECTIVES_FIELD,
-                getAppliedDirectivesAsBMap(fieldDefinition.getAppliedDirectives())
-            );
+                    fieldRecord,
+                    APPLIED_DIRECTIVES_FIELD,
+                    getAppliedDirectivesAsBMap(fieldDefinition.getAppliedDirectives())
+                                 );
             addValueToRecordField(fieldsBArray, StringUtils.fromString(fieldDefinition.getName()), fieldRecord);
         }
         return fieldsBArray;
     }
 
     private BMap<BString, Object> getTypeAsRecord(GraphQLType type) {
+
         BMap<BString, Object> typeRecord;
         if (type.getClass().equals(GraphQLList.class) || type.getClass().equals(GraphQLNonNull.class)) {
             typeRecord = createRecord(TYPE_RECORD);
             addValueToRecordField(
-                typeRecord, 
-                OF_TYPE_FIELD,
-                getTypeAsRecord(((GraphQLModifiedType) type).getWrappedType())
-            );
+                    typeRecord,
+                    OF_TYPE_FIELD,
+                    getTypeAsRecord(((GraphQLModifiedType) type).getWrappedType())
+                                 );
             addValueToRecordField(
-                typeRecord, 
-                KIND_FIELD,
-                StringUtils.fromString(getTypeKindFromType(type).toString())
-            );
+                    typeRecord,
+                    KIND_FIELD,
+                    StringUtils.fromString(getTypeKindFromType(type).toString())
+                                 );
         } else {
             typeRecord = types.get(((GraphQLNamedType) type).getName());
         }
@@ -485,22 +506,23 @@ public class Parser {
     }
 
     private BMap<BString, Object> generateSchemaRecord() {
+
         BMap<BString, Object> graphQLSchemaRecord = createRecord(SCHEMA_RECORD);
         BMap<BString, Object> schemaRecordTypes = ValueCreator.createMapValue();
         BMap<BString, Object> schemaDirectives = ValueCreator.createMapValue();
         for (Map.Entry<String, BMap<BString, Object>> type : types.entrySet()) {
             addValueToRecordField(
-                schemaRecordTypes,
-                StringUtils.fromString(type.getKey()),
-                type.getValue()
-            );
+                    schemaRecordTypes,
+                    StringUtils.fromString(type.getKey()),
+                    type.getValue()
+                                 );
         }
         for (Map.Entry<String, BMap<BString, Object>> directive : directives.entrySet()) {
             addValueToRecordField(
-                schemaDirectives,
-                StringUtils.fromString(directive.getKey()), 
-                directive.getValue()
-            );
+                    schemaDirectives,
+                    StringUtils.fromString(directive.getKey()),
+                    directive.getValue()
+                                 );
         }
         addValueToRecordField(graphQLSchemaRecord, ROOT_QUERY_FIELD, types.get(QUERY_TYPE_NAME));
         addValueToRecordField(graphQLSchemaRecord, ROOT_MUTATION_FIELD, types.get(MUTATION_TYPE_NAME));
