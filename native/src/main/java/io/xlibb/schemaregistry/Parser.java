@@ -133,23 +133,25 @@ public class Parser {
     private void addTypesShallow() {
 
         for (GraphQLNamedType graphQLType : schema.getTypeMap().values()) {
-            BMap<BString, Object> typeRecord = createRecord(TYPE_RECORD);
-            addValueToRecordField(
-                    typeRecord,
-                    KIND_FIELD,
-                    StringUtils.fromString(getTypeKindFromType(graphQLType).toString())
-                                 );
-            addValueToRecordField(
-                    typeRecord,
-                    NAME_FIELD,
-                    StringUtils.fromString(graphQLType.getName())
-                                 );
-            addValueToRecordField(
-                    typeRecord,
-                    DESCRIPTION_FIELD,
-                    StringUtils.fromString(graphQLType.getDescription())
-                                 );
-            types.put(graphQLType.getName(), typeRecord);
+            if (!isIntrospectionType(graphQLType)) {
+                BMap<BString, Object> typeRecord = createRecord(TYPE_RECORD);
+                addValueToRecordField(
+                        typeRecord,
+                        KIND_FIELD,
+                        StringUtils.fromString(getTypeKindFromType(graphQLType).toString())
+                                    );
+                addValueToRecordField(
+                        typeRecord,
+                        NAME_FIELD,
+                        StringUtils.fromString(graphQLType.getName())
+                                    );
+                addValueToRecordField(
+                        typeRecord,
+                        DESCRIPTION_FIELD,
+                        StringUtils.fromString(graphQLType.getDescription())
+                                    );
+                types.put(graphQLType.getName(), typeRecord);
+            }
         }
     }
 
@@ -195,16 +197,18 @@ public class Parser {
         for (GraphQLNamedType graphQLType : schema.getTypeMap().values()) {
 
             BMap<BString, Object> typeRecord = types.get(graphQLType.getName());
-            TypeKind graphQLTypeKind = getTypeKindFromType(graphQLType);
+            if (typeRecord != null) {
+                TypeKind graphQLTypeKind = getTypeKindFromType(graphQLType);
 
-            switch (graphQLTypeKind) {
-                case OBJECT -> populateObjectTypeRecord(typeRecord, (GraphQLObjectType) graphQLType);
-                case ENUM -> populateEnumTypeRecord(typeRecord, (GraphQLEnumType) graphQLType);
-                case UNION -> populateUnionTypeRecord(typeRecord, (GraphQLUnionType) graphQLType);
-                case INPUT_OBJECT -> populateInputTypeRecord(typeRecord, (GraphQLInputObjectType) graphQLType);
-                case INTERFACE -> populateInterfaceTypeRecord(typeRecord, (GraphQLInterfaceType) graphQLType);
-                case SCALAR -> populateScalarTypeRecord(typeRecord, (GraphQLScalarType) graphQLType);
-                default -> {
+                switch (graphQLTypeKind) {
+                    case OBJECT -> populateObjectTypeRecord(typeRecord, (GraphQLObjectType) graphQLType);
+                    case ENUM -> populateEnumTypeRecord(typeRecord, (GraphQLEnumType) graphQLType);
+                    case UNION -> populateUnionTypeRecord(typeRecord, (GraphQLUnionType) graphQLType);
+                    case INPUT_OBJECT -> populateInputTypeRecord(typeRecord, (GraphQLInputObjectType) graphQLType);
+                    case INTERFACE -> populateInterfaceTypeRecord(typeRecord, (GraphQLInterfaceType) graphQLType);
+                    case SCALAR -> populateScalarTypeRecord(typeRecord, (GraphQLScalarType) graphQLType);
+                    default -> {
+                    }
                 }
             }
         }
@@ -502,6 +506,11 @@ public class Parser {
             typeRecord = types.get(((GraphQLNamedType) type).getName());
         }
         return typeRecord;
+    }
+
+    private boolean isIntrospectionType(GraphQLNamedType graphQLType) {
+
+        return (graphQLType.getName().startsWith("__"));
     }
 
     private BMap<BString, Object> generateSchemaRecord() {
