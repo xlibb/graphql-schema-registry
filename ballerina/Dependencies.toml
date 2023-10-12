@@ -9,6 +9,21 @@ distribution-version = "2201.8.0"
 
 [[package]]
 org = "ballerina"
+name = "file"
+version = "1.9.0"
+scope = "testOnly"
+dependencies = [
+	{org = "ballerina", name = "io"},
+	{org = "ballerina", name = "jballerina.java"},
+	{org = "ballerina", name = "os"},
+	{org = "ballerina", name = "time"}
+]
+modules = [
+	{org = "ballerina", packageName = "file", moduleName = "file"}
+]
+
+[[package]]
+org = "ballerina"
 name = "io"
 version = "1.6.0"
 dependencies = [
@@ -46,6 +61,16 @@ dependencies = [
 
 [[package]]
 org = "ballerina"
+name = "os"
+version = "1.8.0"
+scope = "testOnly"
+dependencies = [
+	{org = "ballerina", name = "io"},
+	{org = "ballerina", name = "jballerina.java"}
+]
+
+[[package]]
+org = "ballerina"
 name = "test"
 version = "0.0.0"
 scope = "testOnly"
@@ -58,10 +83,20 @@ modules = [
 ]
 
 [[package]]
+org = "ballerina"
+name = "time"
+version = "2.4.0"
+scope = "testOnly"
+dependencies = [
+	{org = "ballerina", name = "jballerina.java"}
+]
+
+[[package]]
 org = "xlibb"
 name = "graphql_schema_registry"
 version = "1.0.0"
 dependencies = [
+	{org = "ballerina", name = "file"},
 	{org = "ballerina", name = "io"},
 	{org = "ballerina", name = "jballerina.java"},
 	{org = "ballerina", name = "test"}
