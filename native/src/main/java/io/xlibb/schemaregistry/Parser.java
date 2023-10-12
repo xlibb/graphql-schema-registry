@@ -232,6 +232,11 @@ public class Parser {
                 APPLIED_DIRECTIVES_FIELD,
                 getAppliedDirectivesAsBMap(interfaceType.getAppliedDirectives())
                              );
+        addValueToRecordField(
+                typeRecord,
+                POSSIBLE_TYPES_FIELD,
+                createBArrayFromRecord(createRecord(TYPE_RECORD)) // TODO: Get possible types of the interface
+                             );
     }
 
     private void populateInputTypeRecord(BMap<BString, Object> typeRecord, GraphQLInputObjectType inputObjectType) {
