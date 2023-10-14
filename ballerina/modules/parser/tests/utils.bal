@@ -105,13 +105,6 @@ isolated function wrapType(__Type 'type, WRAPPING_TYPE kind) returns __Type {
 
 isolated function getGraphqlSdlFromFile(string fileName) returns string|error {
     string gqlFileName = string `${fileName}.graphql`;
-    string path = check file:joinPath("tests", "resources", "sdl", gqlFileName);
+    string path = check file:joinPath("modules", "parser", "tests", "resources", "sdl", gqlFileName);
     return io:fileReadString(path);
-}
-
-isolated function getTypeMapFromJson(string fileName) returns [__Type]|error {
-    string gqlFileName = string `${fileName}.json`;
-    string path = check file:joinPath("tests", "resources", "expected_results", gqlFileName);
-    json jsonTypes = check io:fileReadJson(path);
-    return jsonTypes.cloneWithType([__Type]);
 }
