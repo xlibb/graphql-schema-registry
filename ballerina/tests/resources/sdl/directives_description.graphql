@@ -1,0 +1,6 @@
+"Custom directive description"
+directive @customDirective on FIELD_DEFINITION | OBJECT
+
+type Query {
+    name: String
+}

@@ -1,0 +1,9 @@
+extend schema
+  @link(url: "https://specs.apollo.dev/federation/v2.3",
+        import: [   
+                    "@external", "@requires", "@key", "@inaccessible", "@tag", "@override", "@composeDirective"
+                    "@shareable", "@provides", "@interfaceObject", "@authenticated", "@requiresScopes"])
+
+type Query {
+    name: String
+}

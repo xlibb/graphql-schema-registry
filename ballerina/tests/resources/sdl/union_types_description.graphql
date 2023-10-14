@@ -1,0 +1,14 @@
+type Query {
+    query: String
+}
+
+type Dog {
+    name: String
+}
+
+type Cat {
+    name: String
+}
+
+"This is a union description"
+union Pet = Cat | Dog

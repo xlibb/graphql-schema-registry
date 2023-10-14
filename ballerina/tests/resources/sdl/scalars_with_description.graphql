@@ -1,0 +1,6 @@
+"Email description"
+scalar Email
+
+type Query {
+    getEmails: [Email!]!
+}

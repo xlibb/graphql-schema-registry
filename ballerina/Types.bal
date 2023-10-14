@@ -35,7 +35,7 @@ public type __AppliedDirective record {
 
 public type __AppliedDirectiveInputValue record {
     anydata? value = ();
-    __InputValue definition;
+    __Type definition;
 };
 
 public enum __DirectiveLocation {

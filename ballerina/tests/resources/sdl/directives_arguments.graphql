@@ -1,0 +1,5 @@
+directive @customDirective(arg: String, repeat: Boolean) on FIELD_DEFINITION | OBJECT
+
+type Query {
+    name: String
+}

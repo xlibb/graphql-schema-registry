@@ -5,15 +5,7 @@ import ballerina/test;
     dataProvider:  dataProviderBuiltInScalars
 }
 function testBuiltInScalars(string scalarName, __Type expectedScalar) returns error? {
-    string sdl = string `
-        type Query {
-            string: String
-            bool: Boolean
-            float: Float
-            id: ID
-            int: Int
-        }
-    `;
+    string sdl = check getGraphqlSdlFromFile("builtin_scalars");
     Parser parser = new(sdl, SCHEMA);
     __Schema parsedSchema = check parser.parse();
     test:assertEquals(parsedSchema.types.get(scalarName), expectedScalar);

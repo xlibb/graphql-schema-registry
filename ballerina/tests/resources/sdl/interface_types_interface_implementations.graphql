@@ -1,0 +1,16 @@
+type Query {
+    person: Person!
+}
+
+interface Person {
+    name: String
+}
+
+interface Citizen {
+    id: ID
+}
+
+interface Worker implements Citizen & Person {
+    id: ID
+    name: String
+}

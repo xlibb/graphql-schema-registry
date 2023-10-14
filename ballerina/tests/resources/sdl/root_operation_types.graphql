@@ -1,0 +1,11 @@
+type Query {
+    name: String
+}
+
+type Mutation {
+    number(page: Int): Float
+}
+
+type Subscription {
+    name: String
+}

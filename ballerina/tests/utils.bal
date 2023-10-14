@@ -1,3 +1,34 @@
+import ballerina/file;
+import ballerina/io;
+
+// Built-in Scalars
+__Type Boolean = {
+    kind: SCALAR,
+    name: "Boolean",
+    description: "Built-in Boolean"
+};
+__Type String = {
+    kind: SCALAR,
+    name: "String",
+    description: "Built-in String"
+};
+__Type Float = {
+    kind: SCALAR,
+    name: "Float",
+    description: "Built-in Float"
+};
+__Type Int = {
+    kind: SCALAR,
+    name: "Int",
+    description: "Built-in Int"
+};
+__Type ID = {
+    kind: SCALAR,
+    name: "ID",
+    description: "Built-in ID"
+};
+
+// Built-in Directives
 __Directive include = {
     name: "include",
     locations: [ FIELD, FRAGMENT_SPREAD, INLINE_FRAGMENT ],
@@ -63,3 +94,24 @@ __Directive skip = {
     },
     isRepeatable: false
 };
+
+type WRAPPING_TYPE NON_NULL | LIST;
+isolated function wrapType(__Type 'type, WRAPPING_TYPE kind) returns __Type {
+    return {
+        kind: kind,
+        ofType: 'type
+    };
+}
+
+isolated function getGraphqlSdlFromFile(string fileName) returns string|error {
+    string gqlFileName = string `${fileName}.graphql`;
+    string path = check file:joinPath("tests", "resources", "sdl", gqlFileName);
+    return io:fileReadString(path);
+}
+
+isolated function getTypeMapFromJson(string fileName) returns [__Type]|error {
+    string gqlFileName = string `${fileName}.json`;
+    string path = check file:joinPath("tests", "resources", "expected_results", gqlFileName);
+    json jsonTypes = check io:fileReadJson(path);
+    return jsonTypes.cloneWithType([__Type]);
+}

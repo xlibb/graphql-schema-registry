@@ -1,0 +1,15 @@
+directive @testDirective on UNION
+
+type Query {
+    query: String
+}
+
+type Dog {
+    name: String
+}
+
+type Cat {
+    name: String
+}
+
+union Pet @testDirective = Cat | Dog 

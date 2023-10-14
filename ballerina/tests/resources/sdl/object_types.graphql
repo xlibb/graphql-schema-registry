@@ -1,0 +1,12 @@
+type Query {
+    address: Address
+}
+
+type Person {
+    id: ID
+    address: Address
+}
+
+type Address {
+    town: String
+}

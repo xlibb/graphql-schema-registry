@@ -1,0 +1,9 @@
+directive @testDirective on OBJECT
+
+type Query {
+    person: Person
+}
+
+type Person @testDirective {
+    id: ID
+}

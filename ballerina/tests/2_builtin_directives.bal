@@ -4,22 +4,18 @@ import ballerina/test;
     groups: ["builtin", "directives"],
     dataProvider:  dataProviderBuiltInDirectives
 }
-function testBuiltInDirectives(string scalarName, __Directive expectedDirective) returns error? {
-    string sdl = string `
-        type Query {
-            string: String
-        }
-    `;
+function testBuiltInDirectives(__Directive expectedDirective) returns error? {
+    string sdl = check getGraphqlSdlFromFile("builtin_scalars");
     Parser parser = new(sdl, SCHEMA);
     __Schema parsedSchema = check parser.parse();
-    test:assertEquals(parsedSchema.directives.get(scalarName), expectedDirective);
+    test:assertEquals(parsedSchema.directives.get(expectedDirective.name), expectedDirective);
 }
 
-function dataProviderBuiltInDirectives() returns map<[string, __Directive]> {
+function dataProviderBuiltInDirectives() returns map<[__Directive]> {
     return { 
-        "deprecated"  : ["deprecated", deprecated],
-        "skip"        : ["skip", skip],
-        "include"     : ["include", include],
-        "specifiedBy" : ["specifiedBy", specifiedBy]
+        "deprecated"  : [deprecated],
+        "skip"        : [skip],
+        "include"     : [include],
+        "specifiedBy" : [specifiedBy]
     };
 }

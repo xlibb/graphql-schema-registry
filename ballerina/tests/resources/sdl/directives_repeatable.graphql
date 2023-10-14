@@ -1,0 +1,5 @@
+directive @customDirective repeatable on FIELD_DEFINITION | OBJECT
+
+type Query {
+    name: String
+}

@@ -1,0 +1,20 @@
+type Query {
+    person: Person!
+}
+
+interface Person {
+    name: String
+}
+
+interface Worker {
+    salary: Float
+}
+
+type Student implements Person {
+    name: String
+}
+
+type Teacher implements Person & Worker {
+    name: String
+    salary: Float
+}

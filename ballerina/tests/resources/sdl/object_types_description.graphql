@@ -1,0 +1,8 @@
+type Query {
+    person: Person!
+}
+
+"This represents a Person"
+type Person {
+    id: ID
+}
