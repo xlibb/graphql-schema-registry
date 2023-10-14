@@ -102,6 +102,7 @@ dependencies = [
 	{org = "ballerina", name = "test"}
 ]
 modules = [
-	{org = "xlibb", packageName = "graphql_schema_registry", moduleName = "graphql_schema_registry"}
+	{org = "xlibb", packageName = "graphql_schema_registry", moduleName = "graphql_schema_registry"},
+	{org = "xlibb", packageName = "graphql_schema_registry", moduleName = "graphql_schema_registry.parser"}
 ]
 
