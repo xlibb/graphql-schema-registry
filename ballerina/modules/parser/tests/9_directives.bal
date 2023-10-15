@@ -51,12 +51,12 @@ function testDirective(string fileName, __Directive expectedDirective) returns e
                         "arg": {
                             name: "arg",
                             appliedDirectives: {},
-                            'type: String
+                            'type: gql_String
                         },
                         "repeat": {
                             name: "repeat",
                             appliedDirectives: {},
-                            'type: Boolean
+                            'type: gql_Boolean
                         }
                     }
                 }

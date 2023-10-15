@@ -13,10 +13,10 @@ function testBuiltInScalars(string scalarName, __Type expectedScalar) returns er
 
 function dataProviderBuiltInScalars() returns map<[string, __Type]> {
     return { 
-        "Boolean": ["Boolean", Boolean],
-        "String" : ["String", String],
-        "Float"  : ["Float", Float],
-        "Int"    : ["Int", Int],
-        "ID"     : ["ID", ID]
+        "Boolean": ["Boolean", gql_Boolean],
+        "String" : ["String", gql_String],
+        "Float"  : ["Float", gql_Float],
+        "Int"    : ["Int", gql_Int],
+        "ID"     : ["ID", gql_ID]
     };
 }

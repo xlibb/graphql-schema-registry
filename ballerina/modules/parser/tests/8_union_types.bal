@@ -4,7 +4,7 @@ __Type dogType = {
     kind: OBJECT,
     name: "Dog",
     fields: {
-        "name": { name: "name", args: {}, 'type: String }
+        "name": { name: "name", args: {}, 'type: gql_String }
     },
     interfaces: []
 };
@@ -12,7 +12,7 @@ __Type catType = {
     kind: OBJECT,
     name: "Cat",
     fields: {
-        "name": { name: "name", args: {}, 'type: String }
+        "name": { name: "name", args: {}, 'type: gql_String }
     },
     interfaces: []
 };

@@ -26,7 +26,7 @@ function testAppliedDirective(string fileName, string fieldName, map<__AppliedDi
                         args: {
                             "reason": {
                                 value: "This field is deprecated",
-                                definition: String
+                                definition: gql_String
                             }
                         },
                         definition: deprecated
@@ -39,7 +39,7 @@ function testAppliedDirective(string fileName, string fieldName, map<__AppliedDi
                         args: {
                             "reason": {
                                 value: "No longer supported",
-                                definition: String
+                                definition: gql_String
                             }
                         },
                         definition: deprecated

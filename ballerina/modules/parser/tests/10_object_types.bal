@@ -9,7 +9,7 @@ function testCustomObjectTypes() returns error? {
         kind: OBJECT,
         name: "Address",
         fields: {
-            "town": { name: "town", args: {}, 'type: String }
+            "town": { name: "town", args: {}, 'type: gql_String }
         },
         interfaces: []
     };
@@ -17,7 +17,7 @@ function testCustomObjectTypes() returns error? {
         kind: OBJECT,
         name: "Person",
         fields: {
-            "id": { name: "id", args: {}, 'type: ID },
+            "id": { name: "id", args: {}, 'type: gql_ID },
             "address": { name: "address", args: {}, 'type: addressType }
         },
         interfaces: []
@@ -38,7 +38,7 @@ function testCustomObjectTypesDescription() returns error? {
         kind: OBJECT,
         name: "Person",
         fields: {
-            "id": { name: "id", args: {}, 'type: ID }
+            "id": { name: "id", args: {}, 'type: gql_ID }
         },
         interfaces: [],
         description: "This represents a Person"
@@ -58,7 +58,7 @@ function testCustomObjectTypeInterfaceImplementations() returns error? {
         kind: INTERFACE,
         name: "Person",
         fields: {
-            "name": { name: "name", args: {}, 'type: String }
+            "name": { name: "name", args: {}, 'type: gql_String }
         },
         interfaces: [],
         possibleTypes: []
@@ -67,7 +67,7 @@ function testCustomObjectTypeInterfaceImplementations() returns error? {
         kind: INTERFACE,
         name: "Worker",
         fields: {
-            "salary": { name: "salary", args: {}, 'type: Float }
+            "salary": { name: "salary", args: {}, 'type: gql_Float }
         },
         interfaces: [],
         possibleTypes: []
@@ -76,7 +76,7 @@ function testCustomObjectTypeInterfaceImplementations() returns error? {
         kind: OBJECT,
         name: "Student",
         fields: {
-            "name": { name: "name", args: {}, 'type: String }
+            "name": { name: "name", args: {}, 'type: gql_String }
         },
         interfaces: [ personInterface ]
     };
@@ -84,8 +84,8 @@ function testCustomObjectTypeInterfaceImplementations() returns error? {
         kind: OBJECT,
         name: "Teacher",
         fields: {
-            "name": { name: "name", args: {}, 'type: String },
-            "salary": { name: "salary", args: {}, 'type: Float }
+            "name": { name: "name", args: {}, 'type: gql_String },
+            "salary": { name: "salary", args: {}, 'type: gql_Float }
         },
         interfaces: [ personInterface, workerInterface ]
     };
@@ -111,7 +111,7 @@ function testCustomObjectTypeAppliedDirective() returns error? {
         kind: OBJECT,
         name: "Person",
         fields: {
-            "id": { name: "id", args: {}, 'type: ID }
+            "id": { name: "id", args: {}, 'type: gql_ID }
         },
         interfaces: [],
         appliedDirectives: {

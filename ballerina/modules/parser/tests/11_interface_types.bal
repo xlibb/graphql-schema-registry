@@ -9,7 +9,7 @@ function testCustomInterfaceTypes() returns error? {
         kind: INTERFACE,
         name: "Person",
         fields: {
-            "name": { name: "name", args: {}, 'type: String }
+            "name": { name: "name", args: {}, 'type: gql_String }
         },
         interfaces: [],
         possibleTypes: []
@@ -29,7 +29,7 @@ function testCustomInterfaceTypesDescription() returns error? {
         kind: INTERFACE,
         name: "Person",
         fields: {
-            "name": { name: "name", args: {}, 'type: String }
+            "name": { name: "name", args: {}, 'type: gql_String }
         },
         description: "This is a person interface",
         interfaces: [],
@@ -50,7 +50,7 @@ function testCustomInterfaceTypesInterfaceImplementations() returns error? {
         kind: INTERFACE,
         name: "Person",
         fields: {
-            "name": { name: "name", args: {}, 'type: String }
+            "name": { name: "name", args: {}, 'type: gql_String }
         },
         interfaces: [],
         possibleTypes: []
@@ -59,7 +59,7 @@ function testCustomInterfaceTypesInterfaceImplementations() returns error? {
         kind: INTERFACE,
         name: "Citizen",
         fields: {
-            "id": { name: "id", args: {}, 'type: ID }
+            "id": { name: "id", args: {}, 'type: gql_ID }
         },
         interfaces: [],
         possibleTypes: []
@@ -68,8 +68,8 @@ function testCustomInterfaceTypesInterfaceImplementations() returns error? {
         kind: INTERFACE,
         name: "Worker",
         fields: {
-            "id": { name: "id", args: {}, 'type: ID },
-            "name": { name: "name", args: {}, 'type: String }
+            "id": { name: "id", args: {}, 'type: gql_ID },
+            "name": { name: "name", args: {}, 'type: gql_String }
         },
         interfaces: [ citizenInterface, personInterface ],
         possibleTypes: []
@@ -95,7 +95,7 @@ function testCustomInterfaceTypeAppliedDirective() returns error? {
         kind: INTERFACE,
         name: "Person",
         fields: {
-            "name": { name: "name", args: {}, 'type: String }
+            "name": { name: "name", args: {}, 'type: gql_String }
         },
         interfaces: [],
         possibleTypes: [],

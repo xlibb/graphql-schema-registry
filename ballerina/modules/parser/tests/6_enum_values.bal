@@ -24,7 +24,7 @@ function testEnumValues(string fileName, string typeName, __EnumValue[] expected
                 [ { name: "ON_HOLD", appliedDirectives: {
                     "deprecated": {
                         args: {
-                            "reason": { value: "Added PAUSED", definition: String }
+                            "reason": { value: "Added PAUSED", definition: gql_String }
                         },
                         definition: deprecated
                     }

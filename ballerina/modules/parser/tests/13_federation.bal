@@ -41,7 +41,7 @@ function testFederationBuiltin() returns error? {
         name: "_Service",
         kind: OBJECT,
         fields: {
-            "sdl": { name: "sdl", args: {}, 'type: wrapType(String, NON_NULL) }
+            "sdl": { name: "sdl", args: {}, 'type: wrapType(gql_String, NON_NULL) }
         },
         interfaces: []
     };
@@ -49,8 +49,8 @@ function testFederationBuiltin() returns error? {
         name: "link",
         locations: [ SCHEMA ],
         args: {
-            "url": { name: "url", 'type: wrapType(String, NON_NULL) },
-            "as": { name: "as", 'type: String },
+            "url": { name: "url", 'type: wrapType(gql_String, NON_NULL) },
+            "as": { name: "as", 'type: gql_String },
             "for": { name: "for", 'type: link__Purpose_enum },
             "import": { name: "import", 'type: wrapType(link__Import_scalar, LIST) }
         },
@@ -114,7 +114,7 @@ function dataProviderFederationImports() returns __Directive[][] {
             locations: [ OBJECT, INTERFACE ],
             args: {
                 "fields": { name: "fields", 'type: wrapType(field_set_scalar, NON_NULL) },
-                "resolvable": { name: "resolvable", 'type: Boolean, defaultValue: true }
+                "resolvable": { name: "resolvable", 'type: gql_Boolean, defaultValue: true }
             },
             isRepeatable: true
         }],
@@ -136,7 +136,7 @@ function dataProviderFederationImports() returns __Directive[][] {
             locations: [ SCALAR, OBJECT, FIELD_DEFINITION, ARGUMENT_DEFINITION, INTERFACE, UNION, 
                          ENUM, ENUM_VALUE, INPUT_OBJECT, INPUT_FIELD_DEFINITION ],
             args: {
-                "name": { name: "name", 'type: wrapType(String, NON_NULL) }
+                "name": { name: "name", 'type: wrapType(gql_String, NON_NULL) }
             },
             isRepeatable: true
         }],
@@ -144,7 +144,7 @@ function dataProviderFederationImports() returns __Directive[][] {
             name: "override",
             locations: [ FIELD_DEFINITION ],
             args: {
-                "from": { name: "from", 'type: wrapType(String, NON_NULL) }
+                "from": { name: "from", 'type: wrapType(gql_String, NON_NULL) }
             },
             isRepeatable: false
         }],
@@ -152,7 +152,7 @@ function dataProviderFederationImports() returns __Directive[][] {
             name: "composeDirective",
             locations: [ SCHEMA ],
             args: {
-                "name": { name: "name", 'type: wrapType(String, NON_NULL) }
+                "name": { name: "name", 'type: wrapType(gql_String, NON_NULL) }
             },
             isRepeatable: true
         }],

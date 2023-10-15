@@ -9,7 +9,7 @@ function testRootOperationTypes() returns error? {
         kind: OBJECT,
         name: "Query",
         fields: {
-            "name": { name: "name", args: {}, 'type: String }
+            "name": { name: "name", args: {}, 'type: gql_String }
         },
         interfaces: []
     };
@@ -17,7 +17,7 @@ function testRootOperationTypes() returns error? {
         kind: OBJECT,
         name: "Mutation",
         fields: {
-            "number": { name: "number", args: { "page": { name: "page", 'type: Int } }, 'type: Float }
+            "number": { name: "number", args: { "page": { name: "page", 'type: gql_Int } }, 'type: gql_Float }
         },
         interfaces: []
     };
@@ -25,7 +25,7 @@ function testRootOperationTypes() returns error? {
         kind: OBJECT,
         name: "Subscription",
         fields: {
-            "name": { name: "name", args: {}, 'type: String }
+            "name": { name: "name", args: {}, 'type: gql_String }
         },
         interfaces: []
     };
