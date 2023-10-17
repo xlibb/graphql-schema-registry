@@ -1,5 +1,18 @@
 import graphql_schema_registry.parser;
 
+string & readonly JOIN_GRAPH_TYPE = "join__Graph";
+string & readonly JOIN_FIELDSET_TYPE = "join__FieldSet";
+string & readonly LINK_IMPORT_TYPE = "link__Import";
+string & readonly LINK_PURPOSE_TYPE = "link__Purpose";
+
+string & readonly LINK_DIR = "link";
+string & readonly JOIN_ENUMVALUE_DIR = "join__enumValue";
+string & readonly JOIN_FIELD_DIR = "join__field";
+string & readonly JOIN_UNION_MEMBER_DIR = "join__unionMember";
+string & readonly JOIN_IMPLEMENTS_DIR = "join__implements";
+string & readonly JOIN_TYPE_DIR = "join__type";
+string & readonly JOIN_GRAPH_DIR = "join__graph";
+
 function addFederationTypes(parser:__Schema supergraph_schema, Subgraph[] subgraphs) {
 
     map<parser:__Type> federation_types = getFederationTypes();
@@ -12,21 +25,29 @@ function addFederationTypes(parser:__Schema supergraph_schema, Subgraph[] subgra
         supergraph_schema.directives[key] = value;
     }
 
-    if supergraph_schema.types.hasKey("join__Graph") {
-        parser:__EnumValue[] enum_values = <parser:__EnumValue[]>supergraph_schema.types.get("join__Graph").enumValues;
+    if supergraph_schema.types.hasKey(JOIN_GRAPH_TYPE) {
+        parser:__EnumValue[] enum_values = <parser:__EnumValue[]>supergraph_schema.types.get(JOIN_GRAPH_TYPE).enumValues;
         foreach Subgraph subgraph in subgraphs {
             parser:__AppliedDirective applied_join__graph = {
                 args: {
-                    "name": { value: subgraph.name, definition: parser:wrapType(supergraph_schema.types.get("String"), parser:NON_NULL) },
-                    "url": { value: subgraph.url, definition: parser:wrapType(supergraph_schema.types.get("String"), parser:NON_NULL) }
+                    "name": { 
+                        value: subgraph.name, 
+                        definition: parser:wrapType(supergraph_schema.types.get(STRING), parser:NON_NULL) 
+                    },
+                    "url": { 
+                        value: subgraph.url, 
+                        definition: parser:wrapType(supergraph_schema.types.get(STRING), parser:NON_NULL) 
+                    }
                 },
-                definition: supergraph_schema.directives.get("join__graph")
+                definition: supergraph_schema.directives.get(JOIN_GRAPH_DIR)
             };
+
+            map<parser:__AppliedDirective> appledDirectives = {};
+            appledDirectives[JOIN_GRAPH_DIR] = applied_join__graph;
+
             parser:__EnumValue enum_value = {
                 name: subgraph.name.toUpperAscii(),
-                appliedDirectives: {
-                    "join__graph": applied_join__graph
-                }
+                appliedDirectives: appledDirectives
             };
 
             enum_values.push(enum_value);
@@ -37,18 +58,18 @@ function addFederationTypes(parser:__Schema supergraph_schema, Subgraph[] subgra
 
 function getFederationTypes() returns map<parser:__Type> {
     parser:__Type link__Import = {
-        name: "link__Import",
+        name: LINK_IMPORT_TYPE,
         kind: parser:SCALAR,
         description: ""
     };
     parser:__Type join__FieldSet = {
-        name: "join__FieldSet",
+        name: JOIN_FIELDSET_TYPE,
         kind: parser:SCALAR,
         description: ""
     };
 
     parser:__Type link__Purpose = {
-        name: "link__Purpose",
+        name: LINK_PURPOSE_TYPE,
         kind: parser:ENUM,
         enumValues: [
             { name: "SECURITY", description: "`SECURITY` features provide metadata necessary to securely resolve fields." },
@@ -57,7 +78,7 @@ function getFederationTypes() returns map<parser:__Type> {
     };
     parser:__Type join__Graph = {
         kind: parser:ENUM,
-        name: "join__Graph",
+        name: JOIN_GRAPH_TYPE,
         enumValues: []
     };
     return { 
@@ -67,81 +88,81 @@ function getFederationTypes() returns map<parser:__Type> {
 
 function getFederationDirectives(map<parser:__Type> types) returns map<parser:__Directive> {
     parser:__Directive link = createDirective(
-        "link",
+        LINK_DIR,
         (),
         [ parser:SCHEMA ],
         {
-            "url": { name: "url", 'type: types.get("String") },
-            "as": { name: "as", 'type: types.get("String") },
-            "for": { name: "for", 'type: types.get("link__Purpose") },
-            "import": { name: "import", 'type: parser:wrapType(types.get("link__Import"), parser:LIST) }
+            "url": { name: "url", 'type: types.get(STRING) },
+            "as": { name: "as", 'type: types.get(STRING) },
+            "for": { name: "for", 'type: types.get(LINK_PURPOSE_TYPE) },
+            "import": { name: "import", 'type: parser:wrapType(types.get(LINK_IMPORT_TYPE), parser:LIST) }
         },
         true
     );
     parser:__Directive join__enumValue = createDirective(
-        "join__enumValue",
+        JOIN_ENUMVALUE_DIR,
         (),
         [ parser:ENUM_VALUE ],
         {
-            "graph": { name: "graph", 'type: parser:wrapType(types.get("join__Graph"), parser:NON_NULL)}
+            "graph": { name: "graph", 'type: parser:wrapType(types.get(JOIN_GRAPH_TYPE), parser:NON_NULL)}
         },
         true
     );
     parser:__Directive join__field = createDirective(
-        "join__field",
+        JOIN_FIELD_DIR,
         (),
         [ parser:FIELD_DEFINITION, parser:INPUT_FIELD_DEFINITION ],
         {
-            "graph": { name: "graph", 'type: types.get("join__Graph") },
-            "requires": { name: "requires", 'type: types.get("join__FieldSet") },
-            "provides": { name: "provides", 'type: types.get("join__FieldSet") },
-            "type": { name: "type", 'type: types.get("String") },
-            "external": { name: "external", 'type: types.get("Boolean") },
-            "override": { name: "override", 'type: types.get("String") },
-            "usedOverridden": { name: "usedOverridden", 'type: types.get("Boolean") }
+            "graph": { name: "graph", 'type: types.get(JOIN_GRAPH_TYPE) },
+            "requires": { name: "requires", 'type: types.get(JOIN_FIELDSET_TYPE) },
+            "provides": { name: "provides", 'type: types.get(JOIN_FIELDSET_TYPE) },
+            "type": { name: "type", 'type: types.get(STRING) },
+            "external": { name: "external", 'type: types.get(BOOLEAN) },
+            "override": { name: "override", 'type: types.get(STRING) },
+            "usedOverridden": { name: "usedOverridden", 'type: types.get(BOOLEAN) }
         },
         true
     );
     parser:__Directive join__graph = createDirective( 
-        "join__graph",
+        JOIN_GRAPH_DIR,
         (),
         [ parser:ENUM_VALUE ],
         {
-            "name": { name: "name", 'type: parser:wrapType(types.get("String"), parser:NON_NULL) },
-            "url": { name: "url", 'type: parser:wrapType(types.get("String"), parser:NON_NULL) }
+            "name": { name: "name", 'type: parser:wrapType(types.get(STRING), parser:NON_NULL) },
+            "url": { name: "url", 'type: parser:wrapType(types.get(STRING), parser:NON_NULL) }
         },
         false
     );
     parser:__Directive join__implements = createDirective( 
-        "join__implements",
+        JOIN_IMPLEMENTS_DIR,
         (),
         [ parser:OBJECT, parser:INTERFACE ],
         {
-            "graph": { name: "graph", 'type: parser:wrapType(types.get("join__Graph"), parser:NON_NULL) },
-            "interface": { name: "interface", 'type: parser:wrapType(types.get("String"), parser:NON_NULL) }
+            "graph": { name: "graph", 'type: parser:wrapType(types.get(JOIN_GRAPH_TYPE), parser:NON_NULL) },
+            "interface": { name: "interface", 'type: parser:wrapType(types.get(STRING), parser:NON_NULL) }
         },
         true
     );
     parser:__Directive join__type = createDirective( 
-        "join__type",
+        JOIN_TYPE_DIR,
         (),
         [parser:SCALAR, parser:OBJECT, parser:INTERFACE, parser:UNION, parser:ENUM, parser:INPUT_OBJECT],
         {
-            "graph": { name: "graph", 'type: parser:wrapType(types.get("join__Graph"), parser:NON_NULL) },
-            "key": { name: "key", 'type: types.get("join__FieldSet") },
-            "extension": { name: "extension", 'type: parser:wrapType(types.get("Boolean"), parser:NON_NULL), defaultValue: false },
-            "resolvable": { name: "resolvable", 'type: parser:wrapType(types.get("Boolean"), parser:NON_NULL), defaultValue: true },
-            "isInterfaceObject": { name: "isInterfaceObject", 'type: parser:wrapType(types.get("Boolean"), parser:NON_NULL), defaultValue: false }
+            "graph": { name: "graph", 'type: parser:wrapType(types.get(JOIN_GRAPH_TYPE), parser:NON_NULL) },
+            "key": { name: "key", 'type: types.get(JOIN_FIELDSET_TYPE) },
+            "extension": { name: "extension", 'type: parser:wrapType(types.get(BOOLEAN), parser:NON_NULL), defaultValue: false },
+            "resolvable": { name: "resolvable", 'type: parser:wrapType(types.get(BOOLEAN), parser:NON_NULL), defaultValue: true },
+            "isInterfaceObject": { name: "isInterfaceObject", 'type: parser:wrapType(types.get(BOOLEAN), parser:NON_NULL), defaultValue: false }
         },
         true
     );
     parser:__Directive join__unionMember = createDirective( 
-        "join__unionMember",
+        JOIN_UNION_MEMBER_DIR,
         (),
         [ parser:UNION ],
         {
-            "graph": { name: "graph", 'type: parser:wrapType(types.get("join__Graph"), parser:NON_NULL) },
-            "member": { name: "member", 'type:parser:wrapType(types.get("String"), parser:NON_NULL ) }
+            "graph": { name: "graph", 'type: parser:wrapType(types.get(JOIN_GRAPH_TYPE), parser:NON_NULL) },
+            "member": { name: "member", 'type:parser:wrapType(types.get(STRING), parser:NON_NULL ) }
         },
         true
     );

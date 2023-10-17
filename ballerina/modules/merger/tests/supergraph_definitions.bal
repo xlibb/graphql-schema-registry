@@ -18,10 +18,10 @@ function testSupergraphTypes(string typeName) returns error? {
 
 function dataProviderSupergraphTypes() returns [string][] {
     return [
-        ["join__FieldSet"],
-        ["link__Import"],
-        ["link__Purpose"],
-        ["join__Graph"]
+        [JOIN_FIELDSET_TYPE],
+        [LINK_IMPORT_TYPE],
+        [LINK_PURPOSE_TYPE],
+        [JOIN_GRAPH_TYPE]
     ];
 }
 
@@ -42,14 +42,12 @@ function testSupergraphDirectives(string directiveName) returns error? {
 
 function dataProviderSupergraphDirectives() returns [string][] {
     return [
-        ["link"],
-        ["join__graph"],
-        ["join__unionMember"],
-        ["join__enumValue"],
-        ["join__field"],
-        ["join__graph"],
-        ["join__implements"],
-        ["join__type"],
-        ["join__unionMember"]
+        [LINK_DIR],
+        [JOIN_GRAPH_DIR],
+        [JOIN_UNION_MEMBER_DIR],
+        [JOIN_ENUMVALUE_DIR],
+        [JOIN_FIELD_DIR],
+        [JOIN_IMPLEMENTS_DIR],
+        [JOIN_TYPE_DIR]
     ];
 }
