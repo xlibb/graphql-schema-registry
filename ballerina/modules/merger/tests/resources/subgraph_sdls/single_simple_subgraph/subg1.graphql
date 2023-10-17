@@ -1,0 +1,11 @@
+type Query {
+    teachers: [Teacher!]!
+}
+
+type Student {
+    name: String
+}
+
+type Teacher {
+    students: [Student!]!
+}
