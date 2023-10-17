@@ -42,8 +42,8 @@ function addFederationTypes(parser:__Schema supergraph_schema, Subgraph[] subgra
                 definition: supergraph_schema.directives.get(JOIN_GRAPH_DIR)
             };
 
-            map<parser:__AppliedDirective> appledDirectives = {};
-            appledDirectives[JOIN_GRAPH_DIR] = applied_join__graph;
+            parser:__AppliedDirective[] appledDirectives = [];
+            appledDirectives.push(applied_join__graph);
 
             parser:__EnumValue enum_value = {
                 name: subgraph.name.toUpperAscii(),

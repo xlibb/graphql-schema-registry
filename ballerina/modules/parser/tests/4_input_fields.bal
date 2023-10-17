@@ -35,14 +35,14 @@ function testInputField(string fileName, string inputTypeName, map<__InputValue>
             ],
         "4": ["input_fields_applied_directives", "SearchInput",
                 {
-                    "keyword": { name: "keyword", 'type: gql_String, appliedDirectives: {
-                        "deprecated": {
+                    "keyword": { name: "keyword", 'type: gql_String, appliedDirectives: [ 
+                        {
                             args: {
                                 "reason": { value: "No longer supported", definition: gql_String }
                             },
                             definition: deprecated
                         }
-                    }}
+                    ]}
                 }
             ]
     };

@@ -12,7 +12,7 @@ string & readonly DEPRECATED_DIR = "deprecated";
 string & readonly SKIP_DIR = "skip";
 string & readonly SPECIFIED_BY_DIR = "specifiedBy";
 
-function createObjectType(string name, map<parser:__Field> fields = {}, parser:__Type[] interfaces = [], map<parser:__AppliedDirective> applied_directives = {}) returns parser:__Type {
+function createObjectType(string name, map<parser:__Field> fields = {}, parser:__Type[] interfaces = [], parser:__AppliedDirective[] applied_directives = []) returns parser:__Type {
     return {
         kind: parser:OBJECT,
         name: name,

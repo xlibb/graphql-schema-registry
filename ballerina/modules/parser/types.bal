@@ -12,7 +12,7 @@ public type __Type record {|
     string? name = ();
     string? description = ();
     map<__Field>? fields = ();
-    map<__AppliedDirective> appliedDirectives = {};
+    __AppliedDirective[] appliedDirectives = [];
     __Type[]? interfaces = ();
     __Type[]? possibleTypes = ();
     __EnumValue[]? enumValues = ();
@@ -75,7 +75,7 @@ public type __Field record {|
     string name;
     string? description = ();
     map<__InputValue> args;
-    map<__AppliedDirective>? appliedDirectives = {};
+    __AppliedDirective[] appliedDirectives = [];
     __Type 'type;
     boolean isDeprecated = false;
     string? deprecationReason = ();
@@ -84,7 +84,7 @@ public type __Field record {|
 public type __InputValue record {|
     string name;
     string? description = ();
-    map<__AppliedDirective>? appliedDirectives = {};
+    __AppliedDirective[] appliedDirectives = [];
     __Type 'type;
     anydata? defaultValue = ();
 |};
@@ -92,7 +92,7 @@ public type __InputValue record {|
 public type __EnumValue record {|
     string name;
     string? description = ();
-    map<__AppliedDirective>? appliedDirectives = {};
+    __AppliedDirective[] appliedDirectives = [];
     boolean isDeprecated = false;
     string? deprecationReason = ();
 |};

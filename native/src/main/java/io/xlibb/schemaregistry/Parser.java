@@ -219,7 +219,7 @@ public class Parser {
         addValueToRecordField(
                 typeRecord,
                 APPLIED_DIRECTIVES_FIELD,
-                getAppliedDirectivesAsBMap(scalarType.getAppliedDirectives())
+                getAppliedDirectivesAsBArray(scalarType.getAppliedDirectives())
                              );
     }
 
@@ -230,7 +230,7 @@ public class Parser {
         addValueToRecordField(
                 typeRecord,
                 APPLIED_DIRECTIVES_FIELD,
-                getAppliedDirectivesAsBMap(interfaceType.getAppliedDirectives())
+                getAppliedDirectivesAsBArray(interfaceType.getAppliedDirectives())
                              );
         addValueToRecordField(
                 typeRecord,
@@ -249,7 +249,7 @@ public class Parser {
         addValueToRecordField(
                 typeRecord,
                 APPLIED_DIRECTIVES_FIELD,
-                getAppliedDirectivesAsBMap(inputObjectType.getAppliedDirectives())
+                getAppliedDirectivesAsBArray(inputObjectType.getAppliedDirectives())
                              );
     }
 
@@ -259,7 +259,7 @@ public class Parser {
         addValueToRecordField(
                 typeRecord,
                 APPLIED_DIRECTIVES_FIELD,
-                getAppliedDirectivesAsBMap(unionType.getAppliedDirectives())
+                getAppliedDirectivesAsBArray(unionType.getAppliedDirectives())
                              );
     }
 
@@ -270,7 +270,7 @@ public class Parser {
         addValueToRecordField(
                 typeRecord,
                 APPLIED_DIRECTIVES_FIELD,
-                getAppliedDirectivesAsBMap(objectType.getAppliedDirectives())
+                getAppliedDirectivesAsBArray(objectType.getAppliedDirectives())
                              );
     }
 
@@ -280,7 +280,7 @@ public class Parser {
         addValueToRecordField(
                 typeRecord,
                 APPLIED_DIRECTIVES_FIELD,
-                getAppliedDirectivesAsBMap(enumType.getAppliedDirectives())
+                getAppliedDirectivesAsBArray(enumType.getAppliedDirectives())
                              );
     }
 
@@ -301,7 +301,7 @@ public class Parser {
             addValueToRecordField(
                     inputValueRecord,
                     APPLIED_DIRECTIVES_FIELD,
-                    getAppliedDirectivesAsBMap(inputValueDefinition.getAppliedDirectives())
+                    getAppliedDirectivesAsBArray(inputValueDefinition.getAppliedDirectives())
                                  );
             addValueToRecordField(
                     inputValueRecord,
@@ -371,9 +371,9 @@ public class Parser {
         }
     }
 
-    private Object getAppliedDirectivesAsBMap(List<GraphQLAppliedDirective> appliedDirectives) {
+    private Object getAppliedDirectivesAsBArray(List<GraphQLAppliedDirective> appliedDirectives) {
 
-        BMap<BString, Object> appliedDirectivesBMap = ValueCreator.createMapValue();
+        BArray appliedDirectivesBArray = createBArrayFromRecord(createRecord(APPLIED_DIRECTIVE_RECORD));
         for (GraphQLAppliedDirective directive : appliedDirectives) {
             BMap<BString, Object> appliedDirectiveRecord = createRecord(APPLIED_DIRECTIVE_RECORD);
             addValueToRecordField(
@@ -387,13 +387,9 @@ public class Parser {
                     directives.get(directive.getName())
                                  );
 
-            addValueToRecordField(
-                    appliedDirectivesBMap,
-                    StringUtils.fromString(directive.getName()),
-                    appliedDirectiveRecord
-                                 );
+            appliedDirectivesBArray.append(appliedDirectiveRecord);;
         }
-        return appliedDirectivesBMap;
+        return appliedDirectivesBArray;
     }
 
     private Object getAppliedDirectiveArgumentsAsBMap(List<GraphQLAppliedDirectiveArgument> arguments) {
@@ -438,7 +434,7 @@ public class Parser {
             addValueToRecordField(
                     enumValueRecord,
                     APPLIED_DIRECTIVES_FIELD,
-                    getAppliedDirectivesAsBMap(enumValueDefinition.getAppliedDirectives())
+                    getAppliedDirectivesAsBArray(enumValueDefinition.getAppliedDirectives())
                                  );
             addValueToRecordField(
                     enumValueRecord,
@@ -485,7 +481,7 @@ public class Parser {
             addValueToRecordField(
                     fieldRecord,
                     APPLIED_DIRECTIVES_FIELD,
-                    getAppliedDirectivesAsBMap(fieldDefinition.getAppliedDirectives())
+                    getAppliedDirectivesAsBArray(fieldDefinition.getAppliedDirectives())
                                  );
             addValueToRecordField(fieldsBArray, StringUtils.fromString(fieldDefinition.getName()), fieldRecord);
         }

@@ -114,12 +114,12 @@ function testCustomObjectTypeAppliedDirective() returns error? {
             "id": { name: "id", args: {}, 'type: gql_ID }
         },
         interfaces: [],
-        appliedDirectives: {
-            "testDirective": {
+        appliedDirectives: [ 
+            {
                 args: {},
                 definition: testDirective
             }
-        }
+        ]
     };
 
     Parser parser = new(sdl, SCHEMA);

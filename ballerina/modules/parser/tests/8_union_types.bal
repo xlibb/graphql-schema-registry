@@ -55,8 +55,8 @@ function dataProviderUnion() returns map<[string, __Type]> {
                 kind: UNION,
                 name: "Pet",
                 possibleTypes: [ catType, dogType ],
-                appliedDirectives: {
-                    "testDirective": {
+                appliedDirectives: [ 
+                    {
                         args: {},
                         definition: {
                             name: "testDirective",
@@ -65,7 +65,7 @@ function dataProviderUnion() returns map<[string, __Type]> {
                             isRepeatable: false
                         }
                     }
-                }
+                ]
             }
         ]
     };

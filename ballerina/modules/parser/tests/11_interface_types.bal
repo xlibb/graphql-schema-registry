@@ -99,12 +99,12 @@ function testCustomInterfaceTypeAppliedDirective() returns error? {
         },
         interfaces: [],
         possibleTypes: [],
-        appliedDirectives: {
-            "testDirective": {
+        appliedDirectives: [ 
+            {
                 args: {},
                 definition: testDirective
             }
-        }
+        ]
     };
 
     Parser parser = new(sdl, SCHEMA);
