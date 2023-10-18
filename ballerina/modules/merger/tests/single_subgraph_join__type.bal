@@ -7,7 +7,7 @@ import graphql_schema_registry.parser;
 }
 function testSingleSimpleSubgraphTypesShallow(string typeName) returns error? {
     [parser:__Schema, Subgraph[]] schemas = check getSchemas("single_subgraph_join__type");
-    parser:__Schema supergraph = check merge(schemas[1]);
+    parser:__Schema supergraph = check (new Merger(schemas[1])).merge();
 
     test:assertEquals(supergraph.types.get(typeName).name, schemas[0].types.get(typeName).name);
     test:assertEquals(supergraph.types.get(typeName).description, schemas[0].types.get(typeName).description);

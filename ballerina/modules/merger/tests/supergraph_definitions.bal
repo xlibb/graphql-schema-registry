@@ -7,7 +7,7 @@ import graphql_schema_registry.parser;
 }
 function testSupergraphFederationTypes(string typeName) returns error? {
     [parser:__Schema, Subgraph[]] schemas = check getSchemas("supergraph_definitions");
-    parser:__Schema supergraph = check merge(schemas[1]);
+    parser:__Schema supergraph = check (new Merger(schemas[1])).merge();
 
     if (schemas[0].types.hasKey(typeName) && supergraph.types.hasKey(typeName)) {
         test:assertEquals(supergraph.types[typeName], schemas[0].types[typeName]);
@@ -31,7 +31,7 @@ function dataProviderFederationSupergraphTypes() returns [string][] {
 }
 function testSupergraphFederationDirectives(string directiveName) returns error? {
     [parser:__Schema, Subgraph[]] schemas = check getSchemas("supergraph_definitions");
-    parser:__Schema supergraph = check merge(schemas[1]);
+    parser:__Schema supergraph = check (new Merger(schemas[1])).merge();
 
     if (schemas[0].directives.hasKey(directiveName) && supergraph.directives.hasKey(directiveName)) {
         test:assertEquals(schemas[0].directives[directiveName], supergraph.directives[directiveName]);

@@ -12,6 +12,15 @@ string & readonly DEPRECATED_DIR = "deprecated";
 string & readonly SKIP_DIR = "skip";
 string & readonly SPECIFIED_BY_DIR = "specifiedBy";
 
+function createSchema() returns parser:__Schema {
+    [map<parser:__Type>, map<parser:__Directive>] [types, directives] = getBuiltInDefinitions();
+    return {
+        types,
+        directives,
+        queryType: types.get("Query")
+    };
+}
+
 function createObjectType(string name, map<parser:__Field> fields = {}, parser:__Type[] interfaces = [], parser:__AppliedDirective[] applied_directives = []) returns parser:__Type {
     return {
         kind: parser:OBJECT,
