@@ -1,5 +1,6 @@
 import graphql_schema_registry.parser;
 
+string & readonly _SERVICE_TYPE = "_Service";
 string & readonly JOIN_GRAPH_TYPE = "join__Graph";
 string & readonly JOIN_FIELDSET_TYPE = "join__FieldSet";
 string & readonly LINK_IMPORT_TYPE = "link__Import";
@@ -12,6 +13,17 @@ string & readonly JOIN_UNION_MEMBER_DIR = "join__unionMember";
 string & readonly JOIN_IMPLEMENTS_DIR = "join__implements";
 string & readonly JOIN_TYPE_DIR = "join__type";
 string & readonly JOIN_GRAPH_DIR = "join__graph";
+
+string[] & readonly FEDERATION_SUBGRAPH_IGNORE_TYPES = [
+    _SERVICE_TYPE,
+    LINK_IMPORT_TYPE,
+    LINK_PURPOSE_TYPE,
+    STRING,
+    BOOLEAN,
+    FLOAT,
+    INT,
+    ID
+];
 
 function addFederationTypes(parser:__Schema supergraph_schema, Subgraph[] subgraphs) {
 
@@ -42,12 +54,9 @@ function addFederationTypes(parser:__Schema supergraph_schema, Subgraph[] subgra
                 definition: supergraph_schema.directives.get(JOIN_GRAPH_DIR)
             };
 
-            parser:__AppliedDirective[] appledDirectives = [];
-            appledDirectives.push(applied_join__graph);
-
             parser:__EnumValue enum_value = {
                 name: subgraph.name.toUpperAscii(),
-                appliedDirectives: appledDirectives
+                appliedDirectives: [ applied_join__graph ]
             };
 
             enum_values.push(enum_value);

@@ -2,21 +2,21 @@ import ballerina/test;
 import graphql_schema_registry.parser;
 
 @test:Config {
-    groups: ["merger", "federation", "types", "nonconflicting"],
-    dataProvider: dataProviderSupergraphTypes
+    groups: ["merger", "federation", "types", "single"],
+    dataProvider: dataProviderFederationSupergraphTypes
 }
-function testSupergraphTypes(string typeName) returns error? {
+function testSupergraphFederationTypes(string typeName) returns error? {
     [parser:__Schema, Subgraph[]] schemas = check getSchemas("supergraph_definitions");
-    parser:__Schema supergraph = merge(schemas[1]);
+    parser:__Schema supergraph = check merge(schemas[1]);
 
     if (schemas[0].types.hasKey(typeName) && supergraph.types.hasKey(typeName)) {
-        test:assertEquals(schemas[0].types[typeName], supergraph.types[typeName]);
+        test:assertEquals(supergraph.types[typeName], schemas[0].types[typeName]);
     } else {
         test:assertFail(string `Could not find '${typeName}'`);
     }
 }
 
-function dataProviderSupergraphTypes() returns [string][] {
+function dataProviderFederationSupergraphTypes() returns [string][] {
     return [
         [JOIN_FIELDSET_TYPE],
         [LINK_IMPORT_TYPE],
@@ -27,11 +27,11 @@ function dataProviderSupergraphTypes() returns [string][] {
 
 @test:Config {
     groups: ["merger", "federation", "directives", "nonconflicting"],
-    dataProvider: dataProviderSupergraphDirectives
+    dataProvider: dataProviderSupergraphFederationDirectives
 }
-function testSupergraphDirectives(string directiveName) returns error? {
+function testSupergraphFederationDirectives(string directiveName) returns error? {
     [parser:__Schema, Subgraph[]] schemas = check getSchemas("supergraph_definitions");
-    parser:__Schema supergraph = merge(schemas[1]);
+    parser:__Schema supergraph = check merge(schemas[1]);
 
     if (schemas[0].directives.hasKey(directiveName) && supergraph.directives.hasKey(directiveName)) {
         test:assertEquals(schemas[0].directives[directiveName], supergraph.directives[directiveName]);
@@ -40,7 +40,7 @@ function testSupergraphDirectives(string directiveName) returns error? {
     }
 }
 
-function dataProviderSupergraphDirectives() returns [string][] {
+function dataProviderSupergraphFederationDirectives() returns [string][] {
     return [
         [LINK_DIR],
         [JOIN_GRAPH_DIR],

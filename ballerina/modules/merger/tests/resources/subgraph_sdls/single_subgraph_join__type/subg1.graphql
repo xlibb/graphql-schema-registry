@@ -1,0 +1,28 @@
+type Query {
+    teachers: [Teacher!]!
+}
+
+scalar Salary
+
+type Student {
+    name: String
+}
+
+type Teacher {
+    students: [Student!]!
+}
+
+enum DegreeStatus {
+    COMPLETED
+    ONGOING
+}
+
+interface Person {
+    id: ID
+}
+
+union Academic = Student | Teacher
+
+input SearchQuery {
+    name: String
+}
