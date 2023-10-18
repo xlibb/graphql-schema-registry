@@ -48,3 +48,114 @@ function testAppliedDirective(string fileName, string fieldName, __AppliedDirect
         ]                                                    
     };
  }
+
+@test:Config {
+    groups: ["builtin", "applied_directives", "input_values"],
+    dataProvider: dataProviderAppliedDirectiveInputValue
+}
+function testAppliedDirectiveInputValue(string argName, __AppliedDirectiveInputValue expected_value) returns error? {
+    string sdl = check getGraphqlSdlFromFile("applied_directive_input_value");
+
+    Parser parser = new(sdl, SCHEMA);
+    __Schema parsedSchema = check parser.parse();
+    __AppliedDirective[] appliedDirectives = parsedSchema.types.get("Student").appliedDirectives;
+    __AppliedDirective testDirective = appliedDirectives.filter(d => d.definition.name == "testDirective")[0];
+    map<__AppliedDirectiveInputValue> input_values = testDirective.args;
+
+    test:assertEquals(input_values[argName], expected_value);
+}
+
+function dataProviderAppliedDirectiveInputValue() returns [string, __AppliedDirectiveInputValue][] {
+    __EnumValue enum_VAL1 = { name: "VAL1" };
+    __EnumValue enum_VAL2 = { name: "VAL2" };
+
+    __Type enum_type = {
+        name: "TestEnum",
+        kind: ENUM,
+        enumValues: [ enum_VAL1, enum_VAL2 ]
+    };
+
+    return [
+        ["name", { definition: wrapType(gql_String, NON_NULL), value: "Hello" }],
+        ["age", { definition: wrapType(gql_Int, NON_NULL), value: 10 }],
+        ["avg", { definition: wrapType(gql_Float, NON_NULL), value: 24.5 }],
+        ["is", { definition: wrapType(gql_Boolean, NON_NULL), value: false }],
+        ["list", { definition: wrapType(wrapType(gql_String, LIST), NON_NULL), value: ["A", "B"] }],
+        ["enum", { definition: wrapType(enum_type, NON_NULL), value: enum_VAL1 }]
+    ];
+}
+
+@test:Config {
+    groups: ["builtin", "applied_directives", "input_values"]
+}
+function testAppliedDirectiveEnumValueCyclic() returns error? {
+    string sdl = check getGraphqlSdlFromFile("applied_directive_input_value_cyclic_enum");
+
+    __Type firstEnum = {
+        name: "FirstEnum",
+        kind: ENUM,
+        enumValues: [
+            { name: "YES" },
+            { name: "NO" }
+        ]
+    };
+    __Type secondEnum = {
+        name: "SecondEnum",
+        kind: ENUM,
+        enumValues: [
+            { name: "True" },
+            { name: "False" }
+        ]
+    };
+
+    __Directive firstEnumDirective = { 
+        name: "FirstEnumDirective", 
+        locations: [ ENUM_VALUE ], 
+        args: {
+            "enum": { name: "enum", 'type: firstEnum }
+        },
+        isRepeatable: false
+    };
+    __Directive secondEnumDirective = { 
+        name: "SecondEnumDirective", 
+        locations: [ ENUM_VALUE ], 
+        args: {
+            "enum": { name: "enum", 'type: secondEnum }
+        },
+        isRepeatable: false
+    };
+
+    __EnumValue firstEnumYesValue = (<__EnumValue[]> firstEnum.enumValues)[0];
+    __EnumValue secondEnumTrueValue = (<__EnumValue[]> secondEnum.enumValues)[0];
+    firstEnumYesValue.appliedDirectives.push(
+        { 
+            args: { 
+                "enum": {
+                    value: secondEnumTrueValue,
+                    definition: secondEnum
+                }
+            }, 
+            definition: secondEnumDirective
+        }
+    );
+    secondEnumTrueValue.appliedDirectives.push(
+        { 
+            args: { 
+                "enum": {
+                    value: firstEnumYesValue,
+                    definition: firstEnum
+                }
+            }, 
+            definition: firstEnumDirective
+        }
+    );
+
+    Parser parser = new(sdl, SCHEMA);
+    __Schema parsedSchema = check parser.parse();
+    __EnumValue[]? firstEnumValues = parsedSchema.types.get("FirstEnum").enumValues;
+    __EnumValue[]? secondEnumValues = parsedSchema.types.get("SecondEnum").enumValues;
+    if firstEnumValues !is () && secondEnumValues !is () {
+        test:assertEquals(firstEnumValues, firstEnum.enumValues);
+        test:assertEquals(secondEnumValues, secondEnum.enumValues);
+    }
+}

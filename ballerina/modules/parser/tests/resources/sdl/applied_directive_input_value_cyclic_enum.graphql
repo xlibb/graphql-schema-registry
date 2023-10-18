@@ -1,0 +1,16 @@
+directive @FirstEnumDirective(enum: FirstEnum) on ENUM_VALUE
+directive @SecondEnumDirective(enum: SecondEnum) on ENUM_VALUE
+
+type Query {
+    name: String
+}
+
+enum FirstEnum {
+    YES @SecondEnumDirective(enum: True)
+    NO 
+}
+
+enum SecondEnum {
+    True @FirstEnumDirective(enum: YES)
+    False
+}

@@ -18,6 +18,7 @@ import graphql.schema.GraphQLEnumValueDefinition;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLInputObjectField;
 import graphql.schema.GraphQLInputObjectType;
+import graphql.schema.GraphQLInputType;
 import graphql.schema.GraphQLInputValueDefinition;
 import graphql.schema.GraphQLInterfaceType;
 import graphql.schema.GraphQLList;
@@ -39,6 +40,7 @@ import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
+import io.ballerina.runtime.api.values.BIterator;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.runtime.internal.types.BAnyType;
@@ -52,6 +54,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static io.xlibb.schemaregistry.utils.ParserUtils.ARGS_FIELD;
 import static io.xlibb.schemaregistry.utils.ParserUtils.APPLIED_DIRECTIVES_FIELD;
@@ -97,6 +100,7 @@ import static io.xlibb.schemaregistry.utils.ParserUtils.getTypeKindFromType;
 public class Parser {
 
     private final GraphQLSchema schema;
+    private final Map<String, GraphQLNamedType> filteredTypeMap;
     private final Map<String, BMap<BString, Object>> types;
     private final Map<String, BMap<BString, Object>> directives;
 
@@ -120,38 +124,40 @@ public class Parser {
 
         RuntimeWiring wiring = RuntimeWiring.newRuntimeWiring().wiringFactory(new ParserWiringFactory()).build();
         schema = (new SchemaGenerator()).makeExecutableSchema(schemaDefinitions, wiring);
+        filteredTypeMap = schema.getTypeMap().entrySet().stream()
+                                                .filter(e -> !isIntrospectionType(e.getValue()))
+                                                .collect(Collectors.toMap(e->e.getKey(), e->e.getValue()));
     }
 
     public BMap<BString, Object> parse() {
 
         addTypesShallow();
         addDirectives();
+        addEnumsDeep();
         addTypesDeep();
         return generateSchemaRecord();
     }
 
     private void addTypesShallow() {
 
-        for (GraphQLNamedType graphQLType : schema.getTypeMap().values()) {
-            if (!isIntrospectionType(graphQLType)) {
-                BMap<BString, Object> typeRecord = createRecord(TYPE_RECORD);
-                addValueToRecordField(
-                        typeRecord,
-                        KIND_FIELD,
-                        StringUtils.fromString(getTypeKindFromType(graphQLType).toString())
-                                    );
-                addValueToRecordField(
-                        typeRecord,
-                        NAME_FIELD,
-                        StringUtils.fromString(graphQLType.getName())
-                                    );
-                addValueToRecordField(
-                        typeRecord,
-                        DESCRIPTION_FIELD,
-                        StringUtils.fromString(graphQLType.getDescription())
-                                    );
-                types.put(graphQLType.getName(), typeRecord);
-            }
+        for (GraphQLNamedType graphQLType : filteredTypeMap.values()) {
+            BMap<BString, Object> typeRecord = createRecord(TYPE_RECORD);
+            addValueToRecordField(
+                    typeRecord,
+                    KIND_FIELD,
+                    StringUtils.fromString(getTypeKindFromType(graphQLType).toString())
+                                );
+            addValueToRecordField(
+                    typeRecord,
+                    NAME_FIELD,
+                    StringUtils.fromString(graphQLType.getName())
+                                );
+            addValueToRecordField(
+                    typeRecord,
+                    DESCRIPTION_FIELD,
+                    StringUtils.fromString(graphQLType.getDescription())
+                                );
+            types.put(graphQLType.getName(), typeRecord);
         }
     }
 
@@ -194,23 +200,56 @@ public class Parser {
 
     private void addTypesDeep() {
 
-        for (GraphQLNamedType graphQLType : schema.getTypeMap().values()) {
+        for (GraphQLNamedType graphQLType : filteredTypeMap.values()) {
 
             BMap<BString, Object> typeRecord = types.get(graphQLType.getName());
-            if (typeRecord != null) {
-                TypeKind graphQLTypeKind = getTypeKindFromType(graphQLType);
+            TypeKind graphQLTypeKind = getTypeKindFromType(graphQLType);
 
-                switch (graphQLTypeKind) {
-                    case OBJECT -> populateObjectTypeRecord(typeRecord, (GraphQLObjectType) graphQLType);
-                    case ENUM -> populateEnumTypeRecord(typeRecord, (GraphQLEnumType) graphQLType);
-                    case UNION -> populateUnionTypeRecord(typeRecord, (GraphQLUnionType) graphQLType);
-                    case INPUT_OBJECT -> populateInputTypeRecord(typeRecord, (GraphQLInputObjectType) graphQLType);
-                    case INTERFACE -> populateInterfaceTypeRecord(typeRecord, (GraphQLInterfaceType) graphQLType);
-                    case SCALAR -> populateScalarTypeRecord(typeRecord, (GraphQLScalarType) graphQLType);
-                    default -> {
-                    }
+            switch (graphQLTypeKind) {
+                case OBJECT -> populateObjectTypeRecord(typeRecord, (GraphQLObjectType) graphQLType);
+                case UNION -> populateUnionTypeRecord(typeRecord, (GraphQLUnionType) graphQLType);
+                case INPUT_OBJECT -> populateInputTypeRecord(typeRecord, (GraphQLInputObjectType) graphQLType);
+                case INTERFACE -> populateInterfaceTypeRecord(typeRecord, (GraphQLInterfaceType) graphQLType);
+                case SCALAR -> populateScalarTypeRecord(typeRecord, (GraphQLScalarType) graphQLType);
+                default -> {
                 }
             }
+        }
+    }
+
+    private void addEnumsDeep() {
+        List<GraphQLEnumType> enumTypes = filteredTypeMap.values()
+                                                              .stream()
+                                                              .filter(GraphQLEnumType.class::isInstance)
+                                                              .map(GraphQLEnumType.class::cast)
+                                                              .toList();
+        for (GraphQLEnumType enumType : enumTypes) {
+            BMap<BString, Object> enumTypeRecord = types.get(enumType.getName());
+            populateEnumTypeRecord(enumTypeRecord, enumType);
+        }
+        for (GraphQLEnumType enumType : enumTypes) {
+            BMap<BString, Object> enumTypeRecord = types.get(enumType.getName());
+            addValueToRecordField(
+                    enumTypeRecord,
+                    APPLIED_DIRECTIVES_FIELD,
+                    getAppliedDirectivesAsBArray(enumType.getAppliedDirectives())
+                                );
+            populateEnumValuesAppliedDirectives(enumTypeRecord, enumType);
+        }
+    }
+
+    private void populateEnumValuesAppliedDirectives(BMap<BString, Object> enumTypeRecord, GraphQLEnumType enumType) {
+        BArray enumValues = (BArray) enumTypeRecord.get(ENUM_FIELD);
+        BIterator<BMap<BString, Object>> iterator = (BIterator<BMap<BString, Object>>) enumValues.getIterator();
+        while (iterator.hasNext()) {
+            BMap<BString, Object> enumValueRecord = iterator.next();
+            String enumValueName = enumValueRecord.get(NAME_FIELD).toString();
+            GraphQLEnumValueDefinition enumValueDefinition = enumType.getValue(enumValueName);
+            addValueToRecordField(
+                    enumValueRecord,
+                    APPLIED_DIRECTIVES_FIELD,
+                    getAppliedDirectivesAsBArray(enumValueDefinition.getAppliedDirectives())
+                                );
         }
     }
 
@@ -277,11 +316,6 @@ public class Parser {
     private void populateEnumTypeRecord(BMap<BString, Object> typeRecord, GraphQLEnumType enumType) {
 
         addValueToRecordField(typeRecord, ENUM_FIELD, getEnumValuesAsBArray(enumType.getValues()));
-        addValueToRecordField(
-                typeRecord,
-                APPLIED_DIRECTIVES_FIELD,
-                getAppliedDirectivesAsBArray(enumType.getAppliedDirectives())
-                             );
     }
 
     private BArray getInterfacesBArray(List<GraphQLNamedOutputType> interfaces) {
@@ -336,18 +370,16 @@ public class Parser {
     private Object getInputDefaultAsBType(GraphQLInputValueDefinition input) {
 
         Object defaultValue = null;
-        if (input.getClass().equals(GraphQLArgument.class)
-                && ((GraphQLArgument) input).hasSetDefaultValue()) {
+        if (input instanceof GraphQLArgument && ((GraphQLArgument) input).hasSetDefaultValue()) {
             defaultValue = ((GraphQLArgument) input).getArgumentDefaultValue().getValue();
-
-        } else if (input.getClass().equals(GraphQLInputObjectField.class)
-                && ((GraphQLInputObjectField) input).hasSetDefaultValue()) {
+        } else if (input instanceof GraphQLInputObjectField && ((GraphQLInputObjectField) input).hasSetDefaultValue()) {
             defaultValue = ((GraphQLInputObjectField) input).getInputFieldDefaultValue().getValue();
         }
-        return defaultValue == null ? null : getValueAsBType(defaultValue);
+        GraphQLInputType typeDefinition = ((GraphQLInputValueDefinition) input).getType();
+        return defaultValue == null ? null : getValueAsBType(defaultValue, typeDefinition);
     }
 
-    private Object getValueAsBType(Object valueObject) {
+    private Object getValueAsBType(Object valueObject, GraphQLInputType typeDefinition) {
 
         if (valueObject instanceof FloatValue) {
             return ((FloatValue) valueObject).getValue().doubleValue();
@@ -358,12 +390,12 @@ public class Parser {
         } else if (valueObject instanceof BooleanValue) {
             return ((BooleanValue) valueObject).isValue();
         } else if (valueObject instanceof EnumValue) {
-            return StringUtils.fromString(((EnumValue) valueObject).getName());
+            return getEnumValueDefinitionFromInputValue(typeDefinition, (EnumValue) valueObject);
         } else if (valueObject instanceof ArrayValue) {
             ArrayType arrayType = TypeCreator.createArrayType(new BAnyType(ANYDATA, ModuleUtils.getModule(), false));
             BArray bArray = ValueCreator.createArrayValue(arrayType);
             for (Value<?> value : ((ArrayValue) valueObject).getValues()) {
-                bArray.append(getValueAsBType(value));
+                bArray.append(getValueAsBType(value, typeDefinition));
             }
             return bArray;
         } else {
@@ -405,7 +437,7 @@ public class Parser {
             addValueToRecordField(
                     appliedArgumentInputValueRecord,
                     VALUE_FIELD,
-                    getValueAsBType(argument.getArgumentValue().getValue())
+                    getValueAsBType(argument.getArgumentValue().getValue(), argument.getType())
                                  );
 
             addValueToRecordField(
@@ -433,11 +465,6 @@ public class Parser {
             BMap<BString, Object> enumValueRecord = createRecord(ENUM_VALUE_RECORD);
             addValueToRecordField(
                     enumValueRecord,
-                    APPLIED_DIRECTIVES_FIELD,
-                    getAppliedDirectivesAsBArray(enumValueDefinition.getAppliedDirectives())
-                                 );
-            addValueToRecordField(
-                    enumValueRecord,
                     NAME_FIELD,
                     StringUtils.fromString(enumValueDefinition.getName())
                                  );
@@ -461,6 +488,23 @@ public class Parser {
         }
 
         return enumValuesBArray;
+    }
+
+    private Object getEnumValueDefinitionFromInputValue(GraphQLInputType typeDefinition, EnumValue valueObject) {
+
+        BString enumValueName = StringUtils.fromString(valueObject.getName());
+        BMap<BString, Object> enumTypeRecord = getTypeAsRecord(getUnWrappedType(typeDefinition));
+        BArray enumValues = (BArray) enumTypeRecord.get(ENUM_FIELD);
+        Object enumValueDefinition = null;
+        BIterator<BMap<BString, Object>> iterator = (BIterator<BMap<BString, Object>>) enumValues.getIterator();
+        while (iterator.hasNext()) {
+            BMap<BString, Object> enumValue = iterator.next();
+            if (enumValue.get(NAME_FIELD).equals(enumValueName)) {
+                enumValueDefinition = enumValue;
+                break;
+            }
+        }
+        return enumValueDefinition;
     }
 
     private BArray getDirectiveLocationsAsBArray(EnumSet<DirectiveLocation> enumSet) {
@@ -491,7 +535,7 @@ public class Parser {
     private BMap<BString, Object> getTypeAsRecord(GraphQLType type) {
 
         BMap<BString, Object> typeRecord;
-        if (type.getClass().equals(GraphQLList.class) || type.getClass().equals(GraphQLNonNull.class)) {
+        if (type instanceof GraphQLList || type instanceof GraphQLNonNull) {
             typeRecord = createRecord(TYPE_RECORD);
             addValueToRecordField(
                     typeRecord,
@@ -507,6 +551,14 @@ public class Parser {
             typeRecord = types.get(((GraphQLNamedType) type).getName());
         }
         return typeRecord;
+    }
+
+    private GraphQLType getUnWrappedType(GraphQLType type) {
+        if (type instanceof GraphQLList || type instanceof GraphQLNonNull) {
+            return getUnWrappedType(((GraphQLModifiedType) type).getWrappedType());
+        } else {
+            return type;
+        }
     }
 
     private boolean isIntrospectionType(GraphQLNamedType graphQLType) {
