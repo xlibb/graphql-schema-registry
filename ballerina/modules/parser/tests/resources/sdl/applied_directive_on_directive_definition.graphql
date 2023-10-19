@@ -1,0 +1,6 @@
+directive @bar(name: String @foo) on OBJECT
+directive @foo on INPUT_FIELD_DEFINITION
+
+type Query @bar {
+    name: String
+}

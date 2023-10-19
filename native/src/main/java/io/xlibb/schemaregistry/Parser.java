@@ -132,8 +132,10 @@ public class Parser {
     public BMap<BString, Object> parse() {
 
         addTypesShallow();
-        addDirectives();
-        addEnumsDeep();
+        addEnumsDeepWithoutAppliedDirectives();
+        addDirectivesShallow();
+        addDirectivesDeep();
+        addEnumsDeepWithAppliedDirectives();
         addTypesDeep();
         return generateSchemaRecord();
     }
@@ -161,7 +163,7 @@ public class Parser {
         }
     }
 
-    private void addDirectives() {
+    private void addDirectivesShallow() {
 
         for (GraphQLDirective directive : schema.getDirectives()) {
             BMap<BString, Object> directiveRecord = createRecord(DIRECTIVE_RECORD);
@@ -174,11 +176,6 @@ public class Parser {
                     directiveRecord,
                     DESCRIPTION_FIELD,
                     StringUtils.fromString(directive.getDescription())
-                                 );
-            addValueToRecordField(
-                    directiveRecord,
-                    ARGS_FIELD,
-                    getInputValuesAsBMap(directive.getArguments())
                                  );
             addValueToRecordField(
                     directiveRecord,
@@ -195,6 +192,18 @@ public class Parser {
                                      );
             }
             directives.put(directive.getName(), directiveRecord);
+        }
+    }
+
+    private void addDirectivesDeep() {
+
+        for (GraphQLDirective directive : schema.getDirectives()) {
+            BMap<BString, Object> directiveRecord = directives.get(directive.getName());
+            addValueToRecordField(
+                    directiveRecord,
+                    ARGS_FIELD,
+                    getInputValuesAsBMap(directive.getArguments())
+                                );
         }
     }
 
@@ -217,24 +226,31 @@ public class Parser {
         }
     }
 
-    private void addEnumsDeep() {
-        List<GraphQLEnumType> enumTypes = filteredTypeMap.values()
-                                                              .stream()
-                                                              .filter(GraphQLEnumType.class::isInstance)
-                                                              .map(GraphQLEnumType.class::cast)
-                                                              .toList();
-        for (GraphQLEnumType enumType : enumTypes) {
-            BMap<BString, Object> enumTypeRecord = types.get(enumType.getName());
-            populateEnumTypeRecord(enumTypeRecord, enumType);
+    private void addEnumsDeepWithoutAppliedDirectives() {
+        for (GraphQLNamedType type : filteredTypeMap.values()) {
+            if (type instanceof GraphQLEnumType) {
+                GraphQLEnumType enumType = (GraphQLEnumType) type;
+                BMap<BString, Object> enumTypeRecord = types.get(enumType.getName());
+                addValueToRecordField(
+                        enumTypeRecord, 
+                        ENUM_FIELD, 
+                        getEnumValuesWithoutAppliedDirectivesAsBArray(enumType.getValues())
+                );
+            }
         }
-        for (GraphQLEnumType enumType : enumTypes) {
-            BMap<BString, Object> enumTypeRecord = types.get(enumType.getName());
-            addValueToRecordField(
-                    enumTypeRecord,
-                    APPLIED_DIRECTIVES_FIELD,
-                    getAppliedDirectivesAsBArray(enumType.getAppliedDirectives())
-                                );
-            populateEnumValuesAppliedDirectives(enumTypeRecord, enumType);
+    }
+
+    private void addEnumsDeepWithAppliedDirectives() {
+        for (GraphQLNamedType enumType : filteredTypeMap.values()) {
+            if (enumType instanceof GraphQLEnumType) {
+                BMap<BString, Object> enumTypeRecord = types.get(enumType.getName());
+                addValueToRecordField(
+                        enumTypeRecord,
+                        APPLIED_DIRECTIVES_FIELD,
+                        getAppliedDirectivesAsBArray(((GraphQLEnumType) enumType).getAppliedDirectives())
+                                    );
+                populateEnumValuesAppliedDirectives(enumTypeRecord, ((GraphQLEnumType) enumType));
+            }
         }
     }
 
@@ -311,11 +327,6 @@ public class Parser {
                 APPLIED_DIRECTIVES_FIELD,
                 getAppliedDirectivesAsBArray(objectType.getAppliedDirectives())
                              );
-    }
-
-    private void populateEnumTypeRecord(BMap<BString, Object> typeRecord, GraphQLEnumType enumType) {
-
-        addValueToRecordField(typeRecord, ENUM_FIELD, getEnumValuesAsBArray(enumType.getValues()));
     }
 
     private BArray getInterfacesBArray(List<GraphQLNamedOutputType> interfaces) {
@@ -458,10 +469,10 @@ public class Parser {
         return possibleTypesBArray;
     }
 
-    private BArray getEnumValuesAsBArray(List<GraphQLEnumValueDefinition> enumValueDefinitions) {
+    private BArray getEnumValuesWithoutAppliedDirectivesAsBArray(List<GraphQLEnumValueDefinition> enumValueDefs) {
 
         BArray enumValuesBArray = createBArrayFromRecord(createRecord(ENUM_VALUE_RECORD));
-        for (GraphQLEnumValueDefinition enumValueDefinition : enumValueDefinitions) {
+        for (GraphQLEnumValueDefinition enumValueDefinition : enumValueDefs) {
             BMap<BString, Object> enumValueRecord = createRecord(ENUM_VALUE_RECORD);
             addValueToRecordField(
                     enumValueRecord,

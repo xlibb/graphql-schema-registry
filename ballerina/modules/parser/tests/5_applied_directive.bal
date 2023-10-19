@@ -159,3 +159,101 @@ function testAppliedDirectiveEnumValueCyclic() returns error? {
         test:assertEquals(secondEnumValues, secondEnum.enumValues);
     }
 }
+
+@test:Config {
+    groups: ["builtin", "applied_directives", "input_values"]
+}
+function testAppliedDirectiveOnDirectiveDefinition() returns error? { 
+    string sdl = check getGraphqlSdlFromFile("applied_directive_on_directive_definition");
+
+    __Directive foo = {
+        name: "foo",
+        args: {}, 
+        isRepeatable: false,
+        locations: [ INPUT_FIELD_DEFINITION ]
+    };
+    __AppliedDirective applied_foo = {
+        args: {},
+        definition: foo
+    };
+    __Directive bar = {
+        name: "bar",
+        args: {
+            "name": { 
+                name: "name", 
+                appliedDirectives: [applied_foo],
+                'type: gql_String
+            }
+        }, 
+        isRepeatable: false,
+        locations: [ OBJECT ]
+    };
+    __AppliedDirective applied_bar = {
+        args: {
+            "name": { value: (), definition: gql_String }
+        },
+        definition: bar
+    };
+
+    Parser parser = new(sdl, SCHEMA);
+    __Schema parsedSchema = check parser.parse();
+    test:assertEquals(parsedSchema.directives.get("bar"), bar);
+    test:assertEquals(parsedSchema.queryType.appliedDirectives, [applied_bar]);
+ }
+
+@test:Config {
+    groups: ["builtin", "applied_directives", "input_values"]
+}
+function testAppliedDirectiveOnDirectiveDefinitionDependsOnEnum() returns error? { 
+    string sdl = check getGraphqlSdlFromFile("applied_directive_on_directive_definition_depends_on_enum");
+
+    __Type status_enum = {
+        name: "Status",
+        kind: ENUM,
+        enumValues: [
+            { name: "COMPLETED" },
+            { name: "FAILED" }
+        ]
+    };
+
+    __Directive foo = {
+        name: "foo",
+        args: {
+            "status": { name: "status", 'type: status_enum }
+        }, 
+        isRepeatable: false,
+        locations: [ INPUT_FIELD_DEFINITION ]
+    };
+    __AppliedDirective applied_foo = {
+        args: {
+            "status": {
+                value: (<__EnumValue[]>status_enum.enumValues)[0],
+                definition: status_enum
+            }
+        },
+        definition: foo
+    };
+    __Directive bar = {
+        name: "bar",
+        args: {
+            "name": { 
+                name: "name", 
+                appliedDirectives: [applied_foo],
+                'type: gql_String
+            }
+        }, 
+        isRepeatable: false,
+        locations: [ OBJECT ]
+    };
+    __AppliedDirective applied_bar = {
+        args: {
+            "name": { value: (), definition: gql_String }
+        },
+        definition: bar
+    };
+
+    Parser parser = new(sdl, SCHEMA);
+    __Schema parsedSchema = check parser.parse();
+    test:assertEquals(parsedSchema.directives.get("bar"), bar);
+    test:assertEquals(parsedSchema.queryType.appliedDirectives, [applied_bar]);
+ }
