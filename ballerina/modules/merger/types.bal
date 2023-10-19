@@ -5,3 +5,13 @@ public type Subgraph record {|
     string url;
     parser:__Schema schema;
 |};
+
+public type Supergraph record {|
+    parser:__Schema schema;
+    Subgraph[] subgraphs;
+|};
+
+public type MergeResult record {|
+    Supergraph supergraph;
+    MergeError[] errors;
+|};

@@ -121,7 +121,7 @@ function getBuiltInDirectives(map<parser:__Type> types) returns map<parser:__Dir
 }
 
 // Get the __AppliedDirective for a given __Directive and it's arguments. Default arguments will be added automatically.
-function getAppliedDirectiveFromDirective(parser:__Directive directive, map<anydata> arguments) returns parser:__AppliedDirective|error {
+function getAppliedDirectiveFromDirective(parser:__Directive directive, map<anydata> arguments) returns parser:__AppliedDirective|InternalError {
     map<parser:__AppliedDirectiveInputValue> applied_args = directive.args.'map(m => { 
                                                                                         value: m.defaultValue, 
                                                                                         definition: m.'type 
@@ -132,7 +132,7 @@ function getAppliedDirectiveFromDirective(parser:__Directive directive, map<anyd
         if (applied_args.hasKey(key)) {
             applied_args[key].value = value;
         } else {
-            return error(string `'${key}' is not a parameter in the provided Directive`);
+            return error InternalError(string `'${key}' is not a parameter in the directive (${applied_args.toJsonString()})`);
         }
     }
 
