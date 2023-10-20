@@ -1,16 +1,16 @@
 import graphql_schema_registry.parser;
 
-string & readonly BOOLEAN = "Boolean";
-string & readonly STRING = "String";
-string & readonly FLOAT = "Float";
-string & readonly INT = "Int";
-string & readonly ID = "ID";
-string & readonly QUERY = "Query";
+const string BOOLEAN = "Boolean";
+const string STRING = "String";
+const string FLOAT = "Float";
+const string INT = "Int";
+const string ID = "ID";
+const string QUERY = "Query";
 
-string & readonly INCLUDE_DIR = "include";
-string & readonly DEPRECATED_DIR = "deprecated";
-string & readonly SKIP_DIR = "skip";
-string & readonly SPECIFIED_BY_DIR = "specifiedBy";
+const string INCLUDE_DIR = "include";
+const string DEPRECATED_DIR = "deprecated";
+const string SKIP_DIR = "skip";
+const string SPECIFIED_BY_DIR = "specifiedBy";
 
 function createSchema() returns parser:__Schema {
     [map<parser:__Type>, map<parser:__Directive>] [types, directives] = getBuiltInDefinitions();

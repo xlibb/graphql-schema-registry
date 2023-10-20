@@ -1,20 +1,20 @@
 import graphql_schema_registry.parser;
 
-string & readonly _SERVICE_TYPE = "_Service";
-string & readonly JOIN_GRAPH_TYPE = "join__Graph";
-string & readonly JOIN_FIELDSET_TYPE = "join__FieldSet";
-string & readonly LINK_IMPORT_TYPE = "link__Import";
-string & readonly LINK_PURPOSE_TYPE = "link__Purpose";
+const string _SERVICE_TYPE = "_Service";
+const string JOIN_GRAPH_TYPE = "join__Graph";
+const string JOIN_FIELDSET_TYPE = "join__FieldSet";
+const string LINK_IMPORT_TYPE = "link__Import";
+const string LINK_PURPOSE_TYPE = "link__Purpose";
 
-string & readonly LINK_DIR = "link";
-string & readonly JOIN_ENUMVALUE_DIR = "join__enumValue";
-string & readonly JOIN_FIELD_DIR = "join__field";
-string & readonly JOIN_UNION_MEMBER_DIR = "join__unionMember";
-string & readonly JOIN_IMPLEMENTS_DIR = "join__implements";
-string & readonly JOIN_TYPE_DIR = "join__type";
-string & readonly JOIN_GRAPH_DIR = "join__graph";
+const string LINK_DIR = "link";
+const string JOIN_ENUMVALUE_DIR = "join__enumValue";
+const string JOIN_FIELD_DIR = "join__field";
+const string JOIN_UNION_MEMBER_DIR = "join__unionMember";
+const string JOIN_IMPLEMENTS_DIR = "join__implements";
+const string JOIN_TYPE_DIR = "join__type";
+const string JOIN_GRAPH_DIR = "join__graph";
 
-string[] & readonly FEDERATION_SUBGRAPH_IGNORE_TYPES = [
+string[] FEDERATION_SUBGRAPH_IGNORE_TYPES = [
     _SERVICE_TYPE,
     LINK_IMPORT_TYPE,
     LINK_PURPOSE_TYPE,

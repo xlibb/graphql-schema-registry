@@ -256,6 +256,8 @@ public class Parser {
 
     private void populateEnumValuesAppliedDirectives(BMap<BString, Object> enumTypeRecord, GraphQLEnumType enumType) {
         BArray enumValues = (BArray) enumTypeRecord.get(ENUM_FIELD);
+
+        @SuppressWarnings("unchecked")
         BIterator<BMap<BString, Object>> iterator = (BIterator<BMap<BString, Object>>) enumValues.getIterator();
         while (iterator.hasNext()) {
             BMap<BString, Object> enumValueRecord = iterator.next();
@@ -507,6 +509,8 @@ public class Parser {
         BMap<BString, Object> enumTypeRecord = getTypeAsRecord(getUnWrappedType(typeDefinition));
         BArray enumValues = (BArray) enumTypeRecord.get(ENUM_FIELD);
         Object enumValueDefinition = null;
+
+        @SuppressWarnings("unchecked")
         BIterator<BMap<BString, Object>> iterator = (BIterator<BMap<BString, Object>>) enumValues.getIterator();
         while (iterator.hasNext()) {
             BMap<BString, Object> enumValue = iterator.next();

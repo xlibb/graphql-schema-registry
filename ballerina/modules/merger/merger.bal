@@ -4,11 +4,11 @@ public class Merger {
 
     private Supergraph supergraph;
     private Subgraph[] subgraphs;
-    private map<parser:__EnumValue> join_Graph_map;
+    private map<parser:__EnumValue> joinGraphMap;
 
     public function init(Subgraph[] subgraphs) {
         self.subgraphs = subgraphs.clone();
-        self.join_Graph_map = {};
+        self.joinGraphMap = {};
         self.supergraph = {
             schema: createSchema(),
             subgraphs: self.subgraphs
@@ -18,7 +18,7 @@ public class Merger {
     public function merge() returns Supergraph|error {
         self.addFederationDefinitions();
         check self.populateFederationJoinGraphEnum();
-        check self.addSubgraphsTypesShallow();
+        check self.addTypesShallow();
         return self.supergraph;
     }
 
@@ -49,38 +49,49 @@ public class Merger {
             };
 
             enum_values.push(enum_value);
-            self.join_Graph_map[subgraph.name] = enum_value;
+            self.joinGraphMap[subgraph.name] = enum_value;
         }
     }
 
-    function addSubgraphsTypesShallow() returns error? {
+    function addTypesShallow() returns error? {
         foreach Subgraph subgraph in self.subgraphs {
             foreach [string, parser:__Type] [key, value] in subgraph.schema.types.entries() {
-                if FEDERATION_SUBGRAPH_IGNORE_TYPES.indexOf(key) is () {
-                    if (self.supergraph.schema.types.hasKey(key)) {
-                        // Handle Description            
-                        // Handle Kind
-                    } else {
-                        self.supergraph.schema.types[key] = {
-                            name: value.name,
-                            description: value.description,
-                            kind: value.kind,
-                            appliedDirectives: []
-                        };
-                    }
-                    
-                    parser:__Type 'type = self.supergraph.schema.types.get(key);
-                    
-                    // Add join__type directive
-                    'type.appliedDirectives.push(
-                        check getAppliedDirectiveFromDirective(
-                            self.supergraph.schema.directives.get(JOIN_TYPE_DIR),
-                            { "graph": self.join_Graph_map.get(subgraph.name) }
-                        )
-                    );
-
+                if FEDERATION_SUBGRAPH_IGNORE_TYPES.indexOf(key) !is () {
+                    continue;
                 }
+
+                if self.isTypeOnSupergraph(key) {
+                    if (self.getTypeFromSupergraph(key).kind !== value.kind) {
+                        // Handle Kind
+                    }
+                } else {
+                    self.supergraph.schema.types[key] = {
+                        name: value.name,
+                        kind: value.kind
+                    };
+                }
+                
+                // Add join__type directive
+                parser:__Type 'type = self.getTypeFromSupergraph(key);
+                'type.appliedDirectives.push(
+                    check getAppliedDirectiveFromDirective(
+                        self.supergraph.schema.directives.get(JOIN_TYPE_DIR),
+                        { "graph": self.joinGraphMap.get(subgraph.name) }
+                    )
+                );
             }
         }
+    }
+
+    function getSupergraphDirectiveDefinition(parser:__Directive sub_dir_def) returns parser:__Directive {
+        return self.supergraph.schema.directives.get(sub_dir_def.name);
+    }
+
+    function getTypeFromSupergraph(string name) returns parser:__Type {
+        return self.supergraph.schema.types.get(name);
+    };
+
+    function isTypeOnSupergraph(string typeName) returns boolean {
+        return self.supergraph.schema.types.hasKey(typeName);
     }
 }
