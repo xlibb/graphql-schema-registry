@@ -12,6 +12,23 @@ const string DEPRECATED_DIR = "deprecated";
 const string SKIP_DIR = "skip";
 const string SPECIFIED_BY_DIR = "specifiedBy";
 
+string[] BUILT_IN_DIRECTIVES = [
+    INCLUDE_DIR,
+    DEPRECATED_DIR,
+    SKIP_DIR,
+    SPECIFIED_BY_DIR
+];
+
+parser:__DirectiveLocation[] EXECUTABLE_DIRECTIVE_LOCATIONS = [
+    parser:QUERY,
+    parser:MUTATION,
+    parser:SUBSCRIPTION,
+    parser:FIELD,
+    parser:FRAGMENT_DEFINITION,
+    parser:FRAGMENT_SPREAD,
+    parser:INLINE_FRAGMENT
+];
+
 function createSchema() returns parser:__Schema {
     [map<parser:__Type>, map<parser:__Directive>] [types, directives] = getBuiltInDefinitions();
     return {
@@ -140,4 +157,51 @@ function getAppliedDirectiveFromDirective(parser:__Directive directive, map<anyd
         args: applied_args,
         definition: directive
     };
+}
+
+function isExecutableDirective(parser:__Directive directive) returns boolean {
+    foreach parser:__DirectiveLocation location in directive.locations {
+        if EXECUTABLE_DIRECTIVE_LOCATIONS.indexOf(location) !is () {
+            return true;
+        }
+    }
+    return false;
+}
+
+function isBuiltInDirective(string directiveName) returns boolean {
+    return BUILT_IN_DIRECTIVES.indexOf(directiveName) !is ();
+}
+
+function getDirectiveLocationsFromStrings(string[] locations) returns parser:__DirectiveLocation[]|InternalError {
+    parser:__DirectiveLocation[] enumLocations = [];
+    foreach string location in locations {
+        enumLocations.push(check getDirectiveLocationFromString(location));
+    }
+    return enumLocations;
+}
+
+// Change parser to Parse DirectiveLocations as enums
+function getDirectiveLocationFromString(string location) returns parser:__DirectiveLocation|InternalError {
+    match location {
+        "QUERY" => { return parser:QUERY; }
+        "MUTATION" => { return parser:MUTATION; }
+        "SUBSCRIPTION" => { return parser:SUBSCRIPTION; }
+        "FIELD" => { return parser:FIELD; }
+        "FRAGMENT_DEFINITION" => { return parser:FRAGMENT_DEFINITION; }
+        "FRAGMENT_SPREAD" => { return parser:FRAGMENT_SPREAD; }
+        "INLINE_FRAGMENT" => { return parser:INLINE_FRAGMENT; }
+        "VARIABLE_DEFINITION" => { return parser:VARIABLE_DEFINITION; }
+        "SCHEMA" => { return parser:SCHEMA; }
+        "SCALAR" => { return parser:SCALAR; }
+        "OBJECT" => { return parser:OBJECT; }
+        "FIELD_DEFINITION" => { return parser:FIELD_DEFINITION; }
+        "ARGUMENT_DEFINITION" => { return parser:ARGUMENT_DEFINITION; }
+        "INTERFACE" => { return parser:INTERFACE; }
+        "UNION" => { return parser:UNION; }
+        "ENUM" => { return parser:ENUM; }
+        "ENUM_VALUE" => { return parser:ENUM_VALUE; }
+        "INPUT_OBJECT" => { return parser:INPUT_OBJECT; }
+        "INPUT_FIELD_DEFINITION" => { return parser:INPUT_FIELD_DEFINITION; }
+        _ => { return error InternalError(string `Provided value '${location}' is not a valid Directive Location`); }
+    }
 }

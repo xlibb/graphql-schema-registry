@@ -25,6 +25,10 @@ string[] FEDERATION_SUBGRAPH_IGNORE_TYPES = [
     ID
 ];
 
+string[] FEDERATION_SUBGRAPH_IGNORE_DIRECTIVES = [
+    LINK_DIR
+];
+
 function addFederationTypes(parser:__Schema supergraph_schema, Subgraph[] subgraphs) {
 
     map<parser:__Type> federation_types = getFederationTypes();
@@ -185,4 +189,12 @@ function getFederationDirectives(map<parser:__Type> types) returns map<parser:__
         join__type,
         join__unionMember
     };
+}
+
+function isSubgraphFederationType(string typeName) returns boolean {
+    return FEDERATION_SUBGRAPH_IGNORE_TYPES.indexOf(typeName) !is ();
+}
+
+function isSubgraphFederationDirective(string directiveName) returns boolean {
+    return FEDERATION_SUBGRAPH_IGNORE_DIRECTIVES.indexOf(directiveName) !is ();
 }

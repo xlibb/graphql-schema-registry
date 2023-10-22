@@ -19,6 +19,7 @@ public class Merger {
         self.addFederationDefinitions();
         check self.populateFederationJoinGraphEnum();
         check self.addTypesShallow();
+        check self.addDirectives();
         return self.supergraph;
     }
 
@@ -56,7 +57,7 @@ public class Merger {
     function addTypesShallow() returns error? {
         foreach Subgraph subgraph in self.subgraphs {
             foreach [string, parser:__Type] [key, value] in subgraph.schema.types.entries() {
-                if FEDERATION_SUBGRAPH_IGNORE_TYPES.indexOf(key) !is () {
+                if isSubgraphFederationType(key) {
                     continue;
                 }
 
@@ -83,6 +84,29 @@ public class Merger {
         }
     }
 
+    function addDirectives() returns InternalError? {
+        foreach Subgraph subgraph in self.subgraphs {
+            foreach [string, parser:__Directive] [key, value] in subgraph.schema.directives.entries() {
+                if isBuiltInDirective(key) || !isExecutableDirective(value) || isSubgraphFederationDirective(key) {
+                    continue;
+                }
+
+                if self.isDirectiveOnSupergraph(key) {
+                    // Handle directive conflicts
+                }
+
+                parser:__Directive supergraph_directive = {
+                    name: value.name,
+                    locations: check getDirectiveLocationsFromStrings(value.locations),
+                    args: self.getInputValueMap(value.args),
+                    isRepeatable: value.isRepeatable
+                };
+
+                self.supergraph.schema.directives[key] = supergraph_directive;
+            }
+        }
+    }
+
     function getSupergraphDirectiveDefinition(parser:__Directive sub_dir_def) returns parser:__Directive {
         return self.supergraph.schema.directives.get(sub_dir_def.name);
     }
@@ -93,5 +117,34 @@ public class Merger {
 
     function isTypeOnSupergraph(string typeName) returns boolean {
         return self.supergraph.schema.types.hasKey(typeName);
+    }
+
+    function isDirectiveOnSupergraph(string directiveName) returns boolean {
+        return self.supergraph.schema.directives.hasKey(directiveName);
+    }
+
+    function getInputValueMap(map<parser:__InputValue> sub_map) returns map<parser:__InputValue> {
+        map<parser:__InputValue> inputValueMap = {};
+        foreach [string, parser:__InputValue] [key, value] in sub_map.entries() {
+            inputValueMap[key] = {
+                name: value.name,
+                description: value.description,
+                'type: self.getInputTypeFromSupergraph(value.'type),
+                appliedDirectives: [],
+                defaultValue: value.defaultValue
+            };
+        }
+        return inputValueMap;
+    }
+
+    function getInputTypeFromSupergraph(parser:__Type 'type) returns parser:__Type {
+        if 'type.kind is parser:WRAPPING_TYPE {
+            return parser:wrapType(
+                self.getInputTypeFromSupergraph(<parser:__Type>'type.ofType), 
+                <parser:WRAPPING_TYPE>'type.kind
+            );
+        } else {
+            return self.getTypeFromSupergraph(<string>'type.name);
+        }
     }
 }
