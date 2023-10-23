@@ -19,6 +19,13 @@ string[] BUILT_IN_DIRECTIVES = [
     SPECIFIED_BY_DIR
 ];
 
+string[] BUILT_IN_TYPES = [
+    STRING,
+    FLOAT,
+    INT,
+    ID
+];
+
 parser:__DirectiveLocation[] EXECUTABLE_DIRECTIVE_LOCATIONS = [
     parser:QUERY,
     parser:MUTATION,
@@ -170,6 +177,10 @@ function isExecutableDirective(parser:__Directive directive) returns boolean {
 
 function isBuiltInDirective(string directiveName) returns boolean {
     return BUILT_IN_DIRECTIVES.indexOf(directiveName) !is ();
+}
+
+function isBuiltInType(string typeName) returns boolean {
+    return BUILT_IN_TYPES.indexOf(typeName) !is ();
 }
 
 function getDirectiveLocationsFromStrings(string[] locations) returns parser:__DirectiveLocation[]|InternalError {

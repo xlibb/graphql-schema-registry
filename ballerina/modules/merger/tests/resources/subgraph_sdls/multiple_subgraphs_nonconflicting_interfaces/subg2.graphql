@@ -1,0 +1,12 @@
+type Query {
+    address: String
+}
+
+type Baz implements Qux {
+    name: String
+}
+
+"Qux interface description"
+interface Qux {
+    name: String
+}

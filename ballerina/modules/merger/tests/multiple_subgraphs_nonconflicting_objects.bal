@@ -2,7 +2,7 @@ import ballerina/test;
 import graphql_schema_registry.parser;
 
 @test:Config {
-    groups: ["merger", "objects", "no-conflict", "hel"],
+    groups: ["merger", "objects", "no-conflict"],
     dataProvider: dataProviderNoConflictObjectTypes
 }
 function testNoConflictObjectType(string typeName) returns error? {
