@@ -1,0 +1,13 @@
+type Query {
+    address: String
+}
+
+"Baz type description"
+type Baz {
+    name: String
+    qux: Qux
+}
+
+type Qux {
+    name: String
+}

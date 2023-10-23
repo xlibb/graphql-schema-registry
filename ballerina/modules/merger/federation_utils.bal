@@ -14,6 +14,8 @@ const string JOIN_IMPLEMENTS_DIR = "join__implements";
 const string JOIN_TYPE_DIR = "join__type";
 const string JOIN_GRAPH_DIR = "join__graph";
 
+const string _SERVICE_FIELD_TYPE = "_service";
+
 string[] FEDERATION_SUBGRAPH_IGNORE_TYPES = [
     _SERVICE_TYPE,
     LINK_IMPORT_TYPE,
@@ -29,47 +31,19 @@ string[] FEDERATION_SUBGRAPH_IGNORE_DIRECTIVES = [
     LINK_DIR
 ];
 
-function addFederationTypes(parser:__Schema supergraph_schema, Subgraph[] subgraphs) {
+string[] FEDERATION_FIELD_TYPES = [
+    _SERVICE_FIELD_TYPE
+];
 
-    map<parser:__Type> federation_types = getFederationTypes();
-    foreach [string,parser:__Type] [key, value] in federation_types.entries() {
-        supergraph_schema.types[key] = value;
-    }
-
-    map<parser:__Directive> federation_directives = getFederationDirectives(supergraph_schema.types);
-    foreach [string,parser:__Directive] [key, value] in federation_directives.entries() {
-        supergraph_schema.directives[key] = value;
-    }
-
-    if supergraph_schema.types.hasKey(JOIN_GRAPH_TYPE) {
-        parser:__EnumValue[] enum_values = <parser:__EnumValue[]>supergraph_schema.types.get(JOIN_GRAPH_TYPE).enumValues;
-        foreach Subgraph subgraph in subgraphs {
-            parser:__AppliedDirective applied_join__graph = {
-                args: {
-                    "name": { 
-                        value: subgraph.name, 
-                        definition: parser:wrapType(supergraph_schema.types.get(STRING), parser:NON_NULL) 
-                    },
-                    "url": { 
-                        value: subgraph.url, 
-                        definition: parser:wrapType(supergraph_schema.types.get(STRING), parser:NON_NULL) 
-                    }
-                },
-                definition: supergraph_schema.directives.get(JOIN_GRAPH_DIR)
-            };
-
-            parser:__EnumValue enum_value = {
-                name: subgraph.name.toUpperAscii(),
-                appliedDirectives: [ applied_join__graph ]
-            };
-
-            enum_values.push(enum_value);
-        }
-    }
+function getFederationTypes(map<parser:__Type> types) returns map<parser:__Type>|InternalError {
     
-}
-
-function getFederationTypes() returns map<parser:__Type> {
+    parser:__Type _Service = {
+        name: _SERVICE_TYPE,
+        kind: parser:OBJECT,
+        fields: {
+            "sdl": { name: "sdl", args: {}, 'type: parser:wrapType(types.get(STRING), parser:NON_NULL) }
+        }
+    };
     parser:__Type link__Import = {
         name: LINK_IMPORT_TYPE,
         kind: parser:SCALAR,
@@ -95,7 +69,7 @@ function getFederationTypes() returns map<parser:__Type> {
         enumValues: []
     };
     return { 
-        link__Import,  join__FieldSet, link__Purpose, join__Graph
+        link__Import,  join__FieldSet, link__Purpose, join__Graph, _Service
     };
 }
 
@@ -197,4 +171,8 @@ function isSubgraphFederationType(string typeName) returns boolean {
 
 function isSubgraphFederationDirective(string directiveName) returns boolean {
     return FEDERATION_SUBGRAPH_IGNORE_DIRECTIVES.indexOf(directiveName) !is ();
+}
+
+function isFederationFieldType(string name) returns boolean {
+    return FEDERATION_FIELD_TYPES.indexOf(name) !is ();
 }
