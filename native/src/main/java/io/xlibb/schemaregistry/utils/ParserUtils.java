@@ -4,6 +4,7 @@ import graphql.schema.GraphQLType;
 import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
+import io.ballerina.runtime.api.types.MapType;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BMap;
@@ -64,6 +65,13 @@ public class ParserUtils {
 
     public static BMap<BString, Object> createRecord(String type) {
         return ValueCreator.createRecordValue(ModuleUtils.getModule(), type);
+    }
+
+    public static BMap<BString, Object> createRecordMap(String type) {
+        MapType mapType = TypeCreator.createMapType(
+            TypeCreator.createRecordType(type, ModuleUtils.getModule(), 0, true, 6)
+        );
+        return ValueCreator.createMapValue(mapType);
     }
 
     public static BArray createBArrayFromRecord(BMap<BString, Object> record) {

@@ -94,6 +94,7 @@ import static io.xlibb.schemaregistry.utils.ParserUtils.TYPE_FIELD;
 import static io.xlibb.schemaregistry.utils.ParserUtils.VALUE_FIELD;
 import static io.xlibb.schemaregistry.utils.ParserUtils.addValueToRecordField;
 import static io.xlibb.schemaregistry.utils.ParserUtils.createRecord;
+import static io.xlibb.schemaregistry.utils.ParserUtils.createRecordMap;
 import static io.xlibb.schemaregistry.utils.ParserUtils.createBArrayFromRecord;
 import static io.xlibb.schemaregistry.utils.ParserUtils.getTypeKindFromType;
 
@@ -342,7 +343,7 @@ public class Parser {
 
     private BMap<BString, Object> getInputValuesAsBMap(List<? extends GraphQLInputValueDefinition> fields) {
 
-        BMap<BString, Object> inputValueRecordsMap = ValueCreator.createMapValue();
+        BMap<BString, Object> inputValueRecordsMap = createRecordMap(INPUT_VALUE_RECORD);
         for (GraphQLInputValueDefinition inputValueDefinition : fields) {
             BMap<BString, Object> inputValueRecord = createRecord(INPUT_VALUE_RECORD);
             addValueToRecordField(
@@ -371,11 +372,9 @@ public class Parser {
                     getInputDefaultAsBType(inputValueDefinition)
                                  );
 
-            addValueToRecordField(
-                    inputValueRecordsMap,
+            inputValueRecordsMap.put(
                     StringUtils.fromString(inputValueDefinition.getName()),
-                    inputValueRecord
-                                 );
+                    inputValueRecord);
         }
         return inputValueRecordsMap;
     }
@@ -439,7 +438,7 @@ public class Parser {
 
     private Object getAppliedDirectiveArgumentsAsBMap(List<GraphQLAppliedDirectiveArgument> arguments) {
 
-        BMap<BString, Object> argumentsBMap = ValueCreator.createMapValue();
+        BMap<BString, Object> argumentsBMap = createRecordMap(APPLIED_DIRECTIVE_INPUT_VALUE_RECORD);
         for (GraphQLAppliedDirectiveArgument argument : arguments) {
             BMap<BString, Object> appliedArgumentInputValueRecord = createRecord(APPLIED_DIRECTIVE_INPUT_VALUE_RECORD);
             addValueToRecordField(
@@ -453,8 +452,7 @@ public class Parser {
                     getValueAsBType(argument.getArgumentValue().getValue(), argument.getType())
                                  );
 
-            addValueToRecordField(
-                    argumentsBMap,
+            argumentsBMap.put(
                     StringUtils.fromString(argument.getName()),
                     appliedArgumentInputValueRecord
                                  );
@@ -531,7 +529,7 @@ public class Parser {
 
     private BMap<BString, Object> getFieldsAsBMap(List<GraphQLFieldDefinition> fields) {
 
-        BMap<BString, Object> fieldsBArray = ValueCreator.createMapValue();
+        BMap<BString, Object> fieldsBMap = createRecordMap(FIELD_RECORD);
         for (GraphQLFieldDefinition fieldDefinition : fields) {
             BMap<BString, Object> fieldRecord = createRecord(FIELD_RECORD);
             addValueToRecordField(fieldRecord, NAME_FIELD, StringUtils.fromString(fieldDefinition.getName()));
@@ -542,9 +540,9 @@ public class Parser {
                     APPLIED_DIRECTIVES_FIELD,
                     getAppliedDirectivesAsBArray(fieldDefinition.getAppliedDirectives())
                                  );
-            addValueToRecordField(fieldsBArray, StringUtils.fromString(fieldDefinition.getName()), fieldRecord);
+            fieldsBMap.put(StringUtils.fromString(fieldDefinition.getName()), fieldRecord);
         }
-        return fieldsBArray;
+        return fieldsBMap;
     }
 
     private BMap<BString, Object> getTypeAsRecord(GraphQLType type) {
@@ -584,21 +582,17 @@ public class Parser {
     private BMap<BString, Object> generateSchemaRecord() {
 
         BMap<BString, Object> graphQLSchemaRecord = createRecord(SCHEMA_RECORD);
-        BMap<BString, Object> schemaRecordTypes = ValueCreator.createMapValue();
-        BMap<BString, Object> schemaDirectives = ValueCreator.createMapValue();
+        BMap<BString, Object> schemaRecordTypes = createRecordMap(TYPE_RECORD);
+        BMap<BString, Object> schemaDirectives = createRecordMap(DIRECTIVE_RECORD);
         for (Map.Entry<String, BMap<BString, Object>> type : types.entrySet()) {
-            addValueToRecordField(
-                    schemaRecordTypes,
+            schemaRecordTypes.put(
                     StringUtils.fromString(type.getKey()),
-                    type.getValue()
-                                 );
+                    type.getValue());
         }
         for (Map.Entry<String, BMap<BString, Object>> directive : directives.entrySet()) {
-            addValueToRecordField(
-                    schemaDirectives,
+            schemaDirectives.put(
                     StringUtils.fromString(directive.getKey()),
-                    directive.getValue()
-                                 );
+                    directive.getValue());
         }
         addValueToRecordField(graphQLSchemaRecord, ROOT_QUERY_FIELD, types.get(QUERY_TYPE_NAME));
         addValueToRecordField(graphQLSchemaRecord, ROOT_MUTATION_FIELD, types.get(MUTATION_TYPE_NAME));
