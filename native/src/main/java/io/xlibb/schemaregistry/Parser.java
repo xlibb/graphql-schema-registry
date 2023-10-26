@@ -540,6 +540,11 @@ public class Parser {
                     APPLIED_DIRECTIVES_FIELD,
                     getAppliedDirectivesAsBArray(fieldDefinition.getAppliedDirectives())
                                  );
+            addValueToRecordField(
+                    fieldRecord,
+                    DESCRIPTION_FIELD,
+                    StringUtils.fromString(fieldDefinition.getDescription())
+                                );
             fieldsBMap.put(StringUtils.fromString(fieldDefinition.getName()), fieldRecord);
         }
         return fieldsBMap;

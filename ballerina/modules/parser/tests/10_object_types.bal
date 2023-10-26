@@ -38,7 +38,8 @@ function testCustomObjectTypesDescription() returns error? {
         kind: OBJECT,
         name: "Person",
         fields: {
-            "id": { name: "id", args: {}, 'type: gql_ID }
+            "id": { name: "id", args: {}, 'type: gql_ID, description: "This is the person's ID" },
+            "name": { name: "name", args: {}, 'type: gql_String, description: "This is the person's name" }
         },
         interfaces: [],
         description: "This represents a Person"
