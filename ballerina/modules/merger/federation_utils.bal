@@ -16,6 +16,9 @@ const string JOIN_GRAPH_DIR = "join__graph";
 
 const string _SERVICE_FIELD_TYPE = "_service";
 
+const string GRAPH_FIELD = "graph";
+const string TYPE_FIELD = "type";
+
 string[] FEDERATION_SUBGRAPH_IGNORE_TYPES = [
     _SERVICE_TYPE,
     LINK_IMPORT_TYPE,
@@ -24,7 +27,9 @@ string[] FEDERATION_SUBGRAPH_IGNORE_TYPES = [
     BOOLEAN,
     FLOAT,
     INT,
-    ID
+    ID,
+    JOIN_FIELDSET_TYPE,
+    JOIN_GRAPH_TYPE
 ];
 
 string[] FEDERATION_SUBGRAPH_IGNORE_DIRECTIVES = [
@@ -91,7 +96,7 @@ function getFederationDirectives(map<parser:__Type> types) returns map<parser:__
         (),
         [ parser:ENUM_VALUE ],
         {
-            "graph": { name: "graph", 'type: parser:wrapType(types.get(JOIN_GRAPH_TYPE), parser:NON_NULL)}
+            [GRAPH_FIELD]: { name: GRAPH_FIELD, 'type: parser:wrapType(types.get(JOIN_GRAPH_TYPE), parser:NON_NULL)}
         },
         true
     );
@@ -100,10 +105,10 @@ function getFederationDirectives(map<parser:__Type> types) returns map<parser:__
         (),
         [ parser:FIELD_DEFINITION, parser:INPUT_FIELD_DEFINITION ],
         {
-            "graph": { name: "graph", 'type: types.get(JOIN_GRAPH_TYPE) },
+            [GRAPH_FIELD]: { name: GRAPH_FIELD, 'type: types.get(JOIN_GRAPH_TYPE) },
             "requires": { name: "requires", 'type: types.get(JOIN_FIELDSET_TYPE) },
             "provides": { name: "provides", 'type: types.get(JOIN_FIELDSET_TYPE) },
-            "type": { name: "type", 'type: types.get(STRING) },
+            [TYPE_FIELD]: { name: TYPE_FIELD, 'type: types.get(STRING) },
             "external": { name: "external", 'type: types.get(BOOLEAN) },
             "override": { name: "override", 'type: types.get(STRING) },
             "usedOverridden": { name: "usedOverridden", 'type: types.get(BOOLEAN) }
@@ -125,7 +130,7 @@ function getFederationDirectives(map<parser:__Type> types) returns map<parser:__
         (),
         [ parser:OBJECT, parser:INTERFACE ],
         {
-            "graph": { name: "graph", 'type: parser:wrapType(types.get(JOIN_GRAPH_TYPE), parser:NON_NULL) },
+            [GRAPH_FIELD]: { name: GRAPH_FIELD, 'type: parser:wrapType(types.get(JOIN_GRAPH_TYPE), parser:NON_NULL) },
             "interface": { name: "interface", 'type: parser:wrapType(types.get(STRING), parser:NON_NULL) }
         },
         true
@@ -135,7 +140,7 @@ function getFederationDirectives(map<parser:__Type> types) returns map<parser:__
         (),
         [parser:SCALAR, parser:OBJECT, parser:INTERFACE, parser:UNION, parser:ENUM, parser:INPUT_OBJECT],
         {
-            "graph": { name: "graph", 'type: parser:wrapType(types.get(JOIN_GRAPH_TYPE), parser:NON_NULL) },
+            [GRAPH_FIELD]: { name: GRAPH_FIELD, 'type: parser:wrapType(types.get(JOIN_GRAPH_TYPE), parser:NON_NULL) },
             "key": { name: "key", 'type: types.get(JOIN_FIELDSET_TYPE) },
             "extension": { name: "extension", 'type: parser:wrapType(types.get(BOOLEAN), parser:NON_NULL), defaultValue: false },
             "resolvable": { name: "resolvable", 'type: parser:wrapType(types.get(BOOLEAN), parser:NON_NULL), defaultValue: true },
@@ -148,7 +153,7 @@ function getFederationDirectives(map<parser:__Type> types) returns map<parser:__
         (),
         [ parser:UNION ],
         {
-            "graph": { name: "graph", 'type: parser:wrapType(types.get(JOIN_GRAPH_TYPE), parser:NON_NULL) },
+            [GRAPH_FIELD]: { name: GRAPH_FIELD, 'type: parser:wrapType(types.get(JOIN_GRAPH_TYPE), parser:NON_NULL) },
             "member": { name: "member", 'type:parser:wrapType(types.get(STRING), parser:NON_NULL ) }
         },
         true

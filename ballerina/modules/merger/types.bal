@@ -11,7 +11,12 @@ public type Supergraph record {|
     Subgraph[] subgraphs;
 |};
 
+public type Mismatch record {|
+    anydata data;
+    Subgraph[] subgraphs;
+|};
+
 public type MergeResult record {|
-    Supergraph supergraph;
-    MergeError[] errors;
+    anydata? result;
+    Mismatch[] hints;
 |};

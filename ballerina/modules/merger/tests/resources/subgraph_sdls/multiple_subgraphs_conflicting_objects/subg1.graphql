@@ -1,0 +1,15 @@
+type Query {
+    name: String
+}
+
+"Foo type description"
+type Foo {
+    name: String
+    age: Int
+	avg: Float
+    isBux: [ID]
+}
+
+type Bar {
+    name(item: ID, isValid: Boolean, page: [[Int!]!], query: String = "Def"): String
+}

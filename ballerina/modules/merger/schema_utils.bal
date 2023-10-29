@@ -216,3 +216,25 @@ function getDirectiveLocationFromString(string location) returns parser:__Direct
         _ => { return error InternalError(string `Provided value '${location}' is not a valid Directive Location`); }
     }
 }
+
+function typeReferenceToString(parser:__Type 'type) returns string|InternalError {
+    match 'type.kind {
+        parser:LIST => { 
+            parser:__Type? ofType = 'type.ofType;
+            if ofType is parser:__Type {
+                return string `[${check typeReferenceToString(ofType)}]`; 
+            } else {
+                return error InternalError(string `Invalid wrapping type '${'type.toBalString()}'`);
+            }
+        }
+        parser:NON_NULL => { 
+            parser:__Type? ofType = 'type.ofType;
+            if ofType is parser:__Type {
+                return string `${check typeReferenceToString(ofType)}!`; 
+            } else {
+                return error InternalError(string `Invalid wrapping type '${'type.toBalString()}'`);
+            }
+        }
+        _ => { return 'type.name ?: error InternalError(string `Invalid type name on '${'type.toBalString()}'`); }
+    }
+}
