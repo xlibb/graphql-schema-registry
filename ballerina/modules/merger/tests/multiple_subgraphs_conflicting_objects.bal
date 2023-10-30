@@ -26,12 +26,8 @@ function testConflictObjectTypeFields(string fieldName) returns error? {
     map<parser:__Field>? expectedFields = schemas[0].types.get(typeName).fields;
     if actualFields is map<parser:__Field> && expectedFields is map<parser:__Field> {
         test:assertEquals(
-            actualFields.get(fieldName).description,
-            expectedFields.get(fieldName).description
-        );
-        test:assertEquals(
-            actualFields.get(fieldName).appliedDirectives,
-            expectedFields.get(fieldName).appliedDirectives
+            actualFields.get(fieldName),
+            expectedFields.get(fieldName)
         );
     } else {
         test:assertFail(string `Cannot find field on '${typeName}' '${fieldName}'`);

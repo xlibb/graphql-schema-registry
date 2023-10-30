@@ -163,6 +163,45 @@ public class Merger {
             }
             map<parser:__Field> mergedFields = check self.mergeFields(fieldMaps);
             'type.fields = mergedFields;
+
+
+            // --------- Merge Interfaces ---------
+        }
+    }
+
+    function populateInterfaceTypes() returns MergeError|InternalError? {
+        map<parser:__Type> supergraphInterfaceTypes = self.getTypeKeysOfKind(parser:INTERFACE);
+        foreach [string, parser:__Type] [interfaceName, interface] in supergraphInterfaceTypes.entries() {
+
+            Subgraph[] subgraphs = self.getDefiningSubgraphs(interfaceName);
+
+            // ---------- Merge Descriptions -----------
+            // [Subgraph, string?][] descriptions = subgraphs.map(s => [s, s.schema.types.get(typeName).description]);
+            [Subgraph, string?][] descriptions = [];
+            foreach Subgraph subgraph in subgraphs {
+                descriptions.push([
+                    subgraph,
+                    subgraph.schema.types.get(interfaceName).description
+                ]);
+            }
+            MergeResult descriptionMergeResult = self.mergeDescription(descriptions);
+            interface.description = <string?>descriptionMergeResult.result;
+            if descriptionMergeResult.hints.length() > 0 {
+                // Handle discription hints
+            }
+
+            // ---------- Merge Fields -----------
+            [Subgraph, map<parser:__Field>][] fieldMaps = [];
+            foreach Subgraph subgraph in subgraphs {
+                map<parser:__Field>? subgraphFields = subgraph.schema.types.get(interfaceName).fields;
+                if subgraphFields is map<parser:__Field> {
+                    fieldMaps.push([ subgraph, subgraphFields ]);
+                }
+            }
+            map<parser:__Field> mergedFields = check self.mergeFields(fieldMaps);
+            interface.fields = mergedFields;
+
+            interface.interfaces = [];
         }
     }
 
@@ -467,48 +506,6 @@ public class Merger {
             return error MergeError("Default type mismatch");
         }
     
-    }
-
-    function populateInterfaceTypes() returns InternalError? {
-        map<parser:__Type> supergraphInterfaceTypes = self.getTypeKeysOfKind(parser:INTERFACE);
-        foreach [string, parser:__Type] [interfaceName, interface] in supergraphInterfaceTypes.entries() {
-
-            interface.interfaces = [];
-            interface.fields = {};
-
-            foreach Subgraph subgraph in self.subgraphs {
-                if subgraph.schema.types.hasKey(interfaceName) {
-                    parser:__Type subgraphInterface = subgraph.schema.types.get(interfaceName);
-
-                    // Handle description mimatch, fields mismatch
-                    interface.description = subgraphInterface.description;
-                    interface.possibleTypes = []; // TODO: Implement parser interface possible types
-
-                    parser:__Type[]? subgraphInterfaces = subgraphInterface.interfaces;
-                    if subgraphInterfaces !is () {
-                        interface.interfaces = check self.getInterfacesArray(subgraphInterfaces);
-                        
-                        // Add '@join__implements' directive
-                        subgraphInterface.appliedDirectives.push(
-                            ...(check self.getJoinImplementsAppliedDirectives(
-                                subgraph,
-                                subgraphInterfaces
-                            ))
-                        );
-                    } else {
-                        return error InternalError(string `Interfaces array cannot be null on type '${interfaceName}'`);
-                    }
-
-                    map<parser:__Field>? subgraphFields = subgraphInterface.fields;
-                    if subgraphFields !is () {
-                        interface.fields = check self.getFieldMap(subgraphFields);
-                    } else {
-                        return error InternalError(string `Fields map cannot be null on type '${interfaceName}'`);
-                    }
-
-                }
-            }
-        }
     }
 
     function applyJoinTypeDirectives() returns InternalError? {
