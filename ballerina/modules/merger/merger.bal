@@ -164,9 +164,9 @@ public class Merger {
             map<parser:__Field> mergedFields = check self.mergeFields(fieldMaps);
             'type.fields = mergedFields;
 
-
-            // --------- Merge Interfaces ---------
+            // ---------- Merge Implements -------
             'type.interfaces = [];
+            check self.mergeInterfaceImplements('type, subgraphs);
         }
     }
 
@@ -202,7 +202,10 @@ public class Merger {
             map<parser:__Field> mergedFields = check self.mergeFields(fieldMaps);
             interface.fields = mergedFields;
 
+            // ---------- Merge Implements -------
             interface.interfaces = [];
+            check self.mergeInterfaceImplements(interface, subgraphs);
+
             interface.possibleTypes = [];
         }
     }
@@ -459,6 +462,28 @@ public class Merger {
         // return mergedTypeReference;
     }
 
+    function mergeInterfaceImplements(parser:__Type 'type, Subgraph[] subgraphs) returns InternalError? {
+        string? typeName = 'type.name;
+
+        if typeName is () {
+            return error InternalError("Invalid supergraph interface type");
+        }
+
+        // Populate interfaces
+        foreach Subgraph subgraph in subgraphs {
+            parser:__Type[]? interfacesResult = subgraph.schema.types.get(typeName).interfaces;
+            if interfacesResult is () {
+                return error InternalError("Invalid subgraph interface type");
+            }
+
+            foreach parser:__Type interfaceType in interfacesResult {
+                parser:__Type supergraphInterfaceDef = check self.getTypeFromSupergraph(interfaceType.name);
+                check implementInterface('type, supergraphInterfaceDef);
+                check self.applyJoinImplementsDirective('type, subgraph, supergraphInterfaceDef);
+            }
+        }
+    }
+
     function getMergedTypeReference(parser:__Type typeA, parser:__Type typeB) returns parser:__Type|InternalError|MergeError {
         parser:__Type? typeAWrappedType = typeA.ofType;
         parser:__Type? typeBWrappedType = typeB.ofType;
@@ -558,6 +583,18 @@ public class Merger {
         foreach map<anydata> args in join__fieldArgs {
             'field.appliedDirectives.push(check self.getAppliedDirectiveFromName(JOIN_FIELD_DIR, args));
         }
+    }
+
+    function applyJoinImplementsDirective(parser:__Type 'type, Subgraph subgraph, parser:__Type interfaceType) returns InternalError? {
+        'type.appliedDirectives.push(
+            check self.getAppliedDirectiveFromName(
+                JOIN_IMPLEMENTS_DIR,
+                { 
+                    [GRAPH_FIELD]: self.joinGraphMap.get(subgraph.name),
+                    "interface": interfaceType.name
+                }
+            )
+        );
     }
 
     // Filter out the Subgraphs which defines the given typeName

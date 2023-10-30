@@ -238,3 +238,16 @@ function typeReferenceToString(parser:__Type 'type) returns string|InternalError
         _ => { return 'type.name ?: error InternalError(string `Invalid type name on '${'type.toBalString()}'`); }
     }
 }
+
+function implementInterface(parser:__Type 'type, parser:__Type interface) returns InternalError? {
+    parser:__Type[]? interfaces = 'type.interfaces;
+    if interfaces is parser:__Type[] {
+        interfaces.push(interface);
+    } else {
+        return error InternalError("Provided type cannot implement interfaces");
+    }
+}
+
+function applyDirective(parser:__Type|parser:__InputValue 'type, parser:__AppliedDirective appliedDirective) returns InternalError? {
+
+}

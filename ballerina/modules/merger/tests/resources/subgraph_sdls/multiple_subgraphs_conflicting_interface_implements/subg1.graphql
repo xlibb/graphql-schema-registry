@@ -1,0 +1,12 @@
+type Query {
+    name: String
+}
+
+interface Bux {
+	id: ID
+}
+
+type Foo implements Bux {
+    name: String
+	id: ID
+}
