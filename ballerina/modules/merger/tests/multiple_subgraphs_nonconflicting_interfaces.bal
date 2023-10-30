@@ -14,8 +14,8 @@ function testNoConflictInterfaceType(string typeName) returns error? {
 
 function dataProviderNoConflictInterfaceTypes() returns [string][] {
     return [
-        ["Baz"],
-        ["Foo"]
+        ["Bar"],
+        ["Qux"]
     ];
 }
 

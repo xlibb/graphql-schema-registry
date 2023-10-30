@@ -166,6 +166,7 @@ public class Merger {
 
 
             // --------- Merge Interfaces ---------
+            'type.interfaces = [];
         }
     }
 
@@ -202,6 +203,7 @@ public class Merger {
             interface.fields = mergedFields;
 
             interface.interfaces = [];
+            interface.possibleTypes = [];
         }
     }
 
@@ -310,8 +312,11 @@ public class Merger {
 
             MergeResult|MergeError outputTypeMergeResult = check self.mergeTypeReference(outputTypes);
             Mismatch[] outputTypeMergeHints = [];
-            if outputTypeMergeResult is MergeResult && outputTypeMergeResult.hints.length() > 0 {
-                outputTypeMergeHints = outputTypeMergeResult.hints;
+            if outputTypeMergeResult is MergeResult {
+                mergedFields[fieldName].'type = <parser:__Type>outputTypeMergeResult.result;
+                if outputTypeMergeResult.hints.length() > 0 {
+                    outputTypeMergeHints = outputTypeMergeResult.hints;
+                }
                 // Handle inconsistent types hints
             } else if outputTypeMergeResult is MergeError {
                 // Handle Type reference merge error
@@ -425,7 +430,9 @@ public class Merger {
             parser:__Type typeReference = <parser:__Type>intersectedTypeReference.data;
             if mergedTypeReference is () {
                 mergedTypeReference = typeReference;
-            } else {
+            }
+            
+            if mergedTypeReference !is () {
                 mergedTypeReference = check self.getMergedTypeReference(mergedTypeReference, typeReference);
             }
         }
@@ -456,6 +463,8 @@ public class Merger {
         parser:__Type? typeAWrappedType = typeA.ofType;
         parser:__Type? typeBWrappedType = typeB.ofType;
 
+
+        // typeA == typeB check might have to be done with only the name, and not the whole type because the type might not have been constructed completely
         if typeAWrappedType is () && typeBWrappedType is () && typeA == typeB {
             return check self.getTypeFromSupergraph(typeA.name);
         } else if typeBWrappedType !is () && typeBWrappedType == typeA && typeB.kind == parser:NON_NULL {

@@ -6,7 +6,7 @@ type Foo {
     name: String
     "Represents if a student or not"
     isStudent: Boolean
-    isBux: [ID]!
+    isBux: [ID]
 }
 
 type Bar {

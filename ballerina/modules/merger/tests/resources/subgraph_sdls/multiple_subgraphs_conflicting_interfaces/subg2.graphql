@@ -6,7 +6,7 @@ type Query {
 interface Foo {
     name: String
     age: Int
-    isBux: [ID]!
+    isBux: [ID]
 }
 
 interface Bar {

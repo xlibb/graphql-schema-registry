@@ -2,10 +2,6 @@ type Query {
     name: String
 }
 
-type Foo implements Bar {
-    name: String
-}
-
 "Bar interface description"
 interface Bar {
     name: String

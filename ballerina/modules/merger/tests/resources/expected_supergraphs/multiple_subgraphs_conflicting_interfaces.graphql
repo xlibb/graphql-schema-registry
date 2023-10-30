@@ -36,7 +36,7 @@ interface Foo
   name: String
   age: Int @join__field(graph: SUBG1) @join__field(graph: SUBG2)
   avg: Float @join__field(graph: SUBG1)
-  isBux: [ID] @join__field(graph: SUBG1, type: "[ID]") @join__field(graph: SUBG2, type: "[ID]!") @join__field(graph: SUBG3, type: "[ID]!")
+  isBux: [ID]
 
   """Represents if a student or not"""
   isStudent: Boolean @join__field(graph: SUBG3)

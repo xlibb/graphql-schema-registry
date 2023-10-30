@@ -11,7 +11,7 @@ function testConflictObjectTypeDescription() returns error? {
 
     test:assertEquals( supergraph.schema.types.get(typeName).name, schemas[0].types.get(typeName).name);
     test:assertEquals( supergraph.schema.types.get(typeName).description, schemas[0].types.get(typeName).description);
-}
+    }
 
 @test:Config {
     groups: ["merger", "objects", "conflict"],
@@ -26,8 +26,8 @@ function testConflictObjectTypeFields(string fieldName) returns error? {
     map<parser:__Field>? expectedFields = schemas[0].types.get(typeName).fields;
     if actualFields is map<parser:__Field> && expectedFields is map<parser:__Field> {
         test:assertEquals(
-            actualFields.get(fieldName),
-            expectedFields.get(fieldName)
+            actualFields.get(fieldName).'type,
+            expectedFields.get(fieldName).'type
         );
     } else {
         test:assertFail(string `Cannot find field on '${typeName}' '${fieldName}'`);

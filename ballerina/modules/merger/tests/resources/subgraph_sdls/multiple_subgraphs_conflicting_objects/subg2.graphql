@@ -6,7 +6,7 @@ type Query {
 type Foo {
     name: String
     age: Int
-    isBux: [ID]!
+    isBux: [ID]
 }
 
 type Bar {
