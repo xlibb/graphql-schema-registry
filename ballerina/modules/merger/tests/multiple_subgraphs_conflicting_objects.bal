@@ -14,7 +14,7 @@ function testConflictObjectTypeDescription() returns error? {
 }
 
 @test:Config {
-    groups: ["merger", "objects", "bel"],
+    groups: ["merger", "objects", "conflict"],
     dataProvider: dataProviderConflictObjectTypesFields
 }
 function testConflictObjectTypeFields(string fieldName) returns error? {
@@ -49,7 +49,7 @@ function dataProviderConflictObjectTypesFields() returns [string][] {
 }
 
 @test:Config {
-    groups: ["merger", "objects", "conflict", "hel"]
+    groups: ["merger", "objects", "conflict"]
 }
 function testConflictInputType() returns error? {
     string typeName = "Bar";

@@ -20,8 +20,7 @@ public class Merger {
         check self.populateFederationJoinGraphEnum();
         check self.addTypesShallow();
         check self.addDirectives();
-        // check self.populateObjectTypes();
-        check self.populateObjectTypes_2();
+        check self.populateObjectTypes();
         check self.populateInterfaceTypes();
         check self.applyJoinTypeDirectives();
         return self.supergraph;
@@ -129,58 +128,15 @@ public class Merger {
         }
     }
 
-    function populateObjectTypes() returns InternalError? {
+    function populateObjectTypes() returns MergeError|InternalError? {
         map<parser:__Type> supergraphObjectTypes = self.getTypeKeysOfKind(parser:OBJECT);
-        foreach [string, parser:__Type] [key, supergraphObject] in supergraphObjectTypes.entries() {
-
-            supergraphObject.interfaces = [];
-            supergraphObject.fields = {};
-
-            foreach Subgraph subgraph in self.subgraphs {
-                if subgraph.schema.types.hasKey(key) {
-                    parser:__Type subgraphObject = subgraph.schema.types.get(key);
-
-                    // Handle description mimatch, fields mismatch
-                    supergraphObject.description = subgraphObject.description;
-
-                    parser:__Type[]? subgraphInterfaces = subgraphObject.interfaces;
-                    if subgraphInterfaces !is () {
-                        supergraphObject.interfaces = check self.getInterfacesArray(subgraphInterfaces);
-
-                        supergraphObject.appliedDirectives.push(
-                            ...(check self.getJoinImplementsAppliedDirectives(
-                                subgraph,
-                                subgraphInterfaces
-                            ))
-                        );
-                    } else {
-                        return error InternalError(string `Interfaces array cannot be null on type '${key}'`);
-                    }
-
-                    map<parser:__Field>? subgraphFields = subgraphObject.fields;
-                    if subgraphFields !is () {
-                        supergraphObject.fields = check self.getFieldMap(subgraphFields);
-                    } else {
-                        return error InternalError(string `Fields map cannot be null on type '${key}'`);
-                    }
-                }
-            }
-        }
-    }
-
-    function populateObjectTypes_2() returns MergeError|InternalError? {
-        foreach [string, parser:__Type] [typeName, 'type] in self.supergraph.schema.types.entries() {
-            if isBuiltInType(typeName) || isSubgraphFederationType(typeName) {
+        foreach [string, parser:__Type] [objectName, 'type] in supergraphObjectTypes.entries() {
+            if isBuiltInType(objectName) || isSubgraphFederationType(objectName) {
                 continue;
             }
 
             // Using filter here causes a Compiler error (not compilation error)
-            Subgraph[] subgraphs = [];
-            foreach Subgraph subgraph in self.subgraphs {
-                if subgraph.schema.types.hasKey(typeName) {
-                    subgraphs.push(subgraph);
-                }
-            }
+            Subgraph[] subgraphs = self.getDefiningSubgraphs(objectName);
 
             // ---------- Merge Descriptions -----------
             // [Subgraph, string?][] descriptions = subgraphs.map(s => [s, s.schema.types.get(typeName).description]);
@@ -188,7 +144,7 @@ public class Merger {
             foreach Subgraph subgraph in subgraphs {
                 descriptions.push([
                     subgraph,
-                    subgraph.schema.types.get(typeName).description
+                    subgraph.schema.types.get(objectName).description
                 ]);
             }
             MergeResult descriptionMergeResult = self.mergeDescription(descriptions);
@@ -200,7 +156,7 @@ public class Merger {
             // ---------- Merge Fields -----------
             [Subgraph, map<parser:__Field>][] fieldMaps = [];
             foreach Subgraph subgraph in subgraphs {
-                map<parser:__Field>? subgraphFields = subgraph.schema.types.get(typeName).fields;
+                map<parser:__Field>? subgraphFields = subgraph.schema.types.get(objectName).fields;
                 if subgraphFields is map<parser:__Field> {
                     fieldMaps.push([ subgraph, subgraphFields ]);
                 }
@@ -515,22 +471,22 @@ public class Merger {
 
     function populateInterfaceTypes() returns InternalError? {
         map<parser:__Type> supergraphInterfaceTypes = self.getTypeKeysOfKind(parser:INTERFACE);
-        foreach [string, parser:__Type] [key, supergraphInterface] in supergraphInterfaceTypes.entries() {
+        foreach [string, parser:__Type] [interfaceName, interface] in supergraphInterfaceTypes.entries() {
 
-            supergraphInterface.interfaces = [];
-            supergraphInterface.fields = {};
+            interface.interfaces = [];
+            interface.fields = {};
 
             foreach Subgraph subgraph in self.subgraphs {
-                if subgraph.schema.types.hasKey(key) {
-                    parser:__Type subgraphInterface = subgraph.schema.types.get(key);
+                if subgraph.schema.types.hasKey(interfaceName) {
+                    parser:__Type subgraphInterface = subgraph.schema.types.get(interfaceName);
 
                     // Handle description mimatch, fields mismatch
-                    supergraphInterface.description = subgraphInterface.description;
-                    supergraphInterface.possibleTypes = []; // TODO: Implement parser interface possible types
+                    interface.description = subgraphInterface.description;
+                    interface.possibleTypes = []; // TODO: Implement parser interface possible types
 
                     parser:__Type[]? subgraphInterfaces = subgraphInterface.interfaces;
                     if subgraphInterfaces !is () {
-                        supergraphInterface.interfaces = check self.getInterfacesArray(subgraphInterfaces);
+                        interface.interfaces = check self.getInterfacesArray(subgraphInterfaces);
                         
                         // Add '@join__implements' directive
                         subgraphInterface.appliedDirectives.push(
@@ -540,14 +496,14 @@ public class Merger {
                             ))
                         );
                     } else {
-                        return error InternalError(string `Interfaces array cannot be null on type '${key}'`);
+                        return error InternalError(string `Interfaces array cannot be null on type '${interfaceName}'`);
                     }
 
                     map<parser:__Field>? subgraphFields = subgraphInterface.fields;
                     if subgraphFields !is () {
-                        supergraphInterface.fields = check self.getFieldMap(subgraphFields);
+                        interface.fields = check self.getFieldMap(subgraphFields);
                     } else {
-                        return error InternalError(string `Fields map cannot be null on type '${key}'`);
+                        return error InternalError(string `Fields map cannot be null on type '${interfaceName}'`);
                     }
 
                 }
@@ -596,6 +552,18 @@ public class Merger {
         foreach map<anydata> args in join__fieldArgs {
             'field.appliedDirectives.push(check self.getAppliedDirectiveFromName(JOIN_FIELD_DIR, args));
         }
+    }
+
+    // Filter out the Subgraphs which defines the given typeName
+    function getDefiningSubgraphs(string typeName) returns Subgraph[] {
+        Subgraph[] subgraphs = [];
+        foreach Subgraph subgraph in self.subgraphs {
+            if subgraph.schema.types.hasKey(typeName) {
+                subgraphs.push(subgraph);
+            }
+        }
+
+        return subgraphs;
     }
 
     function getTypeKeysOfKind(parser:__TypeKind kind) returns map<parser:__Type> {
