@@ -22,6 +22,7 @@ public class Merger {
         check self.addDirectives();
         check self.populateObjectTypes();
         check self.populateInterfaceTypes();
+        check self.populateInputTypes();
         check self.applyJoinTypeDirectives();
         return self.supergraph;
     }
@@ -210,6 +211,40 @@ public class Merger {
         }
     }
 
+    function populateInputTypes() returns MergeError|InternalError? {
+        map<parser:__Type> supergraphInputTypes = self.getTypeKeysOfKind(parser:INPUT_OBJECT);
+        foreach [string, parser:__Type] [inputTypeName, 'type] in supergraphInputTypes.entries() {
+            Subgraph[] subgraphs = self.getDefiningSubgraphs(inputTypeName);
+
+            // ---------- Merge Descriptions -----------
+            // [Subgraph, string?][] descriptions = subgraphs.map(s => [s, s.schema.types.get(typeName).description]);
+            [Subgraph, string?][] descriptions = [];
+            foreach Subgraph subgraph in subgraphs {
+                descriptions.push([
+                    subgraph,
+                    subgraph.schema.types.get(inputTypeName).description
+                ]);
+            }
+            MergeResult descriptionMergeResult = self.mergeDescription(descriptions);
+            'type.description = <string?>descriptionMergeResult.result;
+            if descriptionMergeResult.hints.length() > 0 {
+                // Handle discription hints
+            }
+
+            // ---------- Merge Input fields -----------
+            [Subgraph, map<parser:__InputValue>][] inputFieldMaps = [];
+            foreach Subgraph subgraph in subgraphs {
+                map<parser:__InputValue>? subgraphFields = subgraph.schema.types.get(inputTypeName).inputFields;
+                if subgraphFields is map<parser:__InputValue> {
+                    inputFieldMaps.push([ subgraph, subgraphFields ]);
+                }
+            }
+            map<parser:__InputValue> mergedFields = check self.mergeInputValues(inputFieldMaps);
+            'type.inputFields = mergedFields;
+
+        }
+    }
+
     function mergeDescription([Subgraph, string?][] descriptions) returns MergeResult {
         if descriptions.length() == 0 {
             return {
@@ -313,7 +348,7 @@ public class Merger {
                 // Handle inconsistent descriptions
             }
 
-            MergeResult|MergeError outputTypeMergeResult = check self.mergeTypeReference(outputTypes);
+            MergeResult|MergeError outputTypeMergeResult = check self.mergeTypeReference(outputTypes, OUTPUT);
             Mismatch[] outputTypeMergeHints = [];
             if outputTypeMergeResult is MergeResult {
                 mergedFields[fieldName].'type = <parser:__Type>outputTypeMergeResult.result;
@@ -376,7 +411,7 @@ public class Merger {
                     ]);
                 }
 
-                MergeResult|MergeError inputTypeMergeResult = check self.mergeTypeReference(types);
+                MergeResult|MergeError inputTypeMergeResult = check self.mergeTypeReference(types, INPUT);
                 if inputTypeMergeResult is MergeResult && inputTypeMergeResult.hints.length() > 0 {
                     // Handle type reference hints
                 } else if inputTypeMergeResult is MergeError {
@@ -406,6 +441,7 @@ public class Merger {
                 
             } else {
                 // Handle 'INCONSISTENT_ARGUMENT_PRESENCE'
+                // https://www.apollographql.com/docs/federation/federated-types/sharing-types/#arguments
             }
         }
 
@@ -413,36 +449,43 @@ public class Merger {
         return mergedArguments;
     }
 
-    function mergeTypeReference([Subgraph, parser:__Type][] typeReferences) returns MergeResult|MergeError|InternalError {
-        map<Mismatch> intersectedTypeReferences = {};
+    function mergeTypeReference([Subgraph, parser:__Type][] typeReferences, TypeReferenceType refType) returns MergeResult|MergeError|InternalError {
+        map<Mismatch> groupedTypeReferences = {};
         foreach [Subgraph, parser:__Type] [subgraph, typeReference] in typeReferences {
             string key = check typeReferenceToString(typeReference);
 
-            if !intersectedTypeReferences.hasKey(key) {
-                intersectedTypeReferences[key] = { 
+            if !groupedTypeReferences.hasKey(key) {
+                groupedTypeReferences[key] = { 
                     data: typeReference,
                     subgraphs: [ subgraph ]
                  };
             } else {
-                intersectedTypeReferences.get(key).subgraphs.push(subgraph);
+                groupedTypeReferences.get(key).subgraphs.push(subgraph);
             }
         }
 
+        function (parser:__Type typeA, parser:__Type typeB) returns parser:__Type|InternalError|MergeError mergerFn;
+        if refType == OUTPUT {
+            mergerFn = self.getMergedOutputTypeReference;
+        } else if refType == INPUT {
+            mergerFn = self.getMergedInputTypeReference;
+        }
+
         parser:__Type? mergedTypeReference = ();
-        foreach Mismatch intersectedTypeReference in intersectedTypeReferences {
+        foreach Mismatch intersectedTypeReference in groupedTypeReferences {
             parser:__Type typeReference = <parser:__Type>intersectedTypeReference.data;
             if mergedTypeReference is () {
                 mergedTypeReference = typeReference;
             }
             
             if mergedTypeReference !is () {
-                mergedTypeReference = check self.getMergedTypeReference(mergedTypeReference, typeReference);
+                mergedTypeReference = check mergerFn(mergedTypeReference, typeReference); 
             }
         }
 
         Mismatch[] mismatches = [];
-        if intersectedTypeReferences.length() > 1 {
-            foreach [string, Mismatch] [key, mismatch] in intersectedTypeReferences.entries() {
+        if groupedTypeReferences.length() > 1 {
+            foreach [string, Mismatch] [key, mismatch] in groupedTypeReferences.entries() {
                 mismatches.push({
                     data: key,
                     subgraphs: mismatch.subgraphs
@@ -484,29 +527,21 @@ public class Merger {
         }
     }
 
-    function getMergedTypeReference(parser:__Type typeA, parser:__Type typeB) returns parser:__Type|InternalError|MergeError {
+    function getMergedOutputTypeReference(parser:__Type typeA, parser:__Type typeB) returns parser:__Type|InternalError|MergeError {
         parser:__Type? typeAWrappedType = typeA.ofType;
         parser:__Type? typeBWrappedType = typeB.ofType;
 
-
-        // typeA == typeB check might have to be done with only the name, and not the whole type because the type might not have been constructed completely
-        if typeAWrappedType is () && typeBWrappedType is () && typeA == typeB {
+        if typeAWrappedType is () && typeBWrappedType is () && typeA.name == typeB.name {
             return check self.getTypeFromSupergraph(typeA.name);
-        } else if typeBWrappedType !is () && typeBWrappedType == typeA && typeB.kind == parser:NON_NULL {
-            return parser:wrapType(
-                check self.getMergedTypeReference(typeA, typeBWrappedType), 
-                parser:NON_NULL
-            );
-        } else if typeAWrappedType !is () && typeA.kind == parser:NON_NULL && typeAWrappedType == typeB {
-            return parser:wrapType(
-                check self.getMergedTypeReference(typeAWrappedType, typeB),
-                parser:NON_NULL
-            );
         } else if typeAWrappedType !is () && typeBWrappedType !is () && typeA.kind == typeB.kind {
             return parser:wrapType(
-                check self.getMergedTypeReference(typeAWrappedType, typeBWrappedType),
+                check self.getMergedOutputTypeReference(typeAWrappedType, typeBWrappedType),
                 <parser:WRAPPING_TYPE>typeA.kind
             );
+        } else if typeBWrappedType !is () && typeB.kind == parser:NON_NULL {
+            return check self.getMergedOutputTypeReference(typeA, typeBWrappedType);
+        } else if typeAWrappedType !is () && typeA.kind == parser:NON_NULL {
+            return check self.getMergedOutputTypeReference(typeAWrappedType, typeB);
         } else {
             // Handle Type Reference mismatch
             // 'ARGUMENT_TYPE_MISMATCH', 'FIELD_TYPE_MISMATCH'
@@ -515,6 +550,34 @@ public class Merger {
         }
     }
 
+    function getMergedInputTypeReference(parser:__Type typeA, parser:__Type typeB) returns parser:__Type|InternalError|MergeError {
+        parser:__Type? typeAWrappedType = typeA.ofType;
+        parser:__Type? typeBWrappedType = typeB.ofType;
+
+        if typeAWrappedType is () && typeBWrappedType is () && typeA.name == typeB.name {
+            return check self.getTypeFromSupergraph(typeA.name);
+        } else if typeAWrappedType !is () && typeBWrappedType !is () && typeA.kind == typeB.kind {
+            return parser:wrapType(
+                check self.getMergedInputTypeReference(typeAWrappedType, typeBWrappedType),
+                <parser:WRAPPING_TYPE>typeA.kind
+            );
+        } else if typeBWrappedType !is () && typeB.kind == parser:NON_NULL {
+            return parser:wrapType(
+                check self.getMergedInputTypeReference(typeA, typeBWrappedType), 
+                parser:NON_NULL
+            );
+        } else if typeAWrappedType !is () && typeA.kind == parser:NON_NULL {
+            return parser:wrapType(
+                check self.getMergedInputTypeReference(typeAWrappedType, typeB),
+                parser:NON_NULL
+            );
+        } else {
+            // Handle Type Reference mismatch
+            // 'ARGUMENT_TYPE_MISMATCH', 'FIELD_TYPE_MISMATCH'
+            // 'INCONSISTENT_BUT_COMPATIBLE_ARGUMENT_TYPE', 'INCONSISTENT_BUT_COMPATIBLE_FIELD_TYPE'
+            return error MergeError(string `Reference type mismatch`);
+        }
+    }
     function mergeDefaultValues([Subgraph, anydata?][] defaultValues) returns MergeResult|MergeError {
         // map<[anydata, Subgraph[]]> intersected = {};
         map<Mismatch> intersected = {};
@@ -715,4 +778,5 @@ public class Merger {
             return check self.getTypeFromSupergraph(<string>'type.name);
         }
     }
+
 }

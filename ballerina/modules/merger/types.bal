@@ -20,3 +20,8 @@ public type MergeResult record {|
     anydata? result;
     Mismatch[] hints;
 |};
+
+enum TypeReferenceType {
+    INPUT,
+    OUTPUT
+}
