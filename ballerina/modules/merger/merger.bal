@@ -20,9 +20,9 @@ public class Merger {
         check self.populateFederationJoinGraphEnum();
         check self.addTypesShallow();
         check self.addDirectives();
-        check self.populateObjectTypes();
-        check self.populateInterfaceTypes();
-        check self.populateInputTypes();
+        check self.mergeObjectTypes();
+        check self.mergeInterfaceTypes();
+        check self.mergeInputTypes();
         check self.applyJoinTypeDirectives();
         return self.supergraph;
     }
@@ -114,7 +114,7 @@ public class Merger {
         }
     }
 
-    function populateUnionTypes() {
+    function mergeUnionTypes() {
         map<parser:__Type> supergraphUnionTypes = self.getTypeKeysOfKind(parser:UNION);
         foreach [string, parser:__Type] [key, supergraphUnion] in supergraphUnionTypes.entries() {
             foreach Subgraph subgraph in self.subgraphs {
@@ -129,7 +129,7 @@ public class Merger {
         }
     }
 
-    function populateObjectTypes() returns MergeError|InternalError? {
+    function mergeObjectTypes() returns MergeError|InternalError? {
         map<parser:__Type> supergraphObjectTypes = self.getTypeKeysOfKind(parser:OBJECT);
         foreach [string, parser:__Type] [objectName, 'type] in supergraphObjectTypes.entries() {
             if isBuiltInType(objectName) || isSubgraphFederationType(objectName) {
@@ -171,7 +171,7 @@ public class Merger {
         }
     }
 
-    function populateInterfaceTypes() returns MergeError|InternalError? {
+    function mergeInterfaceTypes() returns MergeError|InternalError? {
         map<parser:__Type> supergraphInterfaceTypes = self.getTypeKeysOfKind(parser:INTERFACE);
         foreach [string, parser:__Type] [interfaceName, interface] in supergraphInterfaceTypes.entries() {
 
@@ -211,7 +211,7 @@ public class Merger {
         }
     }
 
-    function populateInputTypes() returns MergeError|InternalError? {
+    function mergeInputTypes() returns MergeError|InternalError? {
         map<parser:__Type> supergraphInputTypes = self.getTypeKeysOfKind(parser:INPUT_OBJECT);
         foreach [string, parser:__Type] [inputTypeName, 'type] in supergraphInputTypes.entries() {
             Subgraph[] subgraphs = self.getDefiningSubgraphs(inputTypeName);
