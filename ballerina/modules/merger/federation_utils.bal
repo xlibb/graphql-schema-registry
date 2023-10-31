@@ -18,6 +18,8 @@ const string _SERVICE_FIELD_TYPE = "_service";
 
 const string GRAPH_FIELD = "graph";
 const string TYPE_FIELD = "type";
+const string INTERFACE_FIELD = "interface";
+const string UNION_MEMBER_FIELD = "member";
 
 string[] FEDERATION_SUBGRAPH_IGNORE_TYPES = [
     _SERVICE_TYPE,
@@ -131,7 +133,7 @@ function getFederationDirectives(map<parser:__Type> types) returns map<parser:__
         [ parser:OBJECT, parser:INTERFACE ],
         {
             [GRAPH_FIELD]: { name: GRAPH_FIELD, 'type: parser:wrapType(types.get(JOIN_GRAPH_TYPE), parser:NON_NULL) },
-            "interface": { name: "interface", 'type: parser:wrapType(types.get(STRING), parser:NON_NULL) }
+            [INTERFACE_FIELD]: { name: INTERFACE_FIELD, 'type: parser:wrapType(types.get(STRING), parser:NON_NULL) }
         },
         true
     );
@@ -154,7 +156,7 @@ function getFederationDirectives(map<parser:__Type> types) returns map<parser:__
         [ parser:UNION ],
         {
             [GRAPH_FIELD]: { name: GRAPH_FIELD, 'type: parser:wrapType(types.get(JOIN_GRAPH_TYPE), parser:NON_NULL) },
-            "member": { name: "member", 'type:parser:wrapType(types.get(STRING), parser:NON_NULL ) }
+            [UNION_MEMBER_FIELD]: { name: UNION_MEMBER_FIELD, 'type:parser:wrapType(types.get(STRING), parser:NON_NULL ) }
         },
         true
     );

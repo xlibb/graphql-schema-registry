@@ -3,15 +3,18 @@ import graphql_schema_registry.parser;
 public class Merger {
 
     private Supergraph supergraph;
-    private Subgraph[] subgraphs;
+    private map<Subgraph> subgraphs;
     private map<parser:__EnumValue> joinGraphMap;
 
     public function init(Subgraph[] subgraphs) {
-        self.subgraphs = subgraphs.clone();
+        self.subgraphs = {};
+        foreach Subgraph subgraph in subgraphs {
+            self.subgraphs[subgraph.name] = subgraph;
+        }
         self.joinGraphMap = {};
         self.supergraph = {
             schema: createSchema(),
-            subgraphs: self.subgraphs
+            subgraphs: self.subgraphs.toArray()
         };
     }
 
@@ -20,6 +23,7 @@ public class Merger {
         check self.populateFederationJoinGraphEnum();
         check self.addTypesShallow();
         check self.addDirectives();
+        check self.mergeUnionTypes();
         check self.mergeObjectTypes();
         check self.mergeInterfaceTypes();
         check self.mergeInputTypes();
@@ -114,17 +118,47 @@ public class Merger {
         }
     }
 
-    function mergeUnionTypes() {
+    function mergeUnionTypes() returns InternalError? {
         map<parser:__Type> supergraphUnionTypes = self.getTypeKeysOfKind(parser:UNION);
-        foreach [string, parser:__Type] [key, supergraphUnion] in supergraphUnionTypes.entries() {
-            foreach Subgraph subgraph in self.subgraphs {
-                if subgraph.schema.types.hasKey(key) {
-                    parser:__Type subgraphUnion = subgraph.schema.types.get(key);
+        foreach [string, parser:__Type] [typeName, mergedType] in supergraphUnionTypes.entries() {
+            Subgraph[] subgraphs = self.getDefiningSubgraphs(typeName);
 
-                    // Handle description mimatch, possibleTypes mismatch
-                    supergraphUnion.description = subgraphUnion.description;
-                    supergraphUnion.possibleTypes = subgraphUnion.possibleTypes;
+            // ---------- Merge Descriptions -----------
+            [Subgraph, string?][] descriptions = [];
+            foreach Subgraph subgraph in subgraphs {
+                descriptions.push([
+                    subgraph,
+                    subgraph.schema.types.get(typeName).description
+                ]);
+            }
+            MergeResult descriptionMergeResult = self.mergeDescription(descriptions);
+            mergedType.description = <string?>descriptionMergeResult.result;
+            if descriptionMergeResult.hints.length() > 0 {
+                // Handle discription hints
+            }
+
+            // ---------- Merge Possible Types -----------
+            map<parser:__Type[]> possibleTypes = {};
+            foreach Subgraph subgraph in subgraphs {
+                parser:__Type[]? possibleTypesResult = subgraph.schema.types.get(typeName).possibleTypes;
+                if possibleTypesResult is parser:__Type[] {
+                    possibleTypes[subgraph.name] = possibleTypesResult;
+                } else {
+                    return error InternalError("Invalid union type");
                 }
+
+            }
+            MergeResult possibleTypesMergeResult = check self.mergePossibleTypes(possibleTypes);
+            mergedType.possibleTypes = <parser:__Type[]?>possibleTypesMergeResult.result;
+
+            foreach Mismatch mismatch in possibleTypesMergeResult.hints {
+                foreach Subgraph consistentSubgraph in mismatch.subgraphs {
+                    check self.applyJoinUnionMember(
+                        mergedType,
+                        consistentSubgraph,
+                        <parser:__Type>mismatch.data
+                    );
+                }                
             }
         }
     }
@@ -136,7 +170,6 @@ public class Merger {
                 continue;
             }
 
-            // Using filter here causes a Compiler error (not compilation error)
             Subgraph[] subgraphs = self.getDefiningSubgraphs(objectName);
 
             // ---------- Merge Descriptions -----------
@@ -356,8 +389,6 @@ public class Merger {
                     outputTypeMergeHints = outputTypeMergeResult.hints;
                 }
                 // Handle inconsistent types hints
-            } else if outputTypeMergeResult is MergeError {
-                // Handle Type reference merge error
             }                
 
             check self.applyJoinFieldDirectives(
@@ -372,6 +403,50 @@ public class Merger {
 
         return mergedFields;
         
+    }
+
+    function mergePossibleTypes(map<parser:__Type[]> types) returns MergeResult|InternalError {
+        map<parser:__Type> mergedPossibleTypes = {};
+
+        // Get union of possible types across subgraphs
+        foreach parser:__Type[] possibleTypes in types {
+            foreach parser:__Type possibleType in possibleTypes {
+                string? possibleTypeName = possibleType.name;
+                if possibleTypeName !is () {
+                    mergedPossibleTypes[possibleTypeName] = check self.getTypeFromSupergraph(possibleTypeName);
+                }
+            }
+        }
+
+        // Find inconsistencies across subgraphs
+        Mismatch[] mismatches = [];
+        foreach [string, parser:__Type] [typeName, 'type] in mergedPossibleTypes.entries() {
+            Subgraph[] inconsistentSubgraphs = [];
+            Subgraph[] consistentSubgraphs = [];
+            foreach [string, parser:__Type[]] [subgraphName, subgraphPossibleTypes] in types.entries() {
+                boolean isTypePresent = false;
+                foreach parser:__Type checkType in subgraphPossibleTypes {
+                    if checkType.name == typeName {
+                        isTypePresent = true;
+                        break;
+                    }
+                }
+                if !isTypePresent {
+                    inconsistentSubgraphs.push(self.subgraphs.get(subgraphName));
+                } else {
+                    consistentSubgraphs.push(self.subgraphs.get(subgraphName));
+                }
+            }
+            mismatches.push({
+                data: 'type,
+                subgraphs: consistentSubgraphs
+            });
+        }
+
+        return {
+            result: mergedPossibleTypes.toArray(),
+            hints: mismatches
+        };
     }
 
     function mergeInputValues([Subgraph, map<parser:__InputValue>][] argumentMaps) returns map<parser:__InputValue>|MergeError|InternalError {
@@ -578,6 +653,7 @@ public class Merger {
             return error MergeError(string `Reference type mismatch`);
         }
     }
+
     function mergeDefaultValues([Subgraph, anydata?][] defaultValues) returns MergeResult|MergeError {
         // map<[anydata, Subgraph[]]> intersected = {};
         map<Mismatch> intersected = {};
@@ -654,7 +730,19 @@ public class Merger {
                 JOIN_IMPLEMENTS_DIR,
                 { 
                     [GRAPH_FIELD]: self.joinGraphMap.get(subgraph.name),
-                    "interface": interfaceType.name
+                    [INTERFACE_FIELD]: interfaceType.name
+                }
+            )
+        );
+    }
+
+    function applyJoinUnionMember(parser:__Type 'type, Subgraph subgraph, parser:__Type unionMember) returns InternalError? {
+        'type.appliedDirectives.push(
+            check self.getAppliedDirectiveFromName(
+                JOIN_UNION_MEMBER_DIR,
+                { 
+                    [GRAPH_FIELD]: self.joinGraphMap.get(subgraph.name),
+                    [UNION_MEMBER_FIELD]: unionMember.name
                 }
             )
         );

@@ -1,0 +1,13 @@
+type Query {
+    name: String
+}
+
+union Foo = Bar | Bux
+
+type Bar {
+    name: String
+}
+
+type Bux {
+    name: String
+}
