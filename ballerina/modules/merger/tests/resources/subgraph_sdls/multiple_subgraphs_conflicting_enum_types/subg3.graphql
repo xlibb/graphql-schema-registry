@@ -1,0 +1,25 @@
+type Query {
+    name: String
+    waldo(input: Waldo): String
+    thud(input: Thud): String
+}
+
+enum Waldo {
+    QUZ
+    NIX
+}
+
+enum Bar {
+    BUX
+    BAX
+}
+
+enum Thud {
+    FRED
+    RICK
+}
+
+enum Foo {
+    BAR
+    BIL
+}

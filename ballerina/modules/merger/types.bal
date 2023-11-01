@@ -25,3 +25,8 @@ enum TypeReferenceType {
     INPUT,
     OUTPUT
 }
+
+public type EnumTypeUsage record {|
+    boolean isUsedInOutputs;
+    boolean isUsedInInputs;
+|};

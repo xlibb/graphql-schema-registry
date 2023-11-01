@@ -27,6 +27,7 @@ public class Merger {
         check self.mergeObjectTypes();
         check self.mergeInterfaceTypes();
         check self.mergeInputTypes();
+        check self.mergeEnumTypes();
         check self.applyJoinTypeDirectives();
         return self.supergraph;
     }
@@ -278,6 +279,48 @@ public class Merger {
         }
     }
 
+    function mergeEnumTypes() returns InternalError? {
+        map<parser:__Type> supergraphEnumTypes = self.getTypeKeysOfKind(parser:ENUM);
+        foreach [string, parser:__Type] [typeName, mergedType] in supergraphEnumTypes.entries() {
+            if isSubgraphFederationType(typeName) {
+                continue;
+            }
+            Subgraph[] subgraphs = self.getDefiningSubgraphs(typeName);
+            EnumTypeUsage usage = self.getEnumTypeUsage(mergedType);
+
+            // ---------- Merge Descriptions -----------
+            // [Subgraph, string?][] descriptions = subgraphs.map(s => [s, s.schema.types.get(typeName).description]);
+            [Subgraph, string?][] descriptions = [];
+            foreach Subgraph subgraph in subgraphs {
+                descriptions.push([
+                    subgraph,
+                    subgraph.schema.types.get(typeName).description
+                ]);
+            }
+            MergeResult descriptionMergeResult = self.mergeDescription(descriptions);
+            mergedType.description = <string?>descriptionMergeResult.result;
+            if descriptionMergeResult.hints.length() > 0 {
+                // Handle discription hints
+            }
+
+            // ---------- Merge Possible Types -----------
+            map<parser:__EnumValue[]> allEnumValues = {};
+            foreach Subgraph subgraph in subgraphs {
+                parser:__EnumValue[]? enumValuesFromSubgraph = subgraph.schema.types.get(typeName).enumValues;
+                if enumValuesFromSubgraph is parser:__EnumValue[] {
+                    allEnumValues[subgraph.name] = enumValuesFromSubgraph;
+                } else {
+                    return error InternalError("Invalid enum type");
+                }
+
+                MergeResult? mergedEnumValuesResult = check self.mergeEnumValues(allEnumValues, usage);
+                if mergedEnumValuesResult is MergeResult {
+                    mergedType.enumValues = <parser:__EnumValue[]?>mergedEnumValuesResult.result;
+                }
+            }
+        }
+    }
+
     function mergeDescription([Subgraph, string?][] descriptions) returns MergeResult {
         if descriptions.length() == 0 {
             return {
@@ -318,6 +361,91 @@ public class Merger {
                 hints: preMerge
             };
         }
+    }
+
+    function mergeEnumValues(map<parser:__EnumValue[]> enumValues, EnumTypeUsage usage) returns MergeResult|InternalError? {
+        // Map between Enum value's name and Subgraphs which define that enum value along with it's definition of the enum value
+        map<[Subgraph, parser:__EnumValue][]> allEnumValues = {}; 
+        foreach [string, parser:__EnumValue[]] [subgraphName, subgraphEnumVals] in enumValues.entries() {
+            Subgraph subgraph = self.subgraphs.get(subgraphName);
+            foreach parser:__EnumValue enumValue in subgraphEnumVals {
+                if allEnumValues.hasKey(enumValue.name) {
+                    allEnumValues.get(enumValue.name).push([subgraph, enumValue]);
+                } else {
+                    allEnumValues[enumValue.name] = [[subgraph, enumValue]];
+                }
+            }
+        }
+
+        // Same mapping as above, but filtered according to the merginig stratergy
+        parser:__EnumValue[] mergedEnumValues = [];
+        map<[Subgraph, parser:__EnumValue][]> filteredEnumValues = self.filterEnumValuesBasedOnUsage(allEnumValues, enumValues.length(), usage);
+
+        foreach [string, [Subgraph, parser:__EnumValue][]] [enumValueName, filteredEnumValue] in filteredEnumValues.entries() {
+            [Subgraph, string?][] descriptions = [];
+            [Subgraph, [boolean, string?]][] deprecations = []; // Handle deprecations
+            Subgraph[] definingSubgraphs = [];
+
+            foreach [Subgraph, parser:__EnumValue] [subgraph, definition] in filteredEnumValue {
+                definingSubgraphs.push(subgraph);
+                descriptions.push([subgraph, definition.description]);
+                deprecations.push([subgraph, [definition.isDeprecated, definition.deprecationReason]]);
+            }
+
+            MergeResult mergedDesc = self.mergeDescription(descriptions);
+            // Handle deprecations
+
+            parser:__EnumValue mergedEnumValue = {
+                name: enumValueName,
+                description: <string?>mergedDesc.result
+            };
+
+            check self.applyJoinEnumDirective(mergedEnumValue, definingSubgraphs);
+
+            mergedEnumValues.push(mergedEnumValue);
+        }
+
+        return {
+            result: mergedEnumValues,
+            hints: []
+        };
+    }
+
+    function filterEnumValuesBasedOnUsage(map<[Subgraph, parser:__EnumValue][]> allEnumValues, 
+                                          int contributingSubgraphCount, EnumTypeUsage usage
+                                        ) returns map<[Subgraph, parser:__EnumValue][]> {
+        map<[Subgraph, parser:__EnumValue][]> filteredEnumValues = {};
+        if usage.isUsedInInputs && usage.isUsedInOutputs {
+            // Enum values must be exact
+            boolean isConsistent = true;
+            foreach [Subgraph, parser:__EnumValue][] definingSubgraphs in allEnumValues {
+                if definingSubgraphs.length() != contributingSubgraphCount {
+                    isConsistent = false;
+                    break;
+                }
+            }
+            if isConsistent {
+                filteredEnumValues = allEnumValues;
+            } else {
+                // Handle inconsistent enum value
+            }
+        } else if usage.isUsedInInputs && !usage.isUsedInOutputs {
+            // Enum values must be intersected
+            foreach [string, [Subgraph, parser:__EnumValue][]] [enumValueName, definingSubgraphs] in allEnumValues.entries() {
+                if definingSubgraphs.length() == contributingSubgraphCount {
+                    filteredEnumValues[enumValueName] = definingSubgraphs;
+                }
+            }
+        } else if !usage.isUsedInInputs && usage.isUsedInOutputs {
+            // Enum values must be union
+            filteredEnumValues = allEnumValues;
+        } else {
+            // Enum values must be union, but hint about not using
+            filteredEnumValues = allEnumValues;
+            // Hint about not using this enum definition
+        }
+
+        return filteredEnumValues;
     }
 
     function mergeFields([Subgraph, map<parser:__Field>][] fields) returns map<parser:__Field>|MergeError|InternalError {
@@ -748,6 +876,19 @@ public class Merger {
         );
     }
 
+    function applyJoinEnumDirective(parser:__EnumValue enumValue, Subgraph[] subgraphs) returns InternalError? {
+        foreach Subgraph subgraph in subgraphs {
+            enumValue.appliedDirectives.push(
+                check self.getAppliedDirectiveFromName(
+                    JOIN_ENUMVALUE_DIR,
+                    { 
+                        [GRAPH_FIELD]: self.joinGraphMap.get(subgraph.name)
+                    }
+                )
+            );
+        }
+    }
+
     // Filter out the Subgraphs which defines the given typeName
     function getDefiningSubgraphs(string typeName) returns Subgraph[] {
         Subgraph[] subgraphs = [];
@@ -758,6 +899,78 @@ public class Merger {
         }
 
         return subgraphs;
+    }
+
+    function getEnumTypeUsage(parser:__Type enumType) returns EnumTypeUsage {
+        EnumTypeUsage usage = {
+            isUsedInInputs: false,
+            isUsedInOutputs: false
+        };
+        foreach parser:__Type 'type in self.supergraph.schema.types {
+
+            // Stop traversing the typemap if both of usages are true
+            if usage.isUsedInInputs && usage.isUsedInOutputs {
+                break;
+            }
+
+            // Get the enum usage of the current 'type
+            map<parser:__Field>? fields = 'type.fields;
+            map<parser:__InputValue>? inputFields = 'type.inputFields;
+            boolean isUsedInInputs = false;
+            boolean isUsedInOutputs = false;
+            if fields !is () { // Current type is an Object/Interface
+                EnumTypeUsage typeUsage = self.getEnumTypeUsageInFields(enumType, fields);
+                isUsedInInputs = typeUsage.isUsedInInputs;
+                isUsedInOutputs = typeUsage.isUsedInOutputs;
+            } else if inputFields !is () { // Current type is an Input type
+                isUsedInInputs = self.getEnumTypeUsageInArgs(enumType, inputFields);
+            }
+
+            // Set only if either one of the usages are false.
+            if !usage.isUsedInInputs {
+                usage.isUsedInInputs = isUsedInInputs;
+            }
+            if !usage.isUsedInOutputs {
+                usage.isUsedInOutputs = isUsedInOutputs;
+            }
+        }
+
+        return usage;
+    }
+
+    function getEnumTypeUsageInFields(parser:__Type enumType, map<parser:__Field> fields) returns EnumTypeUsage {
+        EnumTypeUsage usage = {
+            isUsedInInputs: false,
+            isUsedInOutputs: false
+        };
+        foreach parser:__Field 'field in fields {
+            if usage.isUsedInInputs && usage.isUsedInOutputs {
+                break;
+            }
+
+            if !usage.isUsedInOutputs {
+                parser:__Type|InternalError|MergeError mergedOutputTypeRef = self.getMergedOutputTypeReference(enumType, 'field.'type);
+                usage.isUsedInOutputs = mergedOutputTypeRef is parser:__Type;
+            }
+
+            if !usage.isUsedInInputs {
+                usage.isUsedInInputs = self.getEnumTypeUsageInArgs(enumType, 'field.args);
+            }
+        }
+        return usage;
+    }
+
+    function getEnumTypeUsageInArgs(parser:__Type enumType, map<parser:__InputValue> args) returns boolean {
+        boolean isUsedInInputs = false;
+        foreach parser:__InputValue arg in args {
+            if isUsedInInputs {
+                break;
+            }
+
+            parser:__Type|InternalError|MergeError mergedInputTypeRef = self.getMergedInputTypeReference(enumType, arg.'type);
+            isUsedInInputs = mergedInputTypeRef is parser:__Type;
+        }
+        return isUsedInInputs;
     }
 
     function getTypeKeysOfKind(parser:__TypeKind kind) returns map<parser:__Type> {
