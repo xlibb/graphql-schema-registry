@@ -19,6 +19,27 @@ directive @join__unionMember(graph: join__Graph!, member: String!) repeatable on
 
 directive @link(url: String, as: String, for: link__Purpose, import: [link__Import]) repeatable on SCHEMA
 
+interface Bar
+  @join__type(graph: SUBG1)
+  @join__type(graph: SUBG2)
+  @join__type(graph: SUBG3)
+{
+  name: String
+}
+
+type Bux implements Bar
+  @join__implements(graph: SUBG3, interface: "Bar")
+  @join__type(graph: SUBG3)
+{
+  name: String
+}
+
+type Fax
+  @join__type(graph: SUBG2)
+{
+  name: String
+}
+
 type Foo
   @join__type(graph: SUBG1)
   @join__type(graph: SUBG2)
@@ -36,9 +57,26 @@ type Foo
   diff_outer_non_nullable_type: [ID] @join__field(graph: SUBG1, type: "[ID]") @join__field(graph: SUBG2, type: "[ID]!") @join__field(graph: SUBG3, type: "[ID]") @join__field(graph: SUBG4, type: "[ID]")
   diff_inner_non_nullable_type: [ID] @join__field(graph: SUBG1, type: "[ID]") @join__field(graph: SUBG2, type: "[ID]") @join__field(graph: SUBG3, type: "[ID]") @join__field(graph: SUBG4, type: "[ID!]")
   diff_outer_inner_non_nullable_type: [ID] @join__field(graph: SUBG1, type: "[ID!]!") @join__field(graph: SUBG2, type: "[ID]") @join__field(graph: SUBG3, type: "[ID]") @join__field(graph: SUBG4, type: "[ID]")
+  interface_implements: Bar @join__field(graph: SUBG1, type: "Waldo") @join__field(graph: SUBG2, type: "Bar") @join__field(graph: SUBG3, type: "Bux")
+  union_member: Fred @join__field(graph: SUBG1, type: "Fred") @join__field(graph: SUBG2, type: "Fax") @join__field(graph: SUBG3, type: "Fox")
   diff_outer_inner_diff_non_nullable_type: [ID]  @join__field(graph: SUBG1, type: "[ID!]") @join__field(graph: SUBG2, type: "[ID!]") @join__field(graph: SUBG3, type: "[ID]!") @join__field(graph: SUBG4, type: "[ID]!")
   diff_outer_inner_diff_wrapping_type: [ID]  @join__field(graph: SUBG1, type: "[ID!]") @join__field(graph: SUBG2, type: "[ID]!") @join__field(graph: SUBG3, type: "[ID]") @join__field(graph: SUBG4, type: "[ID!]!")
 }
+
+type Fox
+  @join__type(graph: SUBG3)
+{
+  name: String
+}
+
+union Fred
+  @join__unionMember(graph: SUBG1, member: "Qux")
+  @join__unionMember(graph: SUBG2, member: "Fax")
+  @join__unionMember(graph: SUBG3, member: "Fox")
+  @join__type(graph: SUBG1)
+  @join__type(graph: SUBG2)
+  @join__type(graph: SUBG3)
+ = Qux | Fax | Fox
 
 scalar join__FieldSet
 
@@ -68,6 +106,19 @@ type Query
   @join__type(graph: SUBG2)
   @join__type(graph: SUBG3)
   @join__type(graph: SUBG4)
+{
+  name: String
+}
+
+type Qux
+  @join__type(graph: SUBG1)
+{
+  name: String
+}
+
+type Waldo implements Bar
+  @join__implements(graph: SUBG1, interface: "Bar")
+  @join__type(graph: SUBG1)
 {
   name: String
 }

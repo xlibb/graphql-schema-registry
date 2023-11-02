@@ -3,7 +3,7 @@ import graphql_schema_registry.parser;
 
 @test:Config {
     groups: ["merger", "input_types", "compatible"],
-    dataProvider: dataProviderConflictCompatibleOutputTypes
+    dataProvider: dataProviderConflictCompatibleInputTypes
 }
 function testConflictCompatibleInputTypes(string fieldName) returns error? {
     string typeName = "Foo";

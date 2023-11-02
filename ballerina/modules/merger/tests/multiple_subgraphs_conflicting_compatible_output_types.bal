@@ -2,7 +2,7 @@ import ballerina/test;
 import graphql_schema_registry.parser;
 
 @test:Config {
-    groups: ["merger", "output_types", "compatible"],
+    groups: ["merger", "output_types", "compatible", "bel"],
     dataProvider: dataProviderConflictCompatibleOutputTypes
 }
 function testConflictCompatibleOutputTypes(string fieldName) returns error? {
@@ -37,6 +37,8 @@ function dataProviderConflictCompatibleOutputTypes() returns [string][] {
         [ "diff_inner_non_nullable_type" ],
         [ "diff_outer_inner_non_nullable_type" ],
         [ "diff_outer_inner_diff_non_nullable_type" ],
-        [ "diff_outer_inner_diff_wrapping_type" ]
+        [ "diff_outer_inner_diff_wrapping_type" ],
+        [ "interface_implements" ],
+        [ "union_member" ]
     ];
 }

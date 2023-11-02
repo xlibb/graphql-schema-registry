@@ -16,4 +16,16 @@ type Foo {
     diff_outer_inner_non_nullable_type: [ID]
     diff_outer_inner_diff_non_nullable_type: [ID!] # This fails in federation composition (likely a bug)
     diff_outer_inner_diff_wrapping_type: [ID]! # This fails in federation composition (likely a bug)
+    interface_implements: Bar
+    union_member: Fax
+}
+
+union Fred = Fax
+
+type Fax {
+    name: String
+}
+
+interface Bar {
+    name: String
 }

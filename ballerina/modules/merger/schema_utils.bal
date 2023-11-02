@@ -251,3 +251,35 @@ function implementInterface(parser:__Type 'type, parser:__Type interface) return
 function applyDirective(parser:__Type|parser:__InputValue 'type, parser:__AppliedDirective appliedDirective) returns InternalError? {
 
 }
+function getMutualType(parser:__Type typeA, parser:__Type typeB) returns parser:__Type? {
+    if isParentType(typeA, typeB) {
+        return typeA;
+    } else if isParentType(typeB, typeA) {
+        return typeB;
+    } else if isUnionMember(typeA, typeB) {
+        return typeA;
+    } else if isUnionMember(typeB, typeA) {
+        return typeB;
+    } else {
+        return ();
+    }
+}
+
+function isParentType(parser:__Type parent, parser:__Type child) returns boolean {
+    parser:__Type[]? interfaces = child.interfaces;
+    if interfaces !is () {
+        return interfaces.some(t => t.name == parent.name);
+    } else {
+        return false;
+    }
+}
+
+function isUnionMember(parser:__Type unionType, parser:__Type unionMember) returns boolean {
+    parser:__Type[]? possibleTypes = unionType.possibleTypes;
+    if possibleTypes !is () {
+        return possibleTypes.some(t => t.name == unionMember.name);
+    } else {
+        return false;
+    }
+
+}

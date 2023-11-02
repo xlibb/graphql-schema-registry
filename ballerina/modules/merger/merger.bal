@@ -24,6 +24,7 @@ public class Merger {
         check self.addTypesShallow();
         check self.addDirectives();
         check self.mergeUnionTypes();
+        check self.mergeImplementsRelationship();
         check self.mergeObjectTypes();
         check self.mergeInterfaceTypes();
         check self.mergeInputTypes();
@@ -164,6 +165,25 @@ public class Merger {
         }
     }
 
+    function mergeImplementsRelationship() returns InternalError? {
+        check self.mergeImplementsOf(parser:OBJECT);
+        check self.mergeImplementsOf(parser:INTERFACE);
+    }
+
+    function mergeImplementsOf(parser:__TypeKind kind) returns InternalError? {
+        map<parser:__Type> supergraphTypes = self.getTypeKeysOfKind(kind);
+        foreach [string, parser:__Type] [typeName, 'type] in supergraphTypes.entries() {
+            if isBuiltInType(typeName) || isSubgraphFederationType(typeName) {
+                continue;
+            }
+
+            Subgraph[] subgraphs = self.getDefiningSubgraphs(typeName);
+
+            'type.interfaces = [];
+            check self.mergeInterfaceImplements('type, subgraphs);
+        }
+    }
+
     function mergeObjectTypes() returns MergeError|InternalError? {
         map<parser:__Type> supergraphObjectTypes = self.getTypeKeysOfKind(parser:OBJECT);
         foreach [string, parser:__Type] [objectName, 'type] in supergraphObjectTypes.entries() {
@@ -198,10 +218,6 @@ public class Merger {
             }
             map<parser:__Field> mergedFields = check self.mergeFields(fieldMaps);
             'type.fields = mergedFields;
-
-            // ---------- Merge Implements -------
-            'type.interfaces = [];
-            check self.mergeInterfaceImplements('type, subgraphs);
         }
     }
 
@@ -236,10 +252,6 @@ public class Merger {
             }
             map<parser:__Field> mergedFields = check self.mergeFields(fieldMaps);
             interface.fields = mergedFields;
-
-            // ---------- Merge Implements -------
-            interface.interfaces = [];
-            check self.mergeInterfaceImplements(interface, subgraphs);
 
             interface.possibleTypes = [];
         }
@@ -734,8 +746,15 @@ public class Merger {
         parser:__Type? typeAWrappedType = typeA.ofType;
         parser:__Type? typeBWrappedType = typeB.ofType;
 
-        if typeAWrappedType is () && typeBWrappedType is () && typeA.name == typeB.name {
-            return check self.getTypeFromSupergraph(typeA.name);
+        if typeAWrappedType is () && typeBWrappedType is () {
+            if typeA.name == typeB.name {
+                return check self.getTypeFromSupergraph(typeA.name);
+            }
+            
+            parser:__Type? mutualType = getMutualType(typeA, typeB);
+            if mutualType !is () {
+                return self.getTypeFromSupergraph(mutualType.name);
+            }
         } else if typeAWrappedType !is () && typeBWrappedType !is () && typeA.kind == typeB.kind {
             return parser:wrapType(
                 check self.getMergedOutputTypeReference(typeAWrappedType, typeBWrappedType),
@@ -745,12 +764,12 @@ public class Merger {
             return check self.getMergedOutputTypeReference(typeA, typeBWrappedType);
         } else if typeAWrappedType !is () && typeA.kind == parser:NON_NULL {
             return check self.getMergedOutputTypeReference(typeAWrappedType, typeB);
-        } else {
-            // Handle Type Reference mismatch
-            // 'ARGUMENT_TYPE_MISMATCH', 'FIELD_TYPE_MISMATCH'
-            // 'INCONSISTENT_BUT_COMPATIBLE_ARGUMENT_TYPE', 'INCONSISTENT_BUT_COMPATIBLE_FIELD_TYPE'
-            return error MergeError(string `Reference type mismatch`);
-        }
+        } 
+        // Handle Type Reference mismatch
+        // 'ARGUMENT_TYPE_MISMATCH', 'FIELD_TYPE_MISMATCH'
+        // 'INCONSISTENT_BUT_COMPATIBLE_ARGUMENT_TYPE', 'INCONSISTENT_BUT_COMPATIBLE_FIELD_TYPE'
+        return error MergeError(string `Reference type mismatch`);
+        
     }
 
     function getMergedInputTypeReference(parser:__Type typeA, parser:__Type typeB) returns parser:__Type|InternalError|MergeError {
