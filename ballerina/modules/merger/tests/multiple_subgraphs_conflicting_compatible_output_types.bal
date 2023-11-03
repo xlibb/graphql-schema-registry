@@ -2,7 +2,7 @@ import ballerina/test;
 import graphql_schema_registry.parser;
 
 @test:Config {
-    groups: ["merger", "output_types", "compatible", "bel"],
+    groups: ["merger", "output_types", "compatible"],
     dataProvider: dataProviderConflictCompatibleOutputTypes
 }
 function testConflictCompatibleOutputTypes(string fieldName) returns error? {

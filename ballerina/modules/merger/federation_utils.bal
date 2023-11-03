@@ -14,8 +14,13 @@ const string JOIN_IMPLEMENTS_DIR = "join__implements";
 const string JOIN_TYPE_DIR = "join__type";
 const string JOIN_GRAPH_DIR = "join__graph";
 
+const string KEY_DIR = "key";
+
 const string _SERVICE_FIELD_TYPE = "_service";
 
+const string KEY_FIELD = "key";
+const string RESOLVABLE_FIELD = "resolvable";
+const string FIELDS_FIELD = "fields";
 const string GRAPH_FIELD = "graph";
 const string TYPE_FIELD = "type";
 const string INTERFACE_FIELD = "interface";

@@ -836,10 +836,20 @@ public class Merger {
 
             foreach Subgraph subgraph in self.subgraphs {
                 if subgraph.schema.types.hasKey(key) {
+                    map<anydata> argMap = {
+                        [GRAPH_FIELD]: self.joinGraphMap.get(subgraph.name) 
+                    };
+
+                    parser:__Type subgraphType = subgraph.schema.types.get(key);
+
+                    EntityStatus entityStatus = self.isEntity(subgraphType);
+                    if entityStatus.isEntity {
+                        argMap[KEY_FIELD] = entityStatus.fields;
+                        argMap[RESOLVABLE_FIELD] = entityStatus.isResolvable;
+                    }
+
                     'type.appliedDirectives.push(
-                        check self.getAppliedDirectiveFromName(JOIN_TYPE_DIR, {
-                            [GRAPH_FIELD]: self.joinGraphMap.get(subgraph.name) 
-                        })
+                        check self.getAppliedDirectiveFromName(JOIN_TYPE_DIR, argMap)
                     );
                 }
             }
@@ -1054,6 +1064,35 @@ public class Merger {
 
     function isTypeOnSupergraph(string typeName) returns boolean {
         return self.supergraph.schema.types.hasKey(typeName);
+    }
+
+    function isEntity(parser:__Type 'type) returns EntityStatus {
+        EntityStatus status = {
+            isEntity: false,
+            isResolvable: false,
+            fields: ()
+        };
+        foreach parser:__AppliedDirective appliedDirective in 'type.appliedDirectives {
+            if appliedDirective.definition.name == KEY_DIR {
+                status.isEntity = true;
+
+                anydata isResolvable = appliedDirective.args.get(RESOLVABLE_FIELD).value;
+                if isResolvable is boolean {
+                    status.isResolvable = isResolvable;
+                } else {
+                    // return error InternalError("Invalid resolvable value of @key directive");
+                }
+
+                anydata fields = appliedDirective.args.get(FIELDS_FIELD).value;
+                if fields is string {
+                    status.fields = fields;
+                } else {
+                    // return error InternalError("Invalid field set of @key directive");
+                }
+            }
+        }
+
+        return status;
     }
 
     function getDirectiveFromSupergraph(string name) returns parser:__Directive|InternalError {

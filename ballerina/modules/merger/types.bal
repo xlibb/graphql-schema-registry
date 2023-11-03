@@ -30,3 +30,9 @@ public type EnumTypeUsage record {|
     boolean isUsedInOutputs;
     boolean isUsedInInputs;
 |};
+
+public type EntityStatus record {|
+    boolean isEntity;
+    boolean isResolvable;
+    string? fields;
+|};
