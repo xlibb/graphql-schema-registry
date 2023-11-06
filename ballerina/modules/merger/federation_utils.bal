@@ -21,6 +21,8 @@ const string SHAREABLE_DIR = "shareable";
 
 const string _SERVICE_FIELD_TYPE = "_service";
 
+const string NAME_FIELD = "name";
+const string URL_FIELD = "url";
 const string KEY_FIELD = "key";
 const string RESOLVABLE_FIELD = "resolvable";
 const string FIELDS_FIELD = "fields";
@@ -95,7 +97,7 @@ function getFederationDirectives(map<parser:__Type> types) returns map<parser:__
         (),
         [ parser:SCHEMA ],
         {
-            "url": { name: "url", 'type: types.get(STRING) },
+            [URL_FIELD]: { name: URL_FIELD, 'type: types.get(STRING) },
             "as": { name: "as", 'type: types.get(STRING) },
             "for": { name: "for", 'type: types.get(LINK_PURPOSE_TYPE) },
             "import": { name: "import", 'type: parser:wrapType(types.get(LINK_IMPORT_TYPE), parser:LIST) }
@@ -131,8 +133,8 @@ function getFederationDirectives(map<parser:__Type> types) returns map<parser:__
         (),
         [ parser:ENUM_VALUE ],
         {
-            "name": { name: "name", 'type: parser:wrapType(types.get(STRING), parser:NON_NULL) },
-            "url": { name: "url", 'type: parser:wrapType(types.get(STRING), parser:NON_NULL) }
+            [NAME_FIELD]: { name: NAME_FIELD, 'type: parser:wrapType(types.get(STRING), parser:NON_NULL) },
+            [URL_FIELD]: { name: URL_FIELD, 'type: parser:wrapType(types.get(STRING), parser:NON_NULL) }
         },
         false
     );

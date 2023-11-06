@@ -283,3 +283,35 @@ function isUnionMember(parser:__Type unionType, parser:__Type unionMember) retur
     }
 
 }
+
+function getTypesOfKind(parser:__Schema schema, parser:__TypeKind kind) returns map<parser:__Type> {
+    return schema.types.filter(t => t.kind === kind);
+}
+
+function isDirectiveOnDirectiveMap(parser:__Schema schema, string name) returns boolean {
+    return schema.directives.hasKey(name);
+}
+
+function getDirectiveFromDirectiveMap(parser:__Schema schema, string name) returns parser:__Directive {
+    return schema.directives.get(name);
+}
+
+function isTypeOnTypeMap(parser:__Schema schema, string name) returns boolean {
+    return schema.types.hasKey(name);
+}
+
+function getTypeFromTypeMap(parser:__Schema schema, string name) returns parser:__Type {
+    return schema.types.get(name);
+}
+
+function addTypeDefinition(parser:__Schema schema, parser:__Type 'type) returns InternalError? {
+    string? typeName = 'type.name;
+    if typeName is () {
+        return error InternalError("Type name cannot be null");
+    }
+    schema.types[typeName] = 'type;
+}
+
+function addDirectiveDefinition(parser:__Schema schema, parser:__Directive directive) {
+    schema.directives[directive.name] = directive;
+}
