@@ -1,0 +1,18 @@
+extend schema
+  @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@shareable"])
+
+
+type Query {
+    hello: String
+}
+
+type Foo {
+    id: ID!
+    name: String @shareable
+}
+
+type Waldo @shareable {
+    id: ID!
+    name: String!
+    age: Int
+}

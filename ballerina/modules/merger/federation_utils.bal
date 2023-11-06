@@ -6,6 +6,7 @@ const string JOIN_FIELDSET_TYPE = "join__FieldSet";
 const string LINK_IMPORT_TYPE = "link__Import";
 const string LINK_PURPOSE_TYPE = "link__Purpose";
 
+// Directive names on supergraph
 const string LINK_DIR = "link";
 const string JOIN_ENUMVALUE_DIR = "join__enumValue";
 const string JOIN_FIELD_DIR = "join__field";
@@ -14,7 +15,9 @@ const string JOIN_IMPLEMENTS_DIR = "join__implements";
 const string JOIN_TYPE_DIR = "join__type";
 const string JOIN_GRAPH_DIR = "join__graph";
 
+// Directive names on subgraphs
 const string KEY_DIR = "key";
+const string SHAREABLE_DIR = "shareable";
 
 const string _SERVICE_FIELD_TYPE = "_service";
 
@@ -25,6 +28,7 @@ const string GRAPH_FIELD = "graph";
 const string TYPE_FIELD = "type";
 const string INTERFACE_FIELD = "interface";
 const string UNION_MEMBER_FIELD = "member";
+const string EXTERNAL_FIELD = "external";
 
 string[] FEDERATION_SUBGRAPH_IGNORE_TYPES = [
     _SERVICE_TYPE,
