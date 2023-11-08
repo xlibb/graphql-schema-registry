@@ -41,7 +41,15 @@ type DescriptionSource [Subgraph, string?];
 type PossibleTypesSource [Subgraph, parser:__Type[]];
 type FieldMapSource [Subgraph, map<parser:__Field>];
 type InputFieldMapSource [Subgraph, map<parser:__InputValue>];
-type EnumValueSource [Subgraph, parser:__EnumValue[]];
+type EnumValueSetSource [Subgraph, parser:__EnumValue[]];
 type TypeReferenceSource [Subgraph, parser:__Type];
 type DefaultValueSource [Subgraph, anydata?];
 type DeprecationSource [Subgraph, [boolean, string?]];
+
+type EnumValueSource [Subgraph, parser:__EnumValue];
+type FieldSource [Subgraph, parser:__Field];
+
+type SourceGroup record {|
+    anydata data;
+    Subgraph[] subgraphs;
+|};
