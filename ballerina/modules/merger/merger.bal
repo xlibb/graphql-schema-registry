@@ -340,7 +340,7 @@ public class Merger {
     }
 
     function mergeDescription(DescriptionSource[] sources) returns MergeResult {
-        SourceGroup[] sourceGroups = []; // Map cannot be used here because descriptions are Nullable
+        DescriptionSourceGroup[] sourceGroups = []; // Map cannot be used here because descriptions are Nullable
         foreach int i in 0...sources.length()-1 {
             string? description = sources[i][1];
             Subgraph definingSubgraph = sources[i][0];
@@ -362,7 +362,7 @@ public class Merger {
         }
 
         return sourceGroups.length() === 1 ? {
-            result: <string?>sourceGroups[0].data,
+            result: sourceGroups[0].data,
             hints: []
         } : {
             result: sourceGroups.filter(m => m.data !is ())[0].data,
@@ -507,7 +507,7 @@ public class Merger {
                 // Handle inconsistent descriptions
             }
 
-            MergeResult|MergeError outputTypeMergeResult = check self.mergeTypeReferences(outputTypes, OUTPUT);
+            MergeResult|MergeError outputTypeMergeResult = check self.mergeTypeReferenceSet(outputTypes, OUTPUT);
             Mismatch[] outputTypeMergeHints = [];
             if outputTypeMergeResult is MergeError {
                 // Handle errors
@@ -619,7 +619,7 @@ public class Merger {
                     ]);
                 }
 
-                MergeResult|MergeError inputTypeMergeResult = check self.mergeTypeReferences(typeReferenceSources, INPUT);
+                MergeResult|MergeError inputTypeMergeResult = check self.mergeTypeReferenceSet(typeReferenceSources, INPUT);
                 if inputTypeMergeResult is MergeError {
                     // Handle errors
                     continue;
@@ -658,18 +658,65 @@ public class Merger {
         return mergedArguments;
     }
 
-    function mergeTypeReferences(TypeReferenceSource[] sources, TypeReferenceType refType) returns MergeResult|MergeError|InternalError {
-        map<Mismatch> groupedTypeReferences = {};
+    function mergeDefaultValues(DefaultValueSource[] sources) returns MergeResult|MergeError {
+        // map<[anydata, Subgraph[]]> intersected = {};
+        map<DefaultValueSourceGroup> intersected = {};
+        foreach DefaultValueSource [subgraph, value] in sources {
+            string? valueString = value.toString();
+            if valueString is string {
+                if intersected.hasKey(valueString) {
+                    intersected.get(valueString).subgraphs.push(subgraph);
+                } else {
+                    intersected[valueString] = { data: value, subgraphs: [ subgraph ] };
+                }
+            }
+        }
+
+        if intersected.length() == 1 {
+            string defaultValueKey = intersected.keys()[0];
+            return {
+                result: intersected.get(defaultValueKey).data,
+                hints: []
+            };
+        } else {
+            // Handle default value inconsistency
+            return error MergeError("Default type mismatch");
+        }
+    
+    }
+
+    function mergeInterfaceImplements(parser:__Type 'type, Subgraph[] subgraphs) returns InternalError? {
+        string? typeName = 'type.name;
+        if typeName is () {
+            return error InternalError("Invalid supergraph type");
+        }
+
+        foreach Subgraph subgraph in subgraphs {
+            parser:__Type[]? interfacesResult = getTypeFromTypeMap(subgraph.schema, typeName).interfaces;
+            if interfacesResult is () {
+                return error InternalError("Invalid subgraph type");
+            }
+
+            foreach parser:__Type interfaceType in interfacesResult {
+                parser:__Type supergraphInterfaceDef = check self.getTypeFromSupergraph(interfaceType.name);
+                check implementInterface('type, supergraphInterfaceDef);
+                check self.applyJoinImplementsDirective('type, subgraph, supergraphInterfaceDef);
+            }
+        }
+    }
+
+    function mergeTypeReferenceSet(TypeReferenceSource[] sources, TypeReferenceType refType) returns MergeResult|MergeError|InternalError {
+        map<TypeReferenceSourceGroup> unionedReferences = {};
         foreach TypeReferenceSource [subgraph, typeReference] in sources {
             string key = check typeReferenceToString(typeReference);
 
-            if !groupedTypeReferences.hasKey(key) {
-                groupedTypeReferences[key] = { 
+            if !unionedReferences.hasKey(key) {
+                unionedReferences[key] = { 
                     data: typeReference,
                     subgraphs: [ subgraph ]
                  };
             } else {
-                groupedTypeReferences.get(key).subgraphs.push(subgraph);
+                unionedReferences.get(key).subgraphs.push(subgraph);
             }
         }
 
@@ -681,8 +728,8 @@ public class Merger {
         }
 
         parser:__Type? mergedTypeReference = ();
-        foreach Mismatch intersectedTypeReference in groupedTypeReferences {
-            parser:__Type typeReference = <parser:__Type>intersectedTypeReference.data;
+        foreach TypeReferenceSourceGroup ref in unionedReferences {
+            parser:__Type typeReference = ref.data;
             if mergedTypeReference is () {
                 mergedTypeReference = typeReference;
             }
@@ -693,8 +740,8 @@ public class Merger {
         }
 
         Mismatch[] mismatches = [];
-        if groupedTypeReferences.length() > 1 {
-            foreach [string, Mismatch] [key, mismatch] in groupedTypeReferences.entries() {
+        if unionedReferences.length() > 1 {
+            foreach [string, Mismatch] [key, mismatch] in unionedReferences.entries() {
                 mismatches.push({
                     data: key,
                     subgraphs: mismatch.subgraphs
@@ -712,28 +759,6 @@ public class Merger {
         //     mergedTypeReference = check self.getMergedTypeReference(typeReference, mergedTypeReference);
         // }
         // return mergedTypeReference;
-    }
-
-    function mergeInterfaceImplements(parser:__Type 'type, Subgraph[] subgraphs) returns InternalError? {
-        string? typeName = 'type.name;
-
-        if typeName is () {
-            return error InternalError("Invalid supergraph interface type");
-        }
-
-        // Populate interfaces
-        foreach Subgraph subgraph in subgraphs {
-            parser:__Type[]? interfacesResult = subgraph.schema.types.get(typeName).interfaces;
-            if interfacesResult is () {
-                return error InternalError("Invalid subgraph interface type");
-            }
-
-            foreach parser:__Type interfaceType in interfacesResult {
-                parser:__Type supergraphInterfaceDef = check self.getTypeFromSupergraph(interfaceType.name);
-                check implementInterface('type, supergraphInterfaceDef);
-                check self.applyJoinImplementsDirective('type, subgraph, supergraphInterfaceDef);
-            }
-        }
     }
 
     function getMergedOutputTypeReference(parser:__Type typeA, parser:__Type typeB) returns parser:__Type|InternalError|MergeError {
@@ -793,33 +818,6 @@ public class Merger {
             // 'INCONSISTENT_BUT_COMPATIBLE_ARGUMENT_TYPE', 'INCONSISTENT_BUT_COMPATIBLE_FIELD_TYPE'
             return error MergeError(string `Reference type mismatch`);
         }
-    }
-
-    function mergeDefaultValues(DefaultValueSource[] sources) returns MergeResult|MergeError {
-        // map<[anydata, Subgraph[]]> intersected = {};
-        map<Mismatch> intersected = {};
-        foreach DefaultValueSource [subgraph, value] in sources {
-            string? valueString = value.toString();
-            if valueString is string {
-                if intersected.hasKey(valueString) {
-                    intersected.get(valueString).subgraphs.push(subgraph);
-                } else {
-                    intersected[valueString] = { data: value, subgraphs: [ subgraph ] };
-                }
-            }
-        }
-
-        if intersected.length() == 1 {
-            string defaultValueKey = intersected.keys()[0];
-            return {
-                result: intersected.get(defaultValueKey).data,
-                hints: []
-            };
-        } else {
-            // Handle default value inconsistency
-            return error MergeError("Default type mismatch");
-        }
-    
     }
 
     function addTypeToSupergraph(parser:__Type 'type) returns InternalError? {
