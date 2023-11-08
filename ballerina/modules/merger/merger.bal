@@ -510,7 +510,8 @@ public class Merger {
             MergeResult|MergeError outputTypeMergeResult = check self.mergeTypeReferences(outputTypes, OUTPUT);
             Mismatch[] outputTypeMergeHints = [];
             if outputTypeMergeResult is MergeError {
-                return error MergeError("");
+                // Handle errors
+                continue;
             }                
             if outputTypeMergeResult.hints.length() > 0 {
                 // Handle inconsistent types hints
@@ -586,72 +587,73 @@ public class Merger {
     }
 
     function mergeInputValues(InputFieldMapSource[] sources) returns map<parser:__InputValue>|MergeError|InternalError {
-        map<Subgraph[]> preMerge = {}; // Map between an argument and the Subgraphs which define that argument
+        map<InputSource[]> unionedInputs = {};
         foreach InputFieldMapSource [subgraph, arguments] in sources {
-            foreach string key in arguments.keys() {
-                if preMerge.hasKey(key) {
-                    preMerge.get(key).push(subgraph);
+            foreach parser:__InputValue arg in arguments {
+                if unionedInputs.hasKey(arg.name) {
+                    unionedInputs.get(arg.name).push([subgraph, arg]);
                 } else {
-                    preMerge[key] = [subgraph];
+                    unionedInputs[arg.name] = [[subgraph, arg]];
                 }
             }
         }
 
         map<parser:__InputValue> mergedArguments = {};
-        foreach [string, Subgraph[]] [argName, subgraphs] in preMerge.entries() { // Get intersection of all arguments
-            if subgraphs.length() == sources.length() { // Arguments that are defined in all subgraphs
+        foreach [string, InputSource[]] [argName, argDefs] in unionedInputs.entries() {
+            if argDefs.length() == sources.length() { // Arguments that are defined in all subgraphs
                 DescriptionSource[] descriptionSources = [];
                 DefaultValueSource[] defaultValueSources = [];
                 TypeReferenceSource[] typeReferenceSources = [];
-                foreach InputFieldMapSource [subgraph, argumentMap] in sources {
+                foreach InputSource [subgraph, arg] in argDefs {
                     descriptionSources.push([
                         subgraph,
-                        argumentMap.get(argName).description
+                        arg.description
                     ]);
                     defaultValueSources.push([
                         subgraph,
-                        argumentMap.get(argName).defaultValue
+                        arg.defaultValue
                     ]);
                     typeReferenceSources.push([
                         subgraph,
-                        argumentMap.get(argName).'type
+                        arg.'type
                     ]);
                 }
 
                 MergeResult|MergeError inputTypeMergeResult = check self.mergeTypeReferences(typeReferenceSources, INPUT);
-                if inputTypeMergeResult is MergeResult && inputTypeMergeResult.hints.length() > 0 {
-                    // Handle type reference hints
-                } else if inputTypeMergeResult is MergeError {
-                    // Handle Type reference merge error
+                if inputTypeMergeResult is MergeError {
+                    // Handle errors
                     continue;
+                }
+                if inputTypeMergeResult.hints.length() > 0 {
+                    // Handle type reference hints
                 }                
+                parser:__Type mergedTypeReference = <parser:__Type>inputTypeMergeResult.result;
 
                 MergeResult|MergeError defaultValueMergeResult = check self.mergeDefaultValues(defaultValueSources);
                 if defaultValueMergeResult is MergeError {
                     // Handle default value inconsistency
                     continue;
                 }               
+                anydata? mergedDefaultValue = defaultValueMergeResult.result;
 
                 MergeResult descriptionMergeResult = self.mergeDescription(descriptionSources);
                 if descriptionMergeResult.hints.length() > 0 {
                     // Handle description merge hints
                 }
+                string? mergedDescription = <string?>descriptionMergeResult.result;
 
-                if inputTypeMergeResult is MergeResult {
-                    mergedArguments[argName] = {
-                        name: argName, 
-                        'type: <parser:__Type>inputTypeMergeResult.result, // Merge the type (for now assuming that all the types are same across all the subgraphs)
-                        description: <string?>descriptionMergeResult.result, // Merge the descriptions (for now assuming that all the descriptions are same across all the subgraphs)
-                        defaultValue: <anydata>defaultValueMergeResult.result // Merge the default values (for now assuming that all the default values are same across all the subgraphs)
-                    };
-                }
+                mergedArguments[argName] = {
+                    name: argName, 
+                    'type: mergedTypeReference,
+                    description: mergedDescription, 
+                    defaultValue: mergedDefaultValue 
+                };
                 
             } else {
                 // Handle 'INCONSISTENT_ARGUMENT_PRESENCE'
                 // https://www.apollographql.com/docs/federation/federated-types/sharing-types/#arguments
             }
         }
-
 
         return mergedArguments;
     }

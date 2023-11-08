@@ -48,6 +48,7 @@ type DeprecationSource [Subgraph, [boolean, string?]];
 
 type EnumValueSource [Subgraph, parser:__EnumValue];
 type FieldSource [Subgraph, parser:__Field];
+type InputSource [Subgraph, parser:__InputValue];
 
 type SourceGroup record {|
     anydata data;
