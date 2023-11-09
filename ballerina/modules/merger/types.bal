@@ -64,3 +64,30 @@ type TypeReferenceSourceGroup record {|
     parser:__Type data;
     Subgraph[] subgraphs;
 |};
+
+type HintDetail record {|
+    anydata value;
+    Subgraph[] consistentSubgraphs;
+    Subgraph[] inconsistentSubgraphs;
+|};
+
+type Hint record {|
+    string code;
+    string[] location;
+    HintDetail[] details;
+|};
+
+type MergedResult record {|
+    anydata result;
+    Hint[] hints;
+|};
+
+type PossibleTypesMergeResult record {|
+    *MergedResult;
+    TypeReferenceSourceGroup[] typeRefs; 
+|};
+
+type TypeReferenceMergeResult record {|
+    *MergedResult;
+    TypeReferenceSourceGroup[] typeRefs; 
+|};

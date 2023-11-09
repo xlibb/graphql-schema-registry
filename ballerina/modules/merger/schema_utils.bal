@@ -284,6 +284,10 @@ function isUnionMember(parser:__Type unionType, parser:__Type unionMember) retur
 
 }
 
+function isTypeRequired(parser:__Type 'type) returns boolean {
+    return 'type.kind == parser:NON_NULL;
+}
+
 function getTypesOfKind(parser:__Schema schema, parser:__TypeKind kind) returns map<parser:__Type> {
     return schema.types.filter(t => t.kind === kind);
 }
