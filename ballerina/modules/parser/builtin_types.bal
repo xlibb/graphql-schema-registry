@@ -1,33 +1,33 @@
 // Built-in Scalars
 public __Type gql_Boolean = {
     kind: SCALAR,
-    name: "Boolean",
+    name: BOOLEAN,
     description: "Built-in Boolean"
 };
 public __Type gql_String = {
     kind: SCALAR,
-    name: "String",
+    name: STRING,
     description: "Built-in String"
 };
 public __Type gql_Float = {
     kind: SCALAR,
-    name: "Float",
+    name: FLOAT,
     description: "Built-in Float"
 };
 public __Type gql_Int = {
     kind: SCALAR,
-    name: "Int",
+    name: INT,
     description: "Built-in Int"
 };
 public __Type gql_ID = {
     kind: SCALAR,
-    name: "ID",
+    name: ID,
     description: "Built-in ID"
 };
 
 // Built-in Directives
 public __Directive include = {
-    name: "include",
+    name: INCLUDE_DIR,
     locations: [ FIELD, FRAGMENT_SPREAD, INLINE_FRAGMENT ],
     description: "Directs the executor to include this field or fragment only when the `if` argument is true",
     args: {
@@ -44,7 +44,7 @@ public __Directive include = {
 };
 
 public __Directive deprecated = {
-    name: "deprecated",
+    name: DEPRECATED_DIR,
     locations: [ FIELD_DEFINITION, ARGUMENT_DEFINITION, ENUM_VALUE, INPUT_FIELD_DEFINITION ],
     description: "Marks the field, argument, input field or enum value as deprecated",
     args: {
@@ -59,7 +59,7 @@ public __Directive deprecated = {
 };
 
 public __Directive specifiedBy = {
-    name: "specifiedBy",
+    name: SPECIFIED_BY_DIR,
     locations: [ SCALAR ],
     description: "Exposes a URL that specifies the behaviour of this scalar.",
     args: {
@@ -76,7 +76,7 @@ public __Directive specifiedBy = {
 };
 
 public __Directive skip = {
-    name: "skip",
+    name: SKIP_DIR,
     locations: [ FIELD, FRAGMENT_SPREAD, INLINE_FRAGMENT ],
     description: "Directs the executor to skip this field or fragment when the `if` argument is true.",
     args: {

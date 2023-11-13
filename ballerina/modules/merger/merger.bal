@@ -44,7 +44,7 @@ public class Merger {
             self.addDirectiveToSupergraph(directive);
         }
 
-        parser:__Type queryType = check self.getTypeFromSupergraph(QUERY);
+        parser:__Type queryType = check self.getTypeFromSupergraph(parser:QUERY_TYPE);
         map<parser:__Field>? fields = queryType.fields;
         if fields is map<parser:__Field> {
             parser:__Type _serviceType = parser:wrapType(
@@ -137,7 +137,7 @@ public class Merger {
     function addDirectives() returns InternalError? {
         foreach Subgraph subgraph in self.subgraphs {
             foreach [string, parser:__Directive] [key, value] in subgraph.schema.directives.entries() {
-                if isBuiltInDirective(key) || !isExecutableDirective(value) || isSubgraphFederationDirective(key) {
+                if parser:isBuiltInDirective(key) || !parser:isExecutableDirective(value) || isSubgraphFederationDirective(key) {
                     continue;
                 }
 
@@ -209,7 +209,7 @@ public class Merger {
     function mergeImplementsOf(parser:__TypeKind kind) returns InternalError? {
         map<parser:__Type> supergraphTypes = self.getSupergraphTypesOfKind(kind);
         foreach [string, parser:__Type] [typeName, 'type] in supergraphTypes.entries() {
-            if isBuiltInType(typeName) || isSubgraphFederationType(typeName) {
+            if parser:isBuiltInType(typeName) || isSubgraphFederationType(typeName) {
                 continue;
             }
 
@@ -224,7 +224,7 @@ public class Merger {
         map<parser:__Type> supergraphObjectTypes = self.getSupergraphTypesOfKind(parser:OBJECT);
         Hint[] hints = [];
         foreach [string, parser:__Type] [objectName, 'type] in supergraphObjectTypes.entries() {
-            if isBuiltInType(objectName) || isSubgraphFederationType(objectName) {
+            if parser:isBuiltInType(objectName) || isSubgraphFederationType(objectName) {
                 continue;
             }
 
@@ -938,7 +938,7 @@ public class Merger {
 
     function applyJoinTypeDirectives() returns InternalError? {
         foreach [string, parser:__Type] [key, 'type] in self.supergraph.schema.types.entries() {
-            if isSubgraphFederationType(key) || isBuiltInType(key) {
+            if isSubgraphFederationType(key) || parser:isBuiltInType(key) {
                 continue;
             }
 
@@ -1135,7 +1135,7 @@ public class Merger {
     function getFilteredFields(string typeName, map<parser:__Field> subgraphFields) returns map<parser:__Field>|InternalError {
         map<parser:__Field> filteredFields = {};
         foreach [string, parser:__Field] [key, subgraphField] in subgraphFields.entries() {
-            if !(typeName == QUERY && isFederationFieldType(key)) {
+            if !(typeName == parser:QUERY_TYPE && isFederationFieldType(key)) {
                 filteredFields[key] = subgraphField;
             }
         }

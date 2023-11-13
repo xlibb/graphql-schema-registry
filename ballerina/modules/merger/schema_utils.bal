@@ -1,41 +1,5 @@
 import graphql_schema_registry.parser;
 
-const string BOOLEAN = "Boolean";
-const string STRING = "String";
-const string FLOAT = "Float";
-const string INT = "Int";
-const string ID = "ID";
-const string QUERY = "Query";
-
-const string INCLUDE_DIR = "include";
-const string DEPRECATED_DIR = "deprecated";
-const string SKIP_DIR = "skip";
-const string SPECIFIED_BY_DIR = "specifiedBy";
-
-string[] BUILT_IN_DIRECTIVES = [
-    INCLUDE_DIR,
-    DEPRECATED_DIR,
-    SKIP_DIR,
-    SPECIFIED_BY_DIR
-];
-
-string[] BUILT_IN_TYPES = [
-    STRING,
-    FLOAT,
-    INT,
-    ID
-];
-
-parser:__DirectiveLocation[] EXECUTABLE_DIRECTIVE_LOCATIONS = [
-    parser:QUERY,
-    parser:MUTATION,
-    parser:SUBSCRIPTION,
-    parser:FIELD,
-    parser:FRAGMENT_DEFINITION,
-    parser:FRAGMENT_SPREAD,
-    parser:INLINE_FRAGMENT
-];
-
 function createSchema() returns parser:__Schema {
     [map<parser:__Type>, map<parser:__Directive>] [types, directives] = getBuiltInDefinitions();
     return {
@@ -65,15 +29,15 @@ function createDirective(string name, string? description, parser:__DirectiveLoc
     };
 }
 function getBuiltInDefinitions() returns [map<parser:__Type>, map<parser:__Directive>] {
-    parser:__Type query_type = createObjectType(QUERY);
+    parser:__Type query_type = createObjectType(parser:QUERY_TYPE);
     map<parser:__Type> types = {};
 
-    types[BOOLEAN] = parser:gql_Boolean.clone();
-    types[STRING] = parser:gql_String.clone();
-    types[FLOAT] = parser:gql_Float.clone();
-    types[INT] = parser:gql_Int.clone();
-    types[ID] = parser:gql_ID.clone();
-    types[QUERY] = query_type;
+    types[parser:BOOLEAN] = parser:gql_Boolean.clone();
+    types[parser:STRING] = parser:gql_String.clone();
+    types[parser:FLOAT] = parser:gql_Float.clone();
+    types[parser:INT] = parser:gql_Int.clone();
+    types[parser:ID] = parser:gql_ID.clone();
+    types[parser:QUERY_TYPE] = query_type;
 
     map<parser:__Directive> directives = getBuiltInDirectives(types);
 
@@ -82,64 +46,64 @@ function getBuiltInDefinitions() returns [map<parser:__Type>, map<parser:__Direc
 
 function getBuiltInDirectives(map<parser:__Type> types) returns map<parser:__Directive> {
     parser:__Directive include = createDirective(
-        INCLUDE_DIR,
+        parser:INCLUDE_DIR,
         "Directs the executor to include this field or fragment only when the `if` argument is true",
         [ parser:FIELD, parser:FRAGMENT_SPREAD, parser:INLINE_FRAGMENT ],
         {
             "if": {
                 name: "if",
                 description: "Included when true.",
-                'type: parser:wrapType(types.get(BOOLEAN), parser:NON_NULL)
+                'type: parser:wrapType(types.get(parser:BOOLEAN), parser:NON_NULL)
             }
         },
         false
     );
     parser:__Directive deprecated = createDirective(
-        DEPRECATED_DIR,
+        parser:DEPRECATED_DIR,
         "Marks the field, argument, input field or enum value as deprecated",
         [ parser:FIELD_DEFINITION, parser:ARGUMENT_DEFINITION, parser:ENUM_VALUE, parser:INPUT_FIELD_DEFINITION ],
         {
             "reason": {
                 name: "reason",
                 description: "The reason for the deprecation",
-                'type: types.get(STRING),
+                'type: types.get(parser:STRING),
                 defaultValue: "No longer supported"
             }
         },
         false
     );
     parser:__Directive specifiedBy = createDirective(
-        SPECIFIED_BY_DIR,
+        parser:SPECIFIED_BY_DIR,
         "Exposes a URL that specifies the behaviour of this scalar.",
         [ parser:SCALAR ],
         {
             "url": {
                 name: "url",
                 description: "The URL that specifies the behaviour of this scalar.",
-                'type: parser:wrapType(types.get(STRING), parser:NON_NULL)
+                'type: parser:wrapType(types.get(parser:STRING), parser:NON_NULL)
             }
         },
         false
     );
     parser:__Directive skip = createDirective(
-        SKIP_DIR,
+        parser:SKIP_DIR,
         "Directs the executor to skip this field or fragment when the `if` argument is true.",
         [ parser:FIELD, parser:FRAGMENT_SPREAD, parser:INLINE_FRAGMENT ],
         {
             "if": {
                 name: "if",
                 description: "Skipped when true.",
-                'type: parser:wrapType(types.get(BOOLEAN), parser:NON_NULL)
+                'type: parser:wrapType(types.get(parser:BOOLEAN), parser:NON_NULL)
             }
         },
         false
     );
 
     map<parser:__Directive> directives = {};
-    directives[INCLUDE_DIR] = include;
-    directives[DEPRECATED_DIR] = deprecated;
-    directives[SKIP_DIR] = skip;
-    directives[SPECIFIED_BY_DIR] = specifiedBy;
+    directives[parser:INCLUDE_DIR] = include;
+    directives[parser:DEPRECATED_DIR] = deprecated;
+    directives[parser:SKIP_DIR] = skip;
+    directives[parser:SPECIFIED_BY_DIR] = specifiedBy;
 
     return directives;
 }
@@ -164,23 +128,6 @@ function getAppliedDirectiveFromDirective(parser:__Directive directive, map<anyd
         args: applied_args,
         definition: directive
     };
-}
-
-function isExecutableDirective(parser:__Directive directive) returns boolean {
-    foreach parser:__DirectiveLocation location in directive.locations {
-        if EXECUTABLE_DIRECTIVE_LOCATIONS.indexOf(location) !is () {
-            return true;
-        }
-    }
-    return false;
-}
-
-function isBuiltInDirective(string directiveName) returns boolean {
-    return BUILT_IN_DIRECTIVES.indexOf(directiveName) !is ();
-}
-
-function isBuiltInType(string typeName) returns boolean {
-    return BUILT_IN_TYPES.indexOf(typeName) !is ();
 }
 
 function getDirectiveLocationsFromStrings(string[] locations) returns parser:__DirectiveLocation[]|InternalError {

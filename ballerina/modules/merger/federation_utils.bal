@@ -36,11 +36,11 @@ string[] FEDERATION_SUBGRAPH_IGNORE_TYPES = [
     _SERVICE_TYPE,
     LINK_IMPORT_TYPE,
     LINK_PURPOSE_TYPE,
-    STRING,
-    BOOLEAN,
-    FLOAT,
-    INT,
-    ID,
+    parser:STRING,
+    parser:BOOLEAN,
+    parser:FLOAT,
+    parser:INT,
+    parser:ID,
     JOIN_FIELDSET_TYPE,
     JOIN_GRAPH_TYPE
 ];
@@ -59,7 +59,7 @@ function getFederationTypes(map<parser:__Type> types) returns map<parser:__Type>
         name: _SERVICE_TYPE,
         kind: parser:OBJECT,
         fields: {
-            "sdl": { name: "sdl", args: {}, 'type: parser:wrapType(types.get(STRING), parser:NON_NULL) }
+            "sdl": { name: "sdl", args: {}, 'type: parser:wrapType(types.get(parser:STRING), parser:NON_NULL) }
         }
     };
     parser:__Type link__Import = {
@@ -97,8 +97,8 @@ function getFederationDirectives(map<parser:__Type> types) returns map<parser:__
         (),
         [ parser:SCHEMA ],
         {
-            [URL_FIELD]: { name: URL_FIELD, 'type: types.get(STRING) },
-            "as": { name: "as", 'type: types.get(STRING) },
+            [URL_FIELD]: { name: URL_FIELD, 'type: types.get(parser:STRING) },
+            "as": { name: "as", 'type: types.get(parser:STRING) },
             "for": { name: "for", 'type: types.get(LINK_PURPOSE_TYPE) },
             "import": { name: "import", 'type: parser:wrapType(types.get(LINK_IMPORT_TYPE), parser:LIST) }
         },
@@ -121,10 +121,10 @@ function getFederationDirectives(map<parser:__Type> types) returns map<parser:__
             [GRAPH_FIELD]: { name: GRAPH_FIELD, 'type: types.get(JOIN_GRAPH_TYPE) },
             "requires": { name: "requires", 'type: types.get(JOIN_FIELDSET_TYPE) },
             "provides": { name: "provides", 'type: types.get(JOIN_FIELDSET_TYPE) },
-            [TYPE_FIELD]: { name: TYPE_FIELD, 'type: types.get(STRING) },
-            "external": { name: "external", 'type: types.get(BOOLEAN) },
-            "override": { name: "override", 'type: types.get(STRING) },
-            "usedOverridden": { name: "usedOverridden", 'type: types.get(BOOLEAN) }
+            [TYPE_FIELD]: { name: TYPE_FIELD, 'type: types.get(parser:STRING) },
+            "external": { name: "external", 'type: types.get(parser:BOOLEAN) },
+            "override": { name: "override", 'type: types.get(parser:STRING) },
+            "usedOverridden": { name: "usedOverridden", 'type: types.get(parser:BOOLEAN) }
         },
         true
     );
@@ -133,8 +133,8 @@ function getFederationDirectives(map<parser:__Type> types) returns map<parser:__
         (),
         [ parser:ENUM_VALUE ],
         {
-            [NAME_FIELD]: { name: NAME_FIELD, 'type: parser:wrapType(types.get(STRING), parser:NON_NULL) },
-            [URL_FIELD]: { name: URL_FIELD, 'type: parser:wrapType(types.get(STRING), parser:NON_NULL) }
+            [NAME_FIELD]: { name: NAME_FIELD, 'type: parser:wrapType(types.get(parser:STRING), parser:NON_NULL) },
+            [URL_FIELD]: { name: URL_FIELD, 'type: parser:wrapType(types.get(parser:STRING), parser:NON_NULL) }
         },
         false
     );
@@ -144,7 +144,7 @@ function getFederationDirectives(map<parser:__Type> types) returns map<parser:__
         [ parser:OBJECT, parser:INTERFACE ],
         {
             [GRAPH_FIELD]: { name: GRAPH_FIELD, 'type: parser:wrapType(types.get(JOIN_GRAPH_TYPE), parser:NON_NULL) },
-            [INTERFACE_FIELD]: { name: INTERFACE_FIELD, 'type: parser:wrapType(types.get(STRING), parser:NON_NULL) }
+            [INTERFACE_FIELD]: { name: INTERFACE_FIELD, 'type: parser:wrapType(types.get(parser:STRING), parser:NON_NULL) }
         },
         true
     );
@@ -155,9 +155,9 @@ function getFederationDirectives(map<parser:__Type> types) returns map<parser:__
         {
             [GRAPH_FIELD]: { name: GRAPH_FIELD, 'type: parser:wrapType(types.get(JOIN_GRAPH_TYPE), parser:NON_NULL) },
             "key": { name: "key", 'type: types.get(JOIN_FIELDSET_TYPE) },
-            "extension": { name: "extension", 'type: parser:wrapType(types.get(BOOLEAN), parser:NON_NULL), defaultValue: false },
-            "resolvable": { name: "resolvable", 'type: parser:wrapType(types.get(BOOLEAN), parser:NON_NULL), defaultValue: true },
-            "isInterfaceObject": { name: "isInterfaceObject", 'type: parser:wrapType(types.get(BOOLEAN), parser:NON_NULL), defaultValue: false }
+            "extension": { name: "extension", 'type: parser:wrapType(types.get(parser:BOOLEAN), parser:NON_NULL), defaultValue: false },
+            "resolvable": { name: "resolvable", 'type: parser:wrapType(types.get(parser:BOOLEAN), parser:NON_NULL), defaultValue: true },
+            "isInterfaceObject": { name: "isInterfaceObject", 'type: parser:wrapType(types.get(parser:BOOLEAN), parser:NON_NULL), defaultValue: false }
         },
         true
     );
@@ -167,7 +167,7 @@ function getFederationDirectives(map<parser:__Type> types) returns map<parser:__
         [ parser:UNION ],
         {
             [GRAPH_FIELD]: { name: GRAPH_FIELD, 'type: parser:wrapType(types.get(JOIN_GRAPH_TYPE), parser:NON_NULL) },
-            [UNION_MEMBER_FIELD]: { name: UNION_MEMBER_FIELD, 'type:parser:wrapType(types.get(STRING), parser:NON_NULL ) }
+            [UNION_MEMBER_FIELD]: { name: UNION_MEMBER_FIELD, 'type:parser:wrapType(types.get(parser:STRING), parser:NON_NULL ) }
         },
         true
     );
