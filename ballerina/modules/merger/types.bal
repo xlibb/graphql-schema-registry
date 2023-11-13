@@ -50,19 +50,24 @@ type EnumValueSource [Subgraph, parser:__EnumValue];
 type FieldSource [Subgraph, parser:__Field];
 type InputSource [Subgraph, parser:__InputValue];
 
-type DescriptionSourceGroup record {|
+type DescriptionSources record {|
     string? data;
     Subgraph[] subgraphs;
 |};
 
-type DefaultValueSourceGroup record {|
+type DefaultValueSources record {|
     anydata data;
     Subgraph[] subgraphs;
 |};
 
-type TypeReferenceSourceGroup record {|
+type TypeReferenceSources record {|
     parser:__Type data;
     Subgraph[] subgraphs;
+|};
+
+type ConsistentInconsistenceSubgraphs record {|
+    Subgraph[] consistent;
+    Subgraph[] inconsistent;
 |};
 
 type HintDetail record {|
@@ -84,10 +89,10 @@ type MergedResult record {|
 
 type PossibleTypesMergeResult record {|
     *MergedResult;
-    TypeReferenceSourceGroup[] typeRefs; 
+    TypeReferenceSources[] sources; 
 |};
 
 type TypeReferenceMergeResult record {|
     *MergedResult;
-    TypeReferenceSourceGroup[] typeRefs; 
+    TypeReferenceSources[] sources; 
 |};

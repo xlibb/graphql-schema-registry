@@ -156,7 +156,7 @@ public class Merger {
             mergedType.possibleTypes = <parser:__Type[]?>possibleTypesMergeResult.result;
             appendHints(hints, possibleTypesMergeResult.hints, typeName);
 
-            foreach TypeReferenceSourceGroup typeRefGrp in possibleTypesMergeResult.typeRefs {
+            foreach TypeReferenceSources typeRefGrp in possibleTypesMergeResult.sources {
                 foreach Subgraph consistentSubgraph in typeRefGrp.subgraphs {
                     check self.applyJoinUnionMember(
                         mergedType,
@@ -296,7 +296,7 @@ public class Merger {
                     inputFieldSources.push([ subgraph, subgraphFields ]);
                 }
             }
-            MergedResult mergedArgResult = check self.mergeInputValues(inputFieldSources);
+            MergedResult mergedArgResult = check self.mergeInputValues(inputFieldSources); // Handle INPUT_FIELD_TYPE_MISMATCH
             map<parser:__InputValue> mergedFields = <map<parser:__InputValue>>mergedArgResult.result;
             'type.inputFields = mergedFields;
             appendHints(hints, mergedArgResult.hints, inputTypeName);
@@ -348,7 +348,7 @@ public class Merger {
     }
 
     function mergeDescription(DescriptionSource[] sources) returns MergedResult {
-        DescriptionSourceGroup[] sourceGroups = []; // Map cannot be used here because descriptions are Nullable
+        DescriptionSources[] sourceGroups = []; // Map cannot be used here because descriptions are Nullable
         foreach int i in 0...sources.length()-1 {
             string? description = sources[i][1];
             Subgraph definingSubgraph = sources[i][0];
@@ -374,7 +374,7 @@ public class Merger {
 
         if sourceGroups.length() !== 1 { // Description has inconsistencies
             HintDetail[] hintDetails = [];
-            foreach DescriptionSourceGroup descriptionSource in sourceGroups {
+            foreach DescriptionSources descriptionSource in sourceGroups {
                 hintDetails.push({
                     value: descriptionSource.data,
                     consistentSubgraphs: descriptionSource.subgraphs,
@@ -524,7 +524,7 @@ public class Merger {
                 ]);
             }
 
-            MergedResult mergedArgResult = check self.mergeInputValues(inputFieldSources);
+            MergedResult mergedArgResult = check self.mergeInputValues(inputFieldSources); // Handle FIELD_ARGUMENT_TYPE_MISMATCH
             appendHints(hints, mergedArgResult.hints, fieldName);
             map<parser:__InputValue> mergedArgs = <map<parser:__InputValue>>mergedArgResult.result;
 
@@ -551,7 +551,7 @@ public class Merger {
                 mergedField, 
                 consistentSubgraphs = fieldSources.'map(s => s[0]),
                 hasInconsistentFields = unionedFields.get(fieldName).length() != sources.length(),
-                outputTypeMismatches = typeMergeResult.typeRefs
+                outputTypeMismatches = typeMergeResult.sources
             );
 
             mergedFields[mergedField.name] = mergedField;
@@ -566,60 +566,51 @@ public class Merger {
     }
 
     function mergePossibleTypes(PossibleTypesSource[] sources) returns PossibleTypesMergeResult|InternalError {
-        TypeReferenceSourceGroup[] typeRefs = [];
+        map<TypeReferenceSource[]> typeRefMap = {};
         map<parser:__Type> mergedPossibleTypes = {};
         Hint[] hints = [];
 
         // Get union of possible types across subgraphs
-        foreach PossibleTypesSource [_, possibleTypes] in sources {
+        foreach PossibleTypesSource [subgraph, possibleTypes] in sources {
             foreach parser:__Type possibleType in possibleTypes {
                 string? possibleTypeName = possibleType.name;
                 if possibleTypeName !is () {
                     mergedPossibleTypes[possibleTypeName] = check self.getTypeFromSupergraph(possibleTypeName);
+
+                    if typeRefMap.hasKey(possibleTypeName) {
+                        typeRefMap.get(possibleTypeName).push([subgraph, possibleType]);
+                    } else {
+                        typeRefMap[possibleTypeName] = [[subgraph, possibleType]];
+                    }
                 }
             }
         }
 
-        // Find inconsistencies across subgraphs
-        foreach [string, parser:__Type] [typeName, 'type] in mergedPossibleTypes.entries() {
-            Subgraph[] consistentSubgraphs = [];
-            Subgraph[] inconsistentSubgraphs = [];
-            foreach PossibleTypesSource [subgraph, subgraphPossibleTypes] in sources {
-                boolean isTypePresent = false;
-                foreach parser:__Type checkType in subgraphPossibleTypes {
-                    if checkType.name == typeName {
-                        isTypePresent = true;
-                        break;
-                    }
-                }
-                if !isTypePresent {
-                    inconsistentSubgraphs.push(subgraph);
-                } else {
-                    consistentSubgraphs.push(subgraph);
-                }
-            }
+        TypeReferenceSources[] typeReferenceSources = [];
+        foreach [string, TypeReferenceSource[]] [typeName, references] in typeRefMap.entries() {
+            ConsistentInconsistenceSubgraphs subgraphs = self.getConsistentInconsistentSubgraphs(sources, references);
 
-            if inconsistentSubgraphs.length() != 0 { // Add hints only if there are inconsistencies
+            if subgraphs.inconsistent.length() != 0 { // Add hints only if there are inconsistencies
                 hints.push({
                     code: INCONSISTENT_UNION_MEMBER,
                     location: [],
                     details: [{
-                        value: 'type.name,
-                        inconsistentSubgraphs: inconsistentSubgraphs,
-                        consistentSubgraphs: consistentSubgraphs
+                        value: typeName,
+                        inconsistentSubgraphs: subgraphs.inconsistent,
+                        consistentSubgraphs: subgraphs.consistent
                     }]
                 });
             }
 
-            typeRefs.push({
-                data: 'type,
-                subgraphs: consistentSubgraphs
+            typeReferenceSources.push({
+                data: mergedPossibleTypes.get(typeName),
+                subgraphs: subgraphs.consistent
             });
         }
 
         return {
             result: mergedPossibleTypes.toArray(),
-            typeRefs: typeRefs,
+            sources: typeReferenceSources,
             hints: hints
         };
     }
@@ -685,49 +676,24 @@ public class Merger {
                 };
                 
             } else {
-                Subgraph[] consistentSubgraphs = [];
-                Subgraph[] inconsistentSubgraphs = [];
-                foreach InputFieldMapSource [subgraph, _] in sources {
-                    boolean isConsistentSubgraph = false;
-                    foreach [Subgraph, parser:__InputValue] [consistentSubgraph, _] in argDefs {
-                        if subgraph.name == consistentSubgraph.name {
-                            isConsistentSubgraph = true;
-                            break;
-                        }
-                    }
-                    
-                    if isConsistentSubgraph {
-                        consistentSubgraphs.push(subgraph);
-                    } else {
-                        inconsistentSubgraphs.push(subgraph);
-                    }
-                }
+                ConsistentInconsistenceSubgraphs subgraphs = self.getConsistentInconsistentSubgraphs(sources, argDefs);
 
                 Hint hint = {
                     code: INCONSISTENT_ARGUMENT_PRESENCE,
                     location: [],
                     details: [{
                         value: argName,
-                        consistentSubgraphs: consistentSubgraphs,
-                        inconsistentSubgraphs: inconsistentSubgraphs
+                        consistentSubgraphs: subgraphs.consistent,
+                        inconsistentSubgraphs: subgraphs.inconsistent
                     }]
                 };
                 hints.push(hint);
 
-                boolean isRequiredTypeFound = false;
-                foreach [Subgraph, parser:__InputValue] [_, arg] in argDefs {
-                    if isTypeRequired(arg.'type) {
-                        isRequiredTypeFound = true;
-                        break;
-                    }
-                }
+                boolean isRequiredTypeFound = argDefs.some(v => isTypeRequired(v[1].'type));
                 if isRequiredTypeFound {
                     hint.code = REQUIRED_ARGUMENT_MISSING_IN_SOME_SUBGRAPH;
-                    return error MergeError(hint.code);
+                    return error MergeError("Required argument is missing on some subgraph(s)", hint = hint);
                 }
-
-                // Handle 'INCONSISTENT_ARGUMENT_PRESENCE'
-                // https://www.apollographql.com/docs/federation/federated-types/sharing-types/#arguments
             }
         }
 
@@ -738,28 +704,39 @@ public class Merger {
     }
 
     function mergeDefaultValues(DefaultValueSource[] sources) returns MergeResult|MergeError {
-        // map<[anydata, Subgraph[]]> intersected = {};
-        map<DefaultValueSourceGroup> intersected = {};
+        map<DefaultValueSources> unionedDefaultValues = {};
         foreach DefaultValueSource [subgraph, value] in sources {
             string? valueString = value.toString();
             if valueString is string {
-                if intersected.hasKey(valueString) {
-                    intersected.get(valueString).subgraphs.push(subgraph);
+                if unionedDefaultValues.hasKey(valueString) {
+                    unionedDefaultValues.get(valueString).subgraphs.push(subgraph);
                 } else {
-                    intersected[valueString] = { data: value, subgraphs: [ subgraph ] };
+                    unionedDefaultValues[valueString] = { data: value, subgraphs: [ subgraph ] };
                 }
             }
         }
 
-        if intersected.length() == 1 {
-            string defaultValueKey = intersected.keys()[0];
+        if unionedDefaultValues.length() == 1 {
+            string defaultValueKey = unionedDefaultValues.keys()[0];
             return {
-                result: intersected.get(defaultValueKey).data,
+                result: unionedDefaultValues.get(defaultValueKey).data,
                 hints: []
             };
         } else {
             // Handle default value inconsistency
-            return error MergeError("Default type mismatch");
+            HintDetail[] details = [];
+            foreach DefaultValueSources sourceGroup in unionedDefaultValues {
+                details.push({
+                    value: sourceGroup.data,
+                    consistentSubgraphs: sourceGroup.subgraphs,
+                    inconsistentSubgraphs: []
+                });
+            }
+            return error MergeError("Default value mismatch", hint = {
+                code: DEFAULT_VALUE_MISMATCH,
+                location: [],
+                details: details
+            });
         }
     
     }
@@ -785,7 +762,7 @@ public class Merger {
     }
 
     function mergeTypeReferenceSet(TypeReferenceSource[] sources, TypeReferenceType refType) returns TypeReferenceMergeResult|MergeError|InternalError {
-        map<TypeReferenceSourceGroup> unionedReferences = {};
+        map<TypeReferenceSources> unionedReferences = {};
         foreach TypeReferenceSource [subgraph, typeReference] in sources {
             string key = check typeReferenceToString(typeReference);
 
@@ -811,7 +788,7 @@ public class Merger {
 
         Hint[] hints = [];
         parser:__Type? mergedTypeReference = ();
-        foreach TypeReferenceSourceGroup ref in unionedReferences {
+        foreach TypeReferenceSources ref in unionedReferences {
             parser:__Type typeReference = ref.data;
             if mergedTypeReference is () {
                 mergedTypeReference = typeReference;
@@ -822,7 +799,7 @@ public class Merger {
             }
         }
 
-        TypeReferenceSourceGroup[] typeRefs = [];
+        TypeReferenceSources[] typeRefs = [];
         if unionedReferences.length() > 1 {
             HintDetail[] details = [];
             foreach [string, Mismatch] [key, mismatch] in unionedReferences.entries() {
@@ -847,7 +824,7 @@ public class Merger {
         return {
             result: mergedTypeReference,
             hints: hints,
-            typeRefs: typeRefs
+            sources: typeRefs
         };
         
         // parser:__Type mergedTypeReference = typeReferences[0][1];
@@ -881,9 +858,12 @@ public class Merger {
             return check self.getMergedOutputTypeReference(typeAWrappedType, typeB);
         } 
         // Handle Type Reference mismatch
-        // 'ARGUMENT_TYPE_MISMATCH', 'FIELD_TYPE_MISMATCH'
-        // 'INCONSISTENT_BUT_COMPATIBLE_ARGUMENT_TYPE', 'INCONSISTENT_BUT_COMPATIBLE_FIELD_TYPE'
-        return error MergeError(string `Reference type mismatch`);
+        // 'FIELD_TYPE_MISMATCH'
+        return error MergeError("Output Type reference Mismatch", hint = {
+            code: OUTPUT_TYPE_MISMATCH,
+            location: [],
+            details: []
+        });
         
     }
 
@@ -910,9 +890,12 @@ public class Merger {
             );
         } else {
             // Handle Type Reference mismatch
-            // 'ARGUMENT_TYPE_MISMATCH', 'FIELD_TYPE_MISMATCH'
-            // 'INCONSISTENT_BUT_COMPATIBLE_ARGUMENT_TYPE', 'INCONSISTENT_BUT_COMPATIBLE_FIELD_TYPE'
-            return error MergeError(string `Reference type mismatch`);
+            // 'FIELD_ARGUMENT_TYPE_MISMATCH', 'FIELD_TYPE_MISMATCH'
+            return error MergeError("Input Type reference Mismatch", hint = {
+                code: INPUT_TYPE_MISMATCH,
+                location: [],
+                details: []
+            });
         }
     }
 
@@ -953,7 +936,7 @@ public class Merger {
     }
 
     function applyJoinFieldDirectives(parser:__Field 'field, Subgraph[] consistentSubgraphs, 
-                                      boolean hasInconsistentFields, TypeReferenceSourceGroup[] outputTypeMismatches) returns InternalError? {
+                                      boolean hasInconsistentFields, TypeReferenceSources[] outputTypeMismatches) returns InternalError? {
 
         // Handle @override
         // Handle @external
@@ -965,7 +948,7 @@ public class Merger {
             }
         }
 
-        foreach TypeReferenceSourceGroup ref in outputTypeMismatches {
+        foreach TypeReferenceSources ref in outputTypeMismatches {
             foreach Subgraph subgraph in ref.subgraphs {
                 join__fieldArgs[subgraph.name][GRAPH_FIELD] = self.joinGraphMap.get(subgraph.name);
                 join__fieldArgs[subgraph.name][TYPE_FIELD] = check typeReferenceToString(ref.data);
@@ -1265,6 +1248,31 @@ public class Merger {
             }
         }
         return isApplied;
+    }
+
+    function getConsistentInconsistentSubgraphs([Subgraph, anydata][] sources, [Subgraph, anydata][] defs) 
+                                                                            returns ConsistentInconsistenceSubgraphs {
+        Subgraph[] consistentSubgraphs = [];
+        Subgraph[] inconsistentSubgraphs = [];
+        foreach var [subgraph, _] in sources {
+            boolean isConsistentSubgraph = false;
+            foreach var [consistentSubgraph, _] in defs {
+                if subgraph.name == consistentSubgraph.name {
+                    isConsistentSubgraph = true;
+                    break;
+                }
+            }
+            
+            if isConsistentSubgraph {
+                consistentSubgraphs.push(subgraph);
+            } else {
+                inconsistentSubgraphs.push(subgraph);
+            }
+        }
+        return {
+            consistent: consistentSubgraphs,
+            inconsistent: inconsistentSubgraphs
+        };
     }
 
 }
