@@ -172,9 +172,6 @@ public class Merger {
             MergedResult descriptionMergeResult = self.mergeDescription(descriptionSources);
             appendHints(hints, descriptionMergeResult.hints, typeName);
             mergedType.description = <string?>descriptionMergeResult.result;
-            if descriptionMergeResult.hints.length() > 0 {
-                // Handle discription hints
-            }
 
             // ---------- Merge Possible Types -----------
             PossibleTypesSource[] possibleTypesSources = [];
@@ -245,9 +242,6 @@ public class Merger {
             MergedResult descriptionMergeResult = self.mergeDescription(descriptionSources);
             appendHints(hints, descriptionMergeResult.hints, objectName);
             'type.description = <string?>descriptionMergeResult.result;
-            if descriptionMergeResult.hints.length() > 0 {
-                // Handle discription hints
-            }
 
             // ---------- Merge Fields -----------
             FieldMapSource[] fieldMapSources = [];
