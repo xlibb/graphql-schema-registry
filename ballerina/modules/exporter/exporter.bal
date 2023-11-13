@@ -44,18 +44,13 @@ class Exporter {
             return error ExportError("Object field map cannot be null");
         }
 
-        string? description = 'type.description;
-        string descriptionSdl = EMPTY_STRING;
-        if description is string {
-            descriptionSdl = self.exportDescription(description) + LINE_BREAK;
-        }
-
-        string fieldMapSdl = self.addBraces(LINE_BREAK + check self.exportFieldMap(fields) + LINE_BREAK);
+        string descriptionSdl = self.exportDescription('type.description, 0);
+        string fieldMapSdl = self.addBraces(self.addAsBlock(check self.exportFieldMap(fields, 1)));
 
         return descriptionSdl + OBJECT_TYPE + SPACE + typeName + SPACE + fieldMapSdl;
     }
 
-    function exportFieldMap(map<parser:__Field> fieldMap, int indentation = 1) returns string|ExportError {
+    function exportFieldMap(map<parser:__Field> fieldMap, int indentation) returns string|ExportError {
         string[] fields = [];
         boolean isFirstInBlock = true;
         foreach parser:__Field 'field in fieldMap {
@@ -71,27 +66,25 @@ class Exporter {
 
     function exportField(parser:__Field 'field, boolean isFirstInBlock, int indentation) returns string|ExportError {
         string typeReferenceSdl = check self.exportTypeReference('field.'type);
+        string descriptionSdl = self.exportDescription('field.description, indentation, isFirstInBlock);
+        string argsSdl = check self.exportFieldInputValues('field.args, indentation);
 
-        string? description = 'field.description;
-        string descriptionSdl = EMPTY_STRING;
-        if description is string {
-            descriptionSdl = isFirstInBlock ? EMPTY_STRING : LINE_BREAK;
-            descriptionSdl += self.addIndentation(indentation) + self.exportDescription(description) + LINE_BREAK;
-        }
+        string fieldSdl = 'field.name + argsSdl + COLON + SPACE + typeReferenceSdl;
+        return descriptionSdl + self.addIndentation(indentation) + fieldSdl;
+    }
 
+    function exportFieldInputValues(map<parser:__InputValue> args, int indentation) returns string|ExportError {
         string argsSdl = EMPTY_STRING;
-        map<parser:__InputValue> args = 'field.args;
         if args != {} {
             if args.toArray().some(i => i.description is string) {
-                argsSdl = check self.exportInputValues('field.args, LINE_BREAK, indentation + 1);
-                argsSdl = LINE_BREAK + argsSdl + LINE_BREAK + self.addIndentation(indentation);
+                argsSdl = check self.exportInputValues(args, LINE_BREAK, indentation + 1);
+                argsSdl = self.addAsBlock(argsSdl) + self.addIndentation(indentation);
             } else {
-                argsSdl = check self.exportInputValues('field.args, COMMA + SPACE);
+                argsSdl = check self.exportInputValues(args, COMMA + SPACE);
             }
             argsSdl = self.addParantheses(argsSdl);
         }
-
-        return descriptionSdl + self.addIndentation(indentation) + 'field.name + argsSdl + COLON + SPACE + typeReferenceSdl;
+        return argsSdl;
     }
 
     function exportDirectives() returns string|ExportError {
@@ -131,27 +124,22 @@ class Exporter {
 
     function exportInputValue(parser:__InputValue arg, boolean isFirstInBlock, int indentation = 0) returns string|ExportError {
         string typeReferenceSdl = check self.exportTypeReference(arg.'type);
+        string descriptionSdl = self.exportDescription(arg.description, indentation, isFirstInBlock);
+        string defaultValueSdl = check self.exportDefaultValue(arg.defaultValue);
 
-        string? description = arg.description;
-        string descriptionSdl = EMPTY_STRING;
-        if description is string {
-            descriptionSdl = isFirstInBlock ? EMPTY_STRING : LINE_BREAK;
-            descriptionSdl += self.addIndentation(indentation) + self.exportDescription(description) + LINE_BREAK;
-        }
-
-        string defaultValueSdl = self.exportDefaultValue(arg.defaultValue);
-        return descriptionSdl + self.addIndentation(indentation) +  arg.name + COLON + SPACE + typeReferenceSdl + defaultValueSdl;
+        string inputValueSdl = arg.name + COLON + SPACE + typeReferenceSdl + defaultValueSdl;
+        return descriptionSdl + self.addIndentation(indentation) + inputValueSdl;
     }
 
-    function exportDefaultValue(anydata? defaultValue) returns string {
+    function exportDefaultValue(anydata? defaultValue) returns string|ExportError {
         if defaultValue is () {
             return EMPTY_STRING;
         } else {
-            return SPACE + EQUAL + SPACE + self.exportValue(defaultValue);
+            return SPACE + EQUAL + SPACE + check self.exportValue(defaultValue);
         }
     }
 
-    function exportValue(anydata input) returns string {
+    function exportValue(anydata input) returns string|ExportError {
         if input is string {
             return string `"${input}"`;
         } else if input is int|float|boolean {
@@ -159,12 +147,22 @@ class Exporter {
         } else if input is parser:__EnumValue {
             return input.name;
         } else {
-            return "<UNKNOWN_TYPE>";
+            return error ExportError("Invalid input");
         }
     }
 
-    function exportDescription(string description) returns string {
-        return string `"""${description}"""`;
+    function exportDescription(string? description, int indentation, boolean isFirstInBlock = true) returns string {
+        string descriptionSdl = EMPTY_STRING;
+        if description is string {
+            descriptionSdl += isFirstInBlock ? EMPTY_STRING : LINE_BREAK;
+            descriptionSdl += self.addIndentation(indentation);
+            string newDescription = description.length() <= 50 ? 
+                                                description : self.addAsBlock(
+                                                                    self.addIndentation(indentation) + description
+                                                              ) + self.addIndentation(indentation);
+            descriptionSdl += string `"""${newDescription}"""` + LINE_BREAK;
+        }
+        return descriptionSdl;
     }
 
     function exportTypeReference(parser:__Type 'type) returns string|ExportError {
@@ -178,6 +176,10 @@ class Exporter {
         } else {
             return error ExportError("Invalid type reference");
         }
+    }
+
+    function addAsBlock(string input) returns string {
+        return LINE_BREAK + input + LINE_BREAK;
     }
 
     function addBraces(string input) returns string {
