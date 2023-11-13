@@ -18,7 +18,7 @@ public class Merger {
         };
     }
 
-    public function merge() returns Supergraph|error {
+    public function merge() returns Supergraph|MergeError|InternalError {
         check self.addFederationDefinitions();
         check self.populateFederationJoinGraphEnum();
         check self.addTypesShallow();
@@ -77,24 +77,59 @@ public class Merger {
         }
     }
 
-    function addTypesShallow() returns InternalError? {
+    function addTypesShallow() returns MergeError|InternalError? {
+        map<map<TypeKindSources>> typeMap = {};
         foreach Subgraph subgraph in self.subgraphs {
-            foreach [string, parser:__Type] [key, value] in subgraph.schema.types.entries() {
-                if isSubgraphFederationType(key) {
+            foreach [string, parser:__Type] [typeName, 'type] in subgraph.schema.types.entries() {
+                if isSubgraphFederationType(typeName) {
                     continue;
                 }
 
-                if self.isTypeOnSupergraph(key) {
-                    if ((check self.getTypeFromSupergraph(key)).kind !== value.kind) {
-                        // Handle Kind
+                parser:__TypeKind typeKind = 'type.kind;
+                if typeMap.hasKey(typeName) {
+                    map<TypeKindSources> subgraphMap = typeMap.get(typeName);
+                    if subgraphMap.hasKey(typeKind) {
+                        subgraphMap.get(typeKind).subgraphs.push(subgraph);
+                    } else {
+                        subgraphMap[typeKind] = {
+                            data: typeKind,
+                            subgraphs: [ subgraph ]
+                        };
                     }
                 } else {
-                    check self.addTypeToSupergraph({
-                        name: value.name,
-                        kind: value.kind
-                    });
+                    map<TypeKindSources> subgraphMap = {
+                        [typeKind] : {
+                            data: typeKind,
+                            subgraphs: [ subgraph ]
+                        }
+                    };
+                    typeMap[typeName] = subgraphMap;
                 }
-                
+            }
+        }
+        foreach [string, map<TypeKindSources>] [typeName, typeKindMap] in typeMap.entries() {
+            if typeKindMap.length() === 1 {
+                check self.addTypeToSupergraph({
+                    name: typeName,
+                    kind: typeKindMap.toArray()[0].data
+                });
+            } else {
+                HintDetail[] details = [];
+                foreach [string, TypeKindSources] [typeKind, subgraphMap] in typeKindMap.entries() {
+                    HintDetail mismatchDetail = {
+                        value: typeKind,
+                        consistentSubgraphs: subgraphMap.subgraphs,
+                        inconsistentSubgraphs: []
+                    };
+                    details.push(mismatchDetail);
+                }
+
+                Hint mismatchHint = {
+                    code: TYPE_KIND_MISMATCH,
+                    location: [ typeName ],
+                    details: details
+                };
+                return error MergeError("Type kind mismatch", hint = mismatchHint);
             }
         }
     }

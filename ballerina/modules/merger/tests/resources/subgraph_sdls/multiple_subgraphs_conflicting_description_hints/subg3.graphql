@@ -4,3 +4,11 @@ type Query {
     bar: Int!
     thud(input: ID!): String
 }
+
+interface Foo {
+    name: String
+}
+
+input Bar {
+    name: String
+}

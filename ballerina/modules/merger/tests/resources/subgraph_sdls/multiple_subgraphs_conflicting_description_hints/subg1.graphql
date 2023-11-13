@@ -4,3 +4,11 @@ type Query {
     bar: Int!
     thud(input: ID!): String
 }
+
+type Foo {
+    name: String
+}
+
+type Bar {
+    name: String
+}

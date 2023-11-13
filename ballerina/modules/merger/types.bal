@@ -50,6 +50,11 @@ type EnumValueSource [Subgraph, parser:__EnumValue];
 type FieldSource [Subgraph, parser:__Field];
 type InputSource [Subgraph, parser:__InputValue];
 
+type TypeKindSources record {|
+    parser:__TypeKind data;
+    Subgraph[] subgraphs;
+|};
+
 type DescriptionSources record {|
     string? data;
     Subgraph[] subgraphs;

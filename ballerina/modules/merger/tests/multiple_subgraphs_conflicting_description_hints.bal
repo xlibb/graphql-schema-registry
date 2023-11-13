@@ -7,7 +7,14 @@ import graphql_schema_registry.parser;
 function testConflictDescriptionHints() returns error? {
     string typeName = "Query";
     [parser:__Schema, Subgraph[]] schemas = check getSchemas("multiple_subgraphs_conflicting_description_hints");
-    Supergraph supergraph = check (new Merger(schemas[1])).merge();
+    MergeError|Supergraph|error supergraph = (new Merger(schemas[1])).merge();
+    if supergraph is MergeError {
+        printHints([supergraph.detail().hint]);
+        return;
+    }
+    if supergraph is error {
+        return supergraph;
+    }
 
     map<parser:__Field>? actualFields = supergraph.schema.types.get(typeName).fields;
     map<parser:__Field>? expectedFields = schemas[0].types.get(typeName).fields;
