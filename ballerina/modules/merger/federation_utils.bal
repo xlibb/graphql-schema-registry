@@ -37,12 +37,16 @@ const string REQUIRES_FIELD = "requires";
 const string PROVIDES_FIELD = "provides";
 const string OVERRIDE_FIELD = "override";
 const string USED_OVERRIDDEN_FIELD = "usedOverridden";
+const string AS_FIELD = "as";
+const string FOR_FIELD = "for";
+const string IMPORT_FIELD = "import";
 
 string[] FEDERATION_SUBGRAPH_IGNORE_TYPES = [
     LINK_IMPORT_TYPE,
     LINK_PURPOSE_TYPE,
     JOIN_FIELDSET_TYPE,
-    JOIN_GRAPH_TYPE
+    JOIN_GRAPH_TYPE,
+    FIELDSET_TYPE
 ];
 
 string[] FEDERATION_SUBGRAPH_IGNORE_DIRECTIVES = [
@@ -98,9 +102,9 @@ function getFederationDirectives(map<parser:__Type> types) returns map<parser:__
         [ parser:SCHEMA ],
         {
             [URL_FIELD]: { name: URL_FIELD, 'type: types.get(parser:STRING) },
-            "as": { name: "as", 'type: types.get(parser:STRING) },
-            "for": { name: "for", 'type: types.get(LINK_PURPOSE_TYPE) },
-            "import": { name: "import", 'type: parser:wrapType(types.get(LINK_IMPORT_TYPE), parser:LIST) }
+            [AS_FIELD]: { name: AS_FIELD, 'type: types.get(parser:STRING) },
+            [FOR_FIELD]: { name: FOR_FIELD, 'type: types.get(LINK_PURPOSE_TYPE) },
+            [IMPORT_FIELD]: { name: IMPORT_FIELD, 'type: parser:wrapType(types.get(LINK_IMPORT_TYPE), parser:LIST) }
         },
         true
     );
