@@ -9,10 +9,13 @@ public class Exporter {
     }
     
     public function export() returns string|ExportError {
-        string schemaType = check self.exportSchemaType();
-        string directives = check self.exportDirectives();
-        string types = check self.exportTypes();
-        return string:'join(DOUBLE_LINE_BREAK, schemaType, directives, types);
+        string[] sections = [];
+        if self.schema.appliedDirectives.length() > 0 {
+            sections.push(check self.exportSchemaType());
+        }
+        sections.push(check self.exportDirectives());
+        sections.push(check self.exportTypes());
+        return string:'join(DOUBLE_LINE_BREAK, ...sections);
     }
 
     function exportSchemaType() returns string|ExportError {
