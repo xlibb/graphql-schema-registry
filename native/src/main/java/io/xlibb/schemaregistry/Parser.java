@@ -1,6 +1,5 @@
 package io.xlibb.schemaregistry;
 
-import graphql.introspection.Introspection.DirectiveLocation;
 import graphql.language.ArrayValue;
 import graphql.language.BooleanValue;
 import graphql.language.DirectiveDefinition;
@@ -50,7 +49,6 @@ import io.xlibb.schemaregistry.utils.ParserUtils.ParsingMode;
 import io.xlibb.schemaregistry.utils.ParserWiringFactory;
 import io.xlibb.schemaregistry.utils.TypeKind;
 
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -181,7 +179,7 @@ public class Parser {
             addValueToRecordField(
                     directiveRecord,
                     DIRECTIVE_LOCATIONS_FIELD,
-                    getDirectiveLocationsAsBArray(directive.validLocations())
+                    getDirectiveLocationsAsBArray(directive.validLocations().stream().map(l -> l.name()).toList())
                                     );
 
             DirectiveDefinition directiveDefinition = directive.getDefinition();
@@ -191,6 +189,12 @@ public class Parser {
                         DIRECTIVE_IS_REPEATABLE_FIELD,
                         directiveDefinition.isRepeatable()
                                      );
+                addValueToRecordField(
+                        directiveRecord,
+                        DIRECTIVE_LOCATIONS_FIELD,
+                        getDirectiveLocationsAsBArray(directiveDefinition.getDirectiveLocations()
+                                                                         .stream().map(l -> l.getName()).toList())
+                                        );
             }
             directives.put(directive.getName(), directiveRecord);
         }
@@ -520,9 +524,9 @@ public class Parser {
         return enumValueDefinition;
     }
 
-    private BArray getDirectiveLocationsAsBArray(EnumSet<DirectiveLocation> enumSet) {
-        List<BString> locationsArray = enumSet.stream().map(t -> StringUtils.fromString(t.name())).toList();
-        BString[] locationsBArray = new BString[enumSet.size()];
+    private BArray getDirectiveLocationsAsBArray(List<String> list) {
+        List<BString> locationsArray = list.stream().map(l -> StringUtils.fromString(l)).toList();
+        BString[] locationsBArray = new BString[list.size()];
         locationsArray.toArray(locationsBArray);
         return ValueCreator.createArrayValue(locationsBArray);
     }

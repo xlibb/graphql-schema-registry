@@ -45,7 +45,7 @@ public __Directive include = {
 
 public __Directive deprecated = {
     name: DEPRECATED_DIR,
-    locations: [ FIELD_DEFINITION, ARGUMENT_DEFINITION, ENUM_VALUE, INPUT_FIELD_DEFINITION ],
+    locations: [ FIELD_DEFINITION, ENUM_VALUE, ARGUMENT_DEFINITION, INPUT_FIELD_DEFINITION ],
     description: "Marks the field, argument, input field or enum value as deprecated",
     args: {
         "reason": {

@@ -151,7 +151,7 @@ function getFederationDirectives(map<parser:__Type> types) returns map<parser:__
     parser:__Directive join__type = createDirective( 
         JOIN_TYPE_DIR,
         (),
-        [parser:SCALAR, parser:OBJECT, parser:INTERFACE, parser:UNION, parser:ENUM, parser:INPUT_OBJECT],
+        [parser:OBJECT, parser:INTERFACE, parser:UNION, parser:ENUM, parser:INPUT_OBJECT, parser:SCALAR],
         {
             [GRAPH_FIELD]: { name: GRAPH_FIELD, 'type: parser:wrapType(types.get(JOIN_GRAPH_TYPE), parser:NON_NULL) },
             "key": { name: "key", 'type: types.get(JOIN_FIELDSET_TYPE) },

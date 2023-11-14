@@ -28,7 +28,7 @@ function testDirective(string fileName, __Directive expectedDirective) returns e
         "2": ["directives_repeatable", 
                 {
                     name: "customDirective",
-                    locations: [ OBJECT, FIELD_DEFINITION ],
+                    locations: [ FIELD_DEFINITION, OBJECT ],
                     isRepeatable: true,
                     args: {}
                 }
@@ -36,7 +36,7 @@ function testDirective(string fileName, __Directive expectedDirective) returns e
         "3": ["directives_description", 
                 {
                     name: "customDirective",
-                    locations: [ OBJECT, FIELD_DEFINITION ],
+                    locations: [ FIELD_DEFINITION, OBJECT ],
                     isRepeatable: false,
                     args: {},
                     description: "Custom directive description"
@@ -45,7 +45,7 @@ function testDirective(string fileName, __Directive expectedDirective) returns e
         "4": ["directives_arguments", 
                 {
                     name: "customDirective",
-                    locations: [ OBJECT, FIELD_DEFINITION ],
+                    locations: [ FIELD_DEFINITION, OBJECT ],
                     isRepeatable: false,
                     args: {
                         "arg": {

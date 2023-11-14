@@ -89,7 +89,7 @@ function dataProviderFederationImports() returns __Directive[][] {
     return [
         [{
             name: "external",
-            locations: [ OBJECT, FIELD_DEFINITION ],
+            locations: [ FIELD_DEFINITION, OBJECT ],
             args: {},
             isRepeatable: false
         }],
@@ -126,15 +126,15 @@ function dataProviderFederationImports() returns __Directive[][] {
         }],
         [{
             name: "inaccessible",
-            locations: [ SCALAR, OBJECT, FIELD_DEFINITION, ARGUMENT_DEFINITION, INTERFACE, UNION,
-                         ENUM, ENUM_VALUE, INPUT_OBJECT, INPUT_FIELD_DEFINITION ],
+            locations: [FIELD_DEFINITION , OBJECT , INTERFACE , UNION , ARGUMENT_DEFINITION , SCALAR 
+                                                    , ENUM , ENUM_VALUE , INPUT_OBJECT , INPUT_FIELD_DEFINITION],
             args: {},
             isRepeatable: false
         }],
         [{
             name: "tag",
-            locations: [ SCALAR, OBJECT, FIELD_DEFINITION, ARGUMENT_DEFINITION, INTERFACE, UNION, 
-                         ENUM, ENUM_VALUE, INPUT_OBJECT, INPUT_FIELD_DEFINITION ],
+            locations: [FIELD_DEFINITION , INTERFACE , OBJECT , UNION , ARGUMENT_DEFINITION
+                                                , SCALAR , ENUM , ENUM_VALUE , INPUT_OBJECT , INPUT_FIELD_DEFINITION],
             args: {
                 "name": { name: "name", 'type: wrapType(gql_String, NON_NULL) }
             },
@@ -164,13 +164,13 @@ function dataProviderFederationImports() returns __Directive[][] {
         }],
         [{
             name: "authenticated",
-            locations: [ SCALAR, OBJECT, FIELD_DEFINITION, INTERFACE, ENUM ],
+            locations: [FIELD_DEFINITION , OBJECT , INTERFACE , SCALAR , ENUM],
             args: {},
             isRepeatable: false
         }],
         [{
             name: "requiresScopes",
-            locations: [ SCALAR, OBJECT, FIELD_DEFINITION, INTERFACE, ENUM ],
+            locations: [FIELD_DEFINITION , OBJECT , INTERFACE , SCALAR , ENUM],
             args: {
                 "scopes": { name: "scopes", 'type: wrapType(
                                                     wrapType(
