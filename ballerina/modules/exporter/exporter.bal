@@ -9,9 +9,33 @@ public class Exporter {
     }
     
     public function export() returns string|ExportError {
+        string schemaType = check self.exportSchemaType();
         string directives = check self.exportDirectives();
         string types = check self.exportTypes();
-        return directives + DOUBLE_LINE_BREAK + types;
+        return string:'join(DOUBLE_LINE_BREAK, schemaType, directives, types);
+    }
+
+    function exportSchemaType() returns string|ExportError {
+        string appliedDirectivesSdl = check self.exportTypeAppliedDirectives(self.schema.appliedDirectives);
+
+        map<parser:__Field> fieldMap = {
+            "query": {args: {}, name: "query", 'type: self.schema.queryType}
+        };
+        parser:__Type? mutationType = self.schema.mutationType;
+        if mutationType !is () {
+            fieldMap["mutation"] = {args: {}, name: "mutation", 'type: mutationType};
+        }
+        parser:__Type? subscriptionType = self.schema.subscriptionType;
+        if subscriptionType !is () {
+            fieldMap["subscription"] = {args: {}, name: "subscription", 'type: subscriptionType};
+        }
+        string fieldMapSdl = self.addBraces(self.addAsBlock(check self.exportFieldMap(fieldMap, 1)));
+
+        return SCHEMA_TYPE + appliedDirectivesSdl + fieldMapSdl;
+    }
+
+    function getKeyValuePair(string key, string value) returns string {
+        return key + COLON + SPACE + value;
     }
 
     function exportTypes() returns string|ExportError {
@@ -38,7 +62,7 @@ public class Exporter {
     function exportInputObjectType(parser:__Type 'type) returns string|ExportError {
         string typeName = check self.exportTypeName('type);
         string descriptionSdl = self.exportDescription('type.description, 0);
-        string appliedDirectivesSdl = check self.exportTypeAppliedDirectives('type);
+        string appliedDirectivesSdl = check self.exportTypeAppliedDirectives('type.appliedDirectives);
 
         map<parser:__InputValue>? inputFields = 'type.inputFields;
         if inputFields is () {
@@ -53,7 +77,7 @@ public class Exporter {
     function exportScalarType(parser:__Type 'type) returns string|ExportError {
         string typeName = check self.exportTypeName('type);
         string descriptionSdl = self.exportDescription('type.description === "" ? () : 'type.description, 0);
-        string appliedDirectivesSdl = check self.exportTypeAppliedDirectives('type);
+        string appliedDirectivesSdl = check self.exportTypeAppliedDirectives('type.appliedDirectives, EMPTY_STRING);
 
         return descriptionSdl + SCALAR_TYPE + SPACE + typeName + appliedDirectivesSdl;
     }
@@ -66,10 +90,10 @@ public class Exporter {
         }
 
         string descriptionSdl = self.exportDescription('type.description, 0);
-        string appliedDirectivesSdl = check self.exportTypeAppliedDirectives('type);
+        string appliedDirectivesSdl = check self.exportTypeAppliedDirectives('type.appliedDirectives);
         string enumValuesSdl = self.addBraces(self.addAsBlock(check self.exportEnumValues(enumValues, 1)));
 
-        return descriptionSdl + ENUM_TYPE + SPACE + typeName + SPACE + appliedDirectivesSdl + enumValuesSdl;
+        return descriptionSdl + ENUM_TYPE + SPACE + typeName + appliedDirectivesSdl + enumValuesSdl;
     }
 
     function exportEnumValues(parser:__EnumValue[] enumValues, int indentation) returns string|ExportError {
@@ -87,7 +111,7 @@ public class Exporter {
         string descriptionSdl = self.exportDescription(value.description, indentation, isFirstInBlock);
         string appliedDirsSdl = check self.exportAppliedDirectives(value.appliedDirectives, true);
 
-        return descriptionSdl + self.addIndentation(indentation) + valueNameSdl + SPACE + appliedDirsSdl;
+        return descriptionSdl + self.addIndentation(indentation) + valueNameSdl + appliedDirsSdl;
     }
 
     function exportObjectType(parser:__Type 'type) returns string|ExportError {
@@ -98,16 +122,16 @@ public class Exporter {
         }
 
         string descriptionSdl = self.exportDescription('type.description, 0);
-        string appliedDirectivesSdl = check self.exportTypeAppliedDirectives('type);
+        string appliedDirectivesSdl = check self.exportTypeAppliedDirectives('type.appliedDirectives);
         string fieldMapSdl = self.addBraces(self.addAsBlock(check self.exportFieldMap(fields, 1)));
 
-        return descriptionSdl + OBJECT_TYPE + SPACE + typeName + SPACE + appliedDirectivesSdl + fieldMapSdl;
+        return descriptionSdl + OBJECT_TYPE + SPACE + typeName + appliedDirectivesSdl + fieldMapSdl;
     }
 
-    function exportTypeAppliedDirectives(parser:__Type 'type) returns string|ExportError {
-        return 'type.appliedDirectives.length() > 0 ? 
-                        self.addAsBlock(check self.exportAppliedDirectives('type.appliedDirectives, false, 1)) 
-                        : EMPTY_STRING;
+    function exportTypeAppliedDirectives(parser:__AppliedDirective[] dirs, string altPrefix = SPACE) returns string|ExportError {
+        return dirs.length() > 0 ? 
+                        self.addAsBlock(check self.exportAppliedDirectives(dirs, false, 1)) 
+                        : altPrefix;
     }
 
     function exportTypeName(parser:__Type 'type) returns string|ExportError {
@@ -135,7 +159,7 @@ public class Exporter {
         string argsSdl = check self.exportFieldInputValues('field.args, indentation);
         string appliedDirectiveSdl = check self.exportAppliedDirectives('field.appliedDirectives, true);
 
-        string fieldSdl = 'field.name + argsSdl + COLON + SPACE + typeReferenceSdl + SPACE + appliedDirectiveSdl;
+        string fieldSdl = self.getKeyValuePair('field.name + argsSdl, typeReferenceSdl) + appliedDirectiveSdl;
         return descriptionSdl + self.addIndentation(indentation) + fieldSdl;
     }
 
@@ -190,7 +214,7 @@ public class Exporter {
         string descriptionSdl = self.exportDescription(arg.description, indentation, isFirstInBlock);
         string defaultValueSdl = check self.exportDefaultValue(arg.defaultValue);
 
-        string inputValueSdl = arg.name + COLON + SPACE + typeReferenceSdl + defaultValueSdl;
+        string inputValueSdl = self.getKeyValuePair(arg.name, typeReferenceSdl) + defaultValueSdl;
         return descriptionSdl + self.addIndentation(indentation) + inputValueSdl;
     }
 
@@ -215,12 +239,17 @@ public class Exporter {
     }
 
     function exportAppliedDirectives(parser:__AppliedDirective[] directives, boolean inline = false, int indentation = 0) returns string|ExportError {
-        string[] directiveSdls = [];
-        foreach parser:__AppliedDirective appliedDirective in directives {
-            directiveSdls.push(check self.exportAppliedDirective(appliedDirective, indentation));
+        string appliedDirectiveSdls = EMPTY_STRING;
+        if directives.length() > 0 {
+            string[] directiveSdls = [];
+            foreach parser:__AppliedDirective appliedDirective in directives {
+                directiveSdls.push(check self.exportAppliedDirective(appliedDirective, indentation));
+            }
+            string seperator = inline ? SPACE : LINE_BREAK;
+            string prefix = inline ? SPACE : EMPTY_STRING;
+            appliedDirectiveSdls = prefix + string:'join(seperator, ...directiveSdls);
         }
-        string seperator = inline ? SPACE : LINE_BREAK;
-        return string:'join(seperator, ...directiveSdls);
+        return appliedDirectiveSdls;
     }
 
     function exportAppliedDirective(parser:__AppliedDirective appliedDirective, int indentation) returns string|ExportError {
@@ -228,7 +257,7 @@ public class Exporter {
         string[] inputs = [];
         foreach [string, parser:__AppliedDirectiveInputValue] [argName, arg] in appliedDirective.args.entries() {
             if appliedDirective.definition.args.get(argName).defaultValue !== arg.value {
-                inputs.push(argName + COLON + SPACE + check self.exportValue(arg.value));
+                inputs.push(self.getKeyValuePair(argName, check self.exportValue(arg.value)));
             }
         }
         string inputsSdl = EMPTY_STRING;
