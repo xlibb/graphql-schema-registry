@@ -77,7 +77,7 @@ type Query
   @join__type(graph: SUBG3)
 {
   """Returns the list of products"""
-  products(id: ID, name: String): [Product!]! @join__field(graph: SUBG1)
+  products: [Product!]! @join__field(graph: SUBG1)
 
   """
   Returns the product for the given id. If the product does not exist, returns null
@@ -85,16 +85,7 @@ type Query
   product(
     """ID of the product to be retrieved"""
     id: ID!
-
-    """Name of the product"""
-    name: String!
   ): Product @join__field(graph: SUBG1)
-  foo(
-    """sadf"""
-    id: ID!
-    name: String
-    age: Int
-  ): String @join__field(graph: SUBG1)
 
   """Returns the list of users"""
   users: [User!]! @join__field(graph: SUBG2)

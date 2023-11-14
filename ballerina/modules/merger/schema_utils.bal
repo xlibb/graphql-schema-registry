@@ -5,7 +5,7 @@ function createSchema() returns parser:__Schema {
     return {
         types,
         directives,
-        queryType: types.get("Query")
+        queryType: types.get(parser:QUERY_TYPE)
     };
 }
 

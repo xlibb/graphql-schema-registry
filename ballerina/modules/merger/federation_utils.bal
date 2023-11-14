@@ -41,6 +41,14 @@ const string AS_FIELD = "as";
 const string FOR_FIELD = "for";
 const string IMPORT_FIELD = "import";
 
+enum LinkPurpose {
+    EXECUTION,
+    SECURITY
+}
+
+const string LINK_SPEC_URL = "https://specs.apollo.dev/link/v1.0";
+const string JOIN_SPEC_URL = "https://specs.apollo.dev/join/v0.3";
+
 string[] FEDERATION_SUBGRAPH_IGNORE_TYPES = [
     LINK_IMPORT_TYPE,
     LINK_PURPOSE_TYPE,
@@ -81,8 +89,8 @@ function getFederationTypes(map<parser:__Type> types) returns map<parser:__Type>
         name: LINK_PURPOSE_TYPE,
         kind: parser:ENUM,
         enumValues: [
-            { name: "SECURITY", description: "`SECURITY` features provide metadata necessary to securely resolve fields." },
-            { name: "EXECUTION", description: "`EXECUTION` features provide metadata necessary for operation execution." }
+            { name: SECURITY, description: "`SECURITY` features provide metadata necessary to securely resolve fields." },
+            { name: EXECUTION, description: "`EXECUTION` features provide metadata necessary for operation execution." }
         ]
     };
     parser:__Type join__Graph = {

@@ -28,10 +28,14 @@ function getSubgraphsFromFileName(string folderName, string subgraph_prefix) ret
     return subgraphs;
 }
 
-function getSupergraphFromFileName(string fileName) returns parser:__Schema|error {
+function getSupergraphSdlFromFileName(string fileName) returns string|error {
     string gqlFileName = string `${fileName}.graphql`;
     string path = check file:joinPath("modules", "merger", "tests", "resources", "expected_supergraphs", gqlFileName);
-    string sdl = check io:fileReadString(path);
+    return check io:fileReadString(path);
+}
+
+function getSupergraphFromFileName(string fileName) returns parser:__Schema|error {
+    string sdl = check getSupergraphSdlFromFileName(fileName);
     parser:Parser parser = new(sdl, parser:SCHEMA);
     return check parser.parse();
 }

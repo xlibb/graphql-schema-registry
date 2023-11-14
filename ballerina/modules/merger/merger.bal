@@ -30,6 +30,7 @@ public class Merger {
         check self.mergeInputTypes();
         check self.mergeEnumTypes();
         check self.applyJoinTypeDirectives();
+        check self.populateRootTypes();
         return self.supergraph;
     }
 
@@ -58,7 +59,9 @@ public class Merger {
                 args: {}
             };
         }
-
+        
+        check self.applyLinkDirective(self.supergraph.schema, LINK_SPEC_URL);
+        check self.applyLinkDirective(self.supergraph.schema, JOIN_SPEC_URL, EXECUTION);
     }
 
     function populateFederationJoinGraphEnum() returns InternalError? {
@@ -926,6 +929,37 @@ public class Merger {
 
     function addDirectiveToSupergraph(parser:__Directive directive) {
         addDirectiveDefinition(self.supergraph.schema, directive);
+    }
+
+    function populateRootTypes() returns InternalError? {
+        if self.isTypeOnSupergraph(parser:MUTATION_TYPE) {
+            self.supergraph.schema.mutationType = check self.getTypeFromSupergraph(parser:MUTATION_TYPE);
+        }
+        if self.isTypeOnSupergraph(parser:SUBSCRIPTION_TYPE) {
+            self.supergraph.schema.mutationType = check self.getTypeFromSupergraph(parser:SUBSCRIPTION_TYPE);
+        }
+    }
+
+    function applyLinkDirective(parser:__Schema schema, string url, LinkPurpose? for = ()) returns InternalError? {
+        map<anydata> argMap = {
+            [URL_FIELD]: url
+        };
+
+        if for !is () {
+            parser:__EnumValue[]? enumValues = (check self.getTypeFromSupergraph(LINK_PURPOSE_TYPE)).enumValues;
+            if enumValues !is parser:__EnumValue[] {
+                return error InternalError(string `${LINK_PURPOSE_TYPE} cannot be empty`);
+            }
+            parser:__EnumValue[] enumValue = enumValues.filter(v => v.name === for);
+            if enumValue.length() !== 1 {
+                return error InternalError(string `${LINK_PURPOSE_TYPE} cannot have multiple values`);
+            }
+            argMap[FOR_FIELD] = enumValue[0];
+        }
+
+        schema.appliedDirectives.push(
+            check self.getAppliedDirectiveFromName(LINK_DIR, argMap)
+        );
     }
 
     function applyJoinTypeDirectives() returns InternalError? {
