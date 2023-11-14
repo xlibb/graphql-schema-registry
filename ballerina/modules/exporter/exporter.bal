@@ -271,8 +271,9 @@ public class Exporter {
         string typeReferenceSdl = check self.exportTypeReference(arg.'type);
         string descriptionSdl = self.exportDescription(arg.description, indentation, isFirstInBlock);
         string defaultValueSdl = check self.exportDefaultValue(arg.defaultValue);
+        string appliedDirectivesSdl = check self.exportAppliedDirectives(arg.appliedDirectives, true);
 
-        string inputValueSdl = self.getKeyValuePair(arg.name, typeReferenceSdl) + defaultValueSdl;
+        string inputValueSdl = self.getKeyValuePair(arg.name, typeReferenceSdl) + defaultValueSdl + appliedDirectivesSdl;
         return descriptionSdl + self.addIndentation(indentation) + inputValueSdl;
     }
 
