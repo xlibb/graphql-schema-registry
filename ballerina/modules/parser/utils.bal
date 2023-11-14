@@ -13,6 +13,7 @@ public const string ID = "ID";
 public const string QUERY_TYPE = "Query";
 
 public string[] BUILT_IN_TYPES = [
+    BOOLEAN,
     STRING,
     FLOAT,
     INT,

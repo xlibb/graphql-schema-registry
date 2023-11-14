@@ -16,7 +16,7 @@ class Exporter {
 
     function exportTypes() returns string|ExportError {
         string[] typeSdls = [];
-        string[] sortedTypeNames = self.schema.types.keys().sort();
+        string[] sortedTypeNames = self.schema.types.keys().sort(key = string:toLowerAscii);
         foreach string typeName in sortedTypeNames {
             parser:__Type 'type = self.schema.types.get(typeName);
             if parser:isBuiltInType(typeName) {
@@ -25,29 +25,97 @@ class Exporter {
 
             match 'type.kind {
                 parser:OBJECT => { typeSdls.push(check self.exportObjectType('type)); }
-                // parser:INTERFACE => { typeSdls.push(self.exportInterfaceType('type)); }
-                // parser:INPUT_OBJECT => { typeSdls.push(self.exportInputObjectType('type)); }
-                // parser:ENUM => { typeSdls.push(self.exportEnumType('type)); }
+                // parser:INTERFACE => { typeSdls.push(check self.exportInterfaceType('type)); }
+                parser:INPUT_OBJECT => { typeSdls.push(check self.exportInputObjectType('type)); }
+                parser:ENUM => { typeSdls.push(check self.exportEnumType('type)); }
+                parser:SCALAR => { typeSdls.push(check self.exportScalarType('type)); }
             }
         }
 
         return string:'join(DOUBLE_LINE_BREAK, ...typeSdls);
     }
 
-    function exportObjectType(parser:__Type 'type) returns string|ExportError {
-        string? typeName = 'type.name;
-        if typeName is () {
-            return error ExportError("Type name cannot be null");
+    function exportInputObjectType(parser:__Type 'type) returns string|ExportError {
+        string typeName = check self.exportTypeName('type);
+        string descriptionSdl = self.exportDescription('type.description, 0);
+        string appliedDirectivesSdl = check self.exportTypeAppliedDirectives('type);
+
+        map<parser:__InputValue>? inputFields = 'type.inputFields;
+        if inputFields is () {
+            return error ExportError("Input fields cannot be empty");
         }
+        string inputFieldSdls = self.addAsBlock(check self.exportInputValues(inputFields, LINE_BREAK, 1));
+        inputFieldSdls = self.addBraces(inputFieldSdls);
+
+        return descriptionSdl + INPUT_TYPE + SPACE + typeName + appliedDirectivesSdl + inputFieldSdls;
+    }
+
+    function exportScalarType(parser:__Type 'type) returns string|ExportError {
+        string typeName = check self.exportTypeName('type);
+        string descriptionSdl = self.exportDescription('type.description === "" ? () : 'type.description, 0);
+        string appliedDirectivesSdl = check self.exportTypeAppliedDirectives('type);
+
+        return descriptionSdl + SCALAR_TYPE + SPACE + typeName + appliedDirectivesSdl;
+    }
+
+    function exportEnumType(parser:__Type 'type) returns string|ExportError {
+        string typeName = check self.exportTypeName('type);
+        parser:__EnumValue[]? enumValues = 'type.enumValues;
+        if enumValues is () {
+            return error ExportError("Enum values cannot be empty");
+        }
+
+        string descriptionSdl = self.exportDescription('type.description, 0);
+        string appliedDirectivesSdl = check self.exportTypeAppliedDirectives('type);
+        string enumValuesSdl = self.addBraces(self.addAsBlock(check self.exportEnumValues(enumValues, 1)));
+
+        return descriptionSdl + ENUM_TYPE + SPACE + typeName + SPACE + appliedDirectivesSdl + enumValuesSdl;
+    }
+
+    function exportEnumValues(parser:__EnumValue[] enumValues, int indentation) returns string|ExportError {
+        string[] enumValueSdls = [];
+        boolean isFirstInBlock = true;
+        foreach parser:__EnumValue value in enumValues {
+            enumValueSdls.push(check self.exportEnumValue(value, isFirstInBlock, indentation));
+            isFirstInBlock = isFirstInBlock ? false : isFirstInBlock;
+        }
+        return string:'join(LINE_BREAK, ...enumValueSdls);
+    }
+
+    function exportEnumValue(parser:__EnumValue value, boolean isFirstInBlock, int indentation) returns string|ExportError {
+        string valueNameSdl = value.name;
+        string descriptionSdl = self.exportDescription(value.description, indentation, isFirstInBlock);
+        string appliedDirsSdl = check self.exportAppliedDirectives(value.appliedDirectives, true);
+
+        return descriptionSdl + self.addIndentation(indentation) + valueNameSdl + SPACE + appliedDirsSdl;
+    }
+
+    function exportObjectType(parser:__Type 'type) returns string|ExportError {
+        string typeName = check self.exportTypeName('type);
         map<parser:__Field>? fields = 'type.fields;
         if fields is () {
             return error ExportError("Object field map cannot be null");
         }
 
         string descriptionSdl = self.exportDescription('type.description, 0);
+        string appliedDirectivesSdl = check self.exportTypeAppliedDirectives('type);
         string fieldMapSdl = self.addBraces(self.addAsBlock(check self.exportFieldMap(fields, 1)));
 
-        return descriptionSdl + OBJECT_TYPE + SPACE + typeName + SPACE + fieldMapSdl;
+        return descriptionSdl + OBJECT_TYPE + SPACE + typeName + SPACE + appliedDirectivesSdl + fieldMapSdl;
+    }
+
+    function exportTypeAppliedDirectives(parser:__Type 'type) returns string|ExportError {
+        return 'type.appliedDirectives.length() > 0 ? 
+                        self.addAsBlock(check self.exportAppliedDirectives('type.appliedDirectives, false, 1)) 
+                        : EMPTY_STRING;
+    }
+
+    function exportTypeName(parser:__Type 'type) returns string|ExportError {
+        string? typeName = 'type.name;
+        if typeName is () {
+            return error ExportError("Type name cannot be null");
+        }
+        return typeName;
     }
 
     function exportFieldMap(map<parser:__Field> fieldMap, int indentation) returns string|ExportError {
@@ -55,10 +123,7 @@ class Exporter {
         boolean isFirstInBlock = true;
         foreach parser:__Field 'field in fieldMap {
             fields.push(check self.exportField('field, isFirstInBlock, indentation));
-        
-            if isFirstInBlock {
-                isFirstInBlock = false;
-            }
+            isFirstInBlock = isFirstInBlock ? false : isFirstInBlock;
         }
 
         return string:'join(LINE_BREAK, ...fields);
@@ -68,8 +133,9 @@ class Exporter {
         string typeReferenceSdl = check self.exportTypeReference('field.'type);
         string descriptionSdl = self.exportDescription('field.description, indentation, isFirstInBlock);
         string argsSdl = check self.exportFieldInputValues('field.args, indentation);
+        string appliedDirectiveSdl = check self.exportAppliedDirectives('field.appliedDirectives, true);
 
-        string fieldSdl = 'field.name + argsSdl + COLON + SPACE + typeReferenceSdl;
+        string fieldSdl = 'field.name + argsSdl + COLON + SPACE + typeReferenceSdl + SPACE + appliedDirectiveSdl;
         return descriptionSdl + self.addIndentation(indentation) + fieldSdl;
     }
 
@@ -114,10 +180,7 @@ class Exporter {
         boolean isFirstInBlock = args.toArray().some(i => i.description is string);
         foreach parser:__InputValue arg in args {
             argSdls.push(check self.exportInputValue(arg, isFirstInBlock, indentation));
-
-            if isFirstInBlock {
-                isFirstInBlock = false;
-            }
+            isFirstInBlock = isFirstInBlock ? false : isFirstInBlock;
         }
         return string:'join(seperator, ...argSdls);
     }
@@ -149,6 +212,32 @@ class Exporter {
         } else {
             return error ExportError("Invalid input");
         }
+    }
+
+    function exportAppliedDirectives(parser:__AppliedDirective[] directives, boolean inline = false, int indentation = 0) returns string|ExportError {
+        string[] directiveSdls = [];
+        foreach parser:__AppliedDirective appliedDirective in directives {
+            directiveSdls.push(check self.exportAppliedDirective(appliedDirective, indentation));
+        }
+        string seperator = inline ? SPACE : LINE_BREAK;
+        return string:'join(seperator, ...directiveSdls);
+    }
+
+    function exportAppliedDirective(parser:__AppliedDirective appliedDirective, int indentation) returns string|ExportError {
+        string directiveSdl = string `@${appliedDirective.definition.name}`;
+        string[] inputs = [];
+        foreach [string, parser:__AppliedDirectiveInputValue] [argName, arg] in appliedDirective.args.entries() {
+            if appliedDirective.definition.args.get(argName).defaultValue !== arg.value {
+                inputs.push(argName + COLON + SPACE + check self.exportValue(arg.value));
+            }
+        }
+        string inputsSdl = EMPTY_STRING;
+        if inputs.length() > 0 {
+            inputsSdl = string:'join(COMMA + SPACE, ...inputs);
+            inputsSdl = self.addParantheses(inputsSdl);
+        }
+
+        return self.addIndentation(indentation) + directiveSdl + inputsSdl;
     }
 
     function exportDescription(string? description, int indentation, boolean isFirstInBlock = true) returns string {
