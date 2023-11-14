@@ -48,7 +48,7 @@ public class Merger {
         map<parser:__Field>? fields = queryType.fields;
         if fields is map<parser:__Field> {
             parser:__Type _serviceType = parser:wrapType(
-                                            check self.getTypeFromSupergraph(_SERVICE_TYPE), 
+                                            check self.getTypeFromSupergraph(parser:_SERVICE_TYPE), 
                                             parser:NON_NULL
                                         );
 
@@ -81,7 +81,7 @@ public class Merger {
         map<map<TypeKindSources>> typeMap = {};
         foreach Subgraph subgraph in self.subgraphs {
             foreach [string, parser:__Type] [typeName, 'type] in subgraph.schema.types.entries() {
-                if isSubgraphFederationType(typeName) {
+                if parser:isBuiltInType(typeName) || isSubgraphFederationType(typeName) {
                     continue;
                 }
 
@@ -209,10 +209,6 @@ public class Merger {
     function mergeImplementsOf(parser:__TypeKind kind) returns InternalError? {
         map<parser:__Type> supergraphTypes = self.getSupergraphTypesOfKind(kind);
         foreach [string, parser:__Type] [typeName, 'type] in supergraphTypes.entries() {
-            if parser:isBuiltInType(typeName) || isSubgraphFederationType(typeName) {
-                continue;
-            }
-
             Subgraph[] subgraphs = self.getDefiningSubgraphs(typeName);
 
             'type.interfaces = [];
@@ -224,10 +220,6 @@ public class Merger {
         map<parser:__Type> supergraphObjectTypes = self.getSupergraphTypesOfKind(parser:OBJECT);
         Hint[] hints = [];
         foreach [string, parser:__Type] [objectName, 'type] in supergraphObjectTypes.entries() {
-            if parser:isBuiltInType(objectName) || isSubgraphFederationType(objectName) {
-                continue;
-            }
-
             Subgraph[] subgraphs = self.getDefiningSubgraphs(objectName);
 
             // ---------- Merge Descriptions -----------
@@ -264,7 +256,6 @@ public class Merger {
     function mergeInterfaceTypes() returns MergeError|InternalError? {
         map<parser:__Type> supergraphInterfaceTypes = self.getSupergraphTypesOfKind(parser:INTERFACE);
         foreach [string, parser:__Type] [interfaceName, interface] in supergraphInterfaceTypes.entries() {
-
             Subgraph[] subgraphs = self.getDefiningSubgraphs(interfaceName);
 
             // ---------- Merge Descriptions -----------
@@ -340,6 +331,7 @@ public class Merger {
             if isSubgraphFederationType(typeName) {
                 continue;
             }
+            
             Subgraph[] subgraphs = self.getDefiningSubgraphs(typeName);
             EnumTypeUsage usage = self.getEnumTypeUsage(mergedType);
 

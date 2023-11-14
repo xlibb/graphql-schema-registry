@@ -1,6 +1,6 @@
 import graphql_schema_registry.parser;
 
-const string _SERVICE_TYPE = "_Service";
+const string FIELDSET_TYPE = "FieldSet";
 const string JOIN_GRAPH_TYPE = "join__Graph";
 const string JOIN_FIELDSET_TYPE = "join__FieldSet";
 const string LINK_IMPORT_TYPE = "link__Import";
@@ -39,14 +39,8 @@ const string OVERRIDE_FIELD = "override";
 const string USED_OVERRIDDEN_FIELD = "usedOverridden";
 
 string[] FEDERATION_SUBGRAPH_IGNORE_TYPES = [
-    _SERVICE_TYPE,
     LINK_IMPORT_TYPE,
     LINK_PURPOSE_TYPE,
-    parser:STRING,
-    parser:BOOLEAN,
-    parser:FLOAT,
-    parser:INT,
-    parser:ID,
     JOIN_FIELDSET_TYPE,
     JOIN_GRAPH_TYPE
 ];
@@ -62,7 +56,7 @@ string[] FEDERATION_FIELD_TYPES = [
 function getFederationTypes(map<parser:__Type> types) returns map<parser:__Type>|InternalError {
     
     parser:__Type _Service = {
-        name: _SERVICE_TYPE,
+        name: parser:_SERVICE_TYPE,
         kind: parser:OBJECT,
         fields: {
             "sdl": { name: "sdl", args: {}, 'type: parser:wrapType(types.get(parser:STRING), parser:NON_NULL) }
