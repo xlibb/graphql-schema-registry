@@ -21,6 +21,11 @@ function dataProviderExporter() returns [string][] {
         ["multiple_subgraphs_conflicting_enum_types"],
         ["multiple_subgraphs_join__type_and_join__Graph"],
         ["multiple_subgraphs_key_directive"],
-        ["multiple_subgraphs_conflicting_union_types"]
+        ["multiple_subgraphs_conflicting_union_types"],
+        ["multiple_subgraphs_conflicting_interface_implements"],
+        ["multiple_subgraphs_conflicting_interfaces"],
+        ["multiple_subgraphs_nonconflicting_interfaces"],
+        ["multiple_subgraphs_conflicting_compatible_output_types"],
+        ["multiple_subgraphs_conflicting_compatible_input_types"]
     ];
 }

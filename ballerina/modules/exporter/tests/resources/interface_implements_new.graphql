@@ -1,0 +1,28 @@
+schema {
+  query: Query
+}
+
+directive @foo on INTERFACE
+
+interface Bar implements Foo {
+  id: [ID!]
+  name: String
+}
+
+interface Bux implements Foo & Bar
+  @foo
+{
+  id: [ID!]
+  name: String
+  age: Int
+}
+
+interface Foo
+  @foo
+{
+  id: [ID!]
+}
+
+type Query {
+  u: String
+}

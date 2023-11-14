@@ -157,12 +157,26 @@ public class Exporter {
         if fields is () {
             return error ExportError("Object field map cannot be null");
         }
+        parser:__Type[] interfaces = 'type.interfaces ?: [];
 
         string descriptionSdl = self.exportDescription('type.description, 0);
         string appliedDirectivesSdl = check self.exportTypeAppliedDirectives('type.appliedDirectives);
+        string implementsSdl = check self.exportImplements(interfaces);
         string fieldMapSdl = self.addBraces(self.addAsBlock(check self.exportFieldMap(fields, 1)));
 
-        return descriptionSdl + OBJECT_TYPE + SPACE + typeName + appliedDirectivesSdl + fieldMapSdl;
+        return descriptionSdl + OBJECT_TYPE + SPACE + typeName + implementsSdl + appliedDirectivesSdl + fieldMapSdl;
+    }
+
+    function exportImplements(parser:__Type[] interfaces) returns string|ExportError {
+        string implementsSdl = EMPTY_STRING;
+        if interfaces.length() > 0 {
+            string[] interfaceSdls = [];
+            foreach parser:__Type 'type in interfaces {
+                interfaceSdls.push(check self.exportTypeReference('type));
+            }
+            implementsSdl = SPACE + IMPLEMENTS + SPACE + string:'join(SPACE + AMPERSAND + SPACE, ...interfaceSdls);
+        }
+        return implementsSdl;
     }
 
     function exportTypeAppliedDirectives(parser:__AppliedDirective[] dirs, string altPrefix = SPACE, boolean addEndingBreak = true) returns string|ExportError {

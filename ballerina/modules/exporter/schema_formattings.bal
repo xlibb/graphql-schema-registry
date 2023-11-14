@@ -6,6 +6,7 @@ const string LINE_BREAK = "\n";
 const string DOUBLE_LINE_BREAK = LINE_BREAK + LINE_BREAK;
 const string EQUAL = "=";
 const string PIPE = "|";
+const string AMPERSAND = "&";
 const string INDENTATION = "  ";
 
 const string OBJECT_TYPE = "type";
@@ -18,6 +19,7 @@ const string SCHEMA_TYPE = "schema";
 const string QUERY_FIELD = "query";
 const string MUTATION_FIELD = "mutation";
 const string SUBSCRIPTION_FIELD = "subscription";
+const string IMPLEMENTS = "implements";
 const string ON = "on";
 const string REPEATABLE = "repeatable";
 const EMPTY_STRING = "";
