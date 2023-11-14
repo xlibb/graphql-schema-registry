@@ -609,6 +609,10 @@ public class Parser {
 
         addValueToRecordField(graphQLSchemaRecord, TYPES_FIELD, schemaRecordTypes);
         addValueToRecordField(graphQLSchemaRecord, DIRECTIVES_FIELD, schemaDirectives);
+
+        addValueToRecordField(graphQLSchemaRecord, APPLIED_DIRECTIVES_FIELD, 
+                                                    getAppliedDirectivesAsBArray(schema.getSchemaAppliedDirectives())
+                              );
         return graphQLSchemaRecord;
     }
 

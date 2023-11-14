@@ -11,6 +11,8 @@ public const string FLOAT = "Float";
 public const string INT = "Int";
 public const string ID = "ID";
 public const string QUERY_TYPE = "Query";
+public const string MUTATION_TYPE = "Mutation";
+public const string SUBSCRIPTION_TYPE = "Subscription";
 public const string _SERVICE_TYPE = "_Service";
 
 public string[] BUILT_IN_TYPES = [

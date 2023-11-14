@@ -1,0 +1,16 @@
+schema
+  @foo
+{
+  query: Query
+  mutation: Mutation
+}
+
+directive @foo repeatable on SCHEMA
+
+type Query {
+    name: String
+}
+
+type Mutation {
+    name: String
+}

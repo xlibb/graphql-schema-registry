@@ -5,6 +5,7 @@ public type __Schema record {|
     __Type? mutationType = ();
     __Type? subscriptionType = ();
     map<__Directive> directives;
+    __AppliedDirective[] appliedDirectives = [];
 |};
 
 public type __Type record {|
