@@ -127,9 +127,7 @@ input ReviewInput
     """The comment of the review"""
     comment: String!
 
-    """
-    The rating of the review. This is an integer between 0 and 5
-    """
+    """The rating of the review. This is an integer between 0 and 5"""
     rating: Int!
 
     """The ID of the review author"""

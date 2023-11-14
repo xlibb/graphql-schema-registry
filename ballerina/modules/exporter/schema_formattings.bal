@@ -15,3 +15,5 @@ const string INPUT_TYPE = "input";
 const string ON = "on";
 const string REPEATABLE = "repeatable";
 const EMPTY_STRING = "";
+
+const int DESCRIPTION_LINE_LIMIT = 70;

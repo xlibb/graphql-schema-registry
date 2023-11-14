@@ -1,14 +1,14 @@
 import graphql_schema_registry.parser;
 
-class Exporter {
+public class Exporter {
 
     private parser:__Schema schema;
 
-    function init(parser:__Schema schema) {
+    public function init(parser:__Schema schema) {
         self.schema = schema;
     }
     
-    function export() returns string|ExportError {
+    public function export() returns string|ExportError {
         string directives = check self.exportDirectives();
         string types = check self.exportTypes();
         return directives + DOUBLE_LINE_BREAK + types;
@@ -245,7 +245,7 @@ class Exporter {
         if description is string {
             descriptionSdl += isFirstInBlock ? EMPTY_STRING : LINE_BREAK;
             descriptionSdl += self.addIndentation(indentation);
-            string newDescription = description.length() <= 50 ? 
+            string newDescription = description.length() <= DESCRIPTION_LINE_LIMIT ? 
                                                 description : self.addAsBlock(
                                                                     self.addIndentation(indentation) + description
                                                               ) + self.addIndentation(indentation);
