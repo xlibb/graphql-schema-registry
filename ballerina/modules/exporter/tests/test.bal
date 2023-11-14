@@ -2,10 +2,25 @@ import ballerina/test;
 import graphql_schema_registry.parser;
 
 @test:Config {
-    groups: ["exporter"]
+    groups: ["exporter"],
+    dataProvider: dataProviderExporter
 }
-function testConflictCompatibleInputTypes() returns error? {
-    string expectedSdl = check getSchemaSdl("sample");
+function testConflictCompatibleInputTypes(string fileName) returns error? {
+    string expectedSdl = check getSchemaSdl(fileName);
     string actualSdl = check (new Exporter(check new parser:Parser(expectedSdl, parser:SCHEMA).parse())).export();
-    check writeSchemaSdl("sample_custom", actualSdl);
+    if expectedSdl != actualSdl {
+        check writeSchemaSdl(fileName + "_new", actualSdl);
+    }
+    test:assertEquals(actualSdl, expectedSdl);
+}
+
+function dataProviderExporter() returns [string][] {
+    return [
+        ["multiple_subgraphs_realworld_example"],
+        ["multiple_subgraphs_conflicting_objects"],
+        ["multiple_subgraphs_conflicting_enum_types"],
+        ["multiple_subgraphs_join__type_and_join__Graph"],
+        ["multiple_subgraphs_key_directive"],
+        ["multiple_subgraphs_conflicting_union_types"]
+    ];
 }

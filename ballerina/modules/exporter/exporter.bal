@@ -49,14 +49,51 @@ public class Exporter {
 
             match 'type.kind {
                 parser:OBJECT => { typeSdls.push(check self.exportObjectType('type)); }
-                // parser:INTERFACE => { typeSdls.push(check self.exportInterfaceType('type)); }
+                parser:INTERFACE => { typeSdls.push(check self.exportInterfaceType('type)); }
                 parser:INPUT_OBJECT => { typeSdls.push(check self.exportInputObjectType('type)); }
                 parser:ENUM => { typeSdls.push(check self.exportEnumType('type)); }
                 parser:SCALAR => { typeSdls.push(check self.exportScalarType('type)); }
+                parser:UNION => { typeSdls.push(check self.exportUnionType('type)); }
             }
         }
 
         return string:'join(DOUBLE_LINE_BREAK, ...typeSdls);
+    }
+
+    function exportUnionType(parser:__Type 'type) returns string|ExportError {
+        string typeName = check self.exportTypeName('type);
+        parser:__Type[]? possibleTypes = 'type.possibleTypes;
+        if possibleTypes is () {
+            return error ExportError("Possible types cannot be empty");
+        }
+
+        string descriptionSdl = self.exportDescription('type.description, 0);
+        string appliedDirectivesSdl = check self.exportTypeAppliedDirectives('type.appliedDirectives);
+        string possibleTypesSdl = check self.exportPossibleTypes(possibleTypes);
+
+        return descriptionSdl + UNION_TYPE + SPACE + typeName + appliedDirectivesSdl + SPACE + EQUAL + SPACE + possibleTypesSdl;
+    }
+
+    function exportPossibleTypes(parser:__Type[] possibleTypes) returns string|ExportError {
+        string[] typeReferenceSdls = [];
+        foreach parser:__Type 'type in possibleTypes {
+            typeReferenceSdls.push(check self.exportTypeReference('type));
+        }
+        return string:'join(SPACE + PIPE + SPACE, ...typeReferenceSdls);
+    }
+
+    function exportInterfaceType(parser:__Type 'type) returns string|ExportError {
+        string typeName = check self.exportTypeName('type);
+        map<parser:__Field>? fields = 'type.fields;
+        if fields is () {
+            return error ExportError("Interface field map cannot be null");
+        }
+
+        string descriptionSdl = self.exportDescription('type.description, 0);
+        string appliedDirectivesSdl = check self.exportTypeAppliedDirectives('type.appliedDirectives);
+        string fieldMapSdl = self.addBraces(self.addAsBlock(check self.exportFieldMap(fields, 1)));
+
+        return descriptionSdl + INTERFACE_TYPE + SPACE + typeName + appliedDirectivesSdl + fieldMapSdl;
     }
 
     function exportInputObjectType(parser:__Type 'type) returns string|ExportError {
@@ -77,7 +114,7 @@ public class Exporter {
     function exportScalarType(parser:__Type 'type) returns string|ExportError {
         string typeName = check self.exportTypeName('type);
         string descriptionSdl = self.exportDescription('type.description === "" ? () : 'type.description, 0);
-        string appliedDirectivesSdl = check self.exportTypeAppliedDirectives('type.appliedDirectives, EMPTY_STRING);
+        string appliedDirectivesSdl = check self.exportTypeAppliedDirectives('type.appliedDirectives, EMPTY_STRING, false);
 
         return descriptionSdl + SCALAR_TYPE + SPACE + typeName + appliedDirectivesSdl;
     }
@@ -128,9 +165,9 @@ public class Exporter {
         return descriptionSdl + OBJECT_TYPE + SPACE + typeName + appliedDirectivesSdl + fieldMapSdl;
     }
 
-    function exportTypeAppliedDirectives(parser:__AppliedDirective[] dirs, string altPrefix = SPACE) returns string|ExportError {
+    function exportTypeAppliedDirectives(parser:__AppliedDirective[] dirs, string altPrefix = SPACE, boolean addEndingBreak = true) returns string|ExportError {
         return dirs.length() > 0 ? 
-                        self.addAsBlock(check self.exportAppliedDirectives(dirs, false, 1)) 
+                        self.addAsBlock(check self.exportAppliedDirectives(dirs, false, 1), addEndingBreak) 
                         : altPrefix;
     }
 
@@ -296,8 +333,8 @@ public class Exporter {
         }
     }
 
-    function addAsBlock(string input) returns string {
-        return LINE_BREAK + input + LINE_BREAK;
+    function addAsBlock(string input, boolean addEndingBreak = true) returns string {
+        return LINE_BREAK + input + (addEndingBreak ? LINE_BREAK : EMPTY_STRING);
     }
 
     function addBraces(string input) returns string {
