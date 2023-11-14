@@ -31,6 +31,12 @@ const string TYPE_FIELD = "type";
 const string INTERFACE_FIELD = "interface";
 const string UNION_MEMBER_FIELD = "member";
 const string EXTERNAL_FIELD = "external";
+const string EXTENSION_FIELD = "extension";
+const string IS_INTERFACE_OBJECT_FIELD = "isInterfaceObject";
+const string REQUIRES_FIELD = "requires";
+const string PROVIDES_FIELD = "provides";
+const string OVERRIDE_FIELD = "override";
+const string USED_OVERRIDDEN_FIELD = "usedOverridden";
 
 string[] FEDERATION_SUBGRAPH_IGNORE_TYPES = [
     _SERVICE_TYPE,
@@ -119,12 +125,12 @@ function getFederationDirectives(map<parser:__Type> types) returns map<parser:__
         [ parser:FIELD_DEFINITION, parser:INPUT_FIELD_DEFINITION ],
         {
             [GRAPH_FIELD]: { name: GRAPH_FIELD, 'type: types.get(JOIN_GRAPH_TYPE) },
-            "requires": { name: "requires", 'type: types.get(JOIN_FIELDSET_TYPE) },
-            "provides": { name: "provides", 'type: types.get(JOIN_FIELDSET_TYPE) },
+            [REQUIRES_FIELD]: { name: REQUIRES_FIELD, 'type: types.get(JOIN_FIELDSET_TYPE) },
+            [PROVIDES_FIELD]: { name: PROVIDES_FIELD, 'type: types.get(JOIN_FIELDSET_TYPE) },
             [TYPE_FIELD]: { name: TYPE_FIELD, 'type: types.get(parser:STRING) },
-            "external": { name: "external", 'type: types.get(parser:BOOLEAN) },
-            "override": { name: "override", 'type: types.get(parser:STRING) },
-            "usedOverridden": { name: "usedOverridden", 'type: types.get(parser:BOOLEAN) }
+            [EXTERNAL_FIELD]: { name: EXTERNAL_FIELD, 'type: types.get(parser:BOOLEAN) },
+            [OVERRIDE_FIELD]: { name: OVERRIDE_FIELD, 'type: types.get(parser:STRING) },
+            [USED_OVERRIDDEN_FIELD]: { name: USED_OVERRIDDEN_FIELD, 'type: types.get(parser:BOOLEAN) }
         },
         true
     );
@@ -154,10 +160,10 @@ function getFederationDirectives(map<parser:__Type> types) returns map<parser:__
         [parser:OBJECT, parser:INTERFACE, parser:UNION, parser:ENUM, parser:INPUT_OBJECT, parser:SCALAR],
         {
             [GRAPH_FIELD]: { name: GRAPH_FIELD, 'type: parser:wrapType(types.get(JOIN_GRAPH_TYPE), parser:NON_NULL) },
-            "key": { name: "key", 'type: types.get(JOIN_FIELDSET_TYPE) },
-            "extension": { name: "extension", 'type: parser:wrapType(types.get(parser:BOOLEAN), parser:NON_NULL), defaultValue: false },
-            "resolvable": { name: "resolvable", 'type: parser:wrapType(types.get(parser:BOOLEAN), parser:NON_NULL), defaultValue: true },
-            "isInterfaceObject": { name: "isInterfaceObject", 'type: parser:wrapType(types.get(parser:BOOLEAN), parser:NON_NULL), defaultValue: false }
+            [KEY_FIELD]: { name: KEY_FIELD, 'type: types.get(JOIN_FIELDSET_TYPE) },
+            [EXTENSION_FIELD]: { name: EXTENSION_FIELD, 'type: parser:wrapType(types.get(parser:BOOLEAN), parser:NON_NULL), defaultValue: false },
+            [RESOLVABLE_FIELD]: { name: RESOLVABLE_FIELD, 'type: parser:wrapType(types.get(parser:BOOLEAN), parser:NON_NULL), defaultValue: true },
+            [IS_INTERFACE_OBJECT_FIELD]: { name: IS_INTERFACE_OBJECT_FIELD, 'type: parser:wrapType(types.get(parser:BOOLEAN), parser:NON_NULL), defaultValue: false }
         },
         true
     );
