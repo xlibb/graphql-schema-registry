@@ -88,12 +88,14 @@ public class Exporter {
         if fields is () {
             return error ExportError("Interface field map cannot be null");
         }
+        parser:__Type[] interfaces = 'type.interfaces ?: [];
 
         string descriptionSdl = self.exportDescription('type.description, 0);
         string appliedDirectivesSdl = check self.exportTypeAppliedDirectives('type.appliedDirectives);
+        string implementsSdl = check self.exportImplements(interfaces);
         string fieldMapSdl = self.addBraces(self.addAsBlock(check self.exportFieldMap(fields, 1)));
 
-        return descriptionSdl + INTERFACE_TYPE + SPACE + typeName + appliedDirectivesSdl + fieldMapSdl;
+        return descriptionSdl + INTERFACE_TYPE + SPACE + typeName + implementsSdl + appliedDirectivesSdl + fieldMapSdl;
     }
 
     function exportInputObjectType(parser:__Type 'type) returns string|ExportError {
@@ -242,7 +244,9 @@ public class Exporter {
 
     function exportDirective(parser:__Directive directive) returns string|ExportError {
         string directiveDefinitionSdl = string `directive @${directive.name}`;
-        string directiveArgsSdl = self.addParantheses(check self.exportInputValues(directive.args, COMMA + SPACE));
+        string directiveArgsSdl = directive.args.length() > 0 ? 
+                                        self.addParantheses(check self.exportInputValues(directive.args, COMMA + SPACE))
+                                        : EMPTY_STRING;
         string repeatableSdl = directive.isRepeatable ? REPEATABLE + SPACE : EMPTY_STRING;
         string directiveLocations = ON + SPACE + string:'join(SPACE + PIPE + SPACE, ...directive.locations);
 
