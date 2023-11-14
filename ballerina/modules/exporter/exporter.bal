@@ -19,15 +19,15 @@ public class Exporter {
         string appliedDirectivesSdl = check self.exportTypeAppliedDirectives(self.schema.appliedDirectives);
 
         map<parser:__Field> fieldMap = {
-            "query": {args: {}, name: "query", 'type: self.schema.queryType}
+            [QUERY_FIELD]: {args: {}, name: QUERY_FIELD, 'type: self.schema.queryType}
         };
         parser:__Type? mutationType = self.schema.mutationType;
         if mutationType !is () {
-            fieldMap["mutation"] = {args: {}, name: "mutation", 'type: mutationType};
+            fieldMap[MUTATION_FIELD] = {args: {}, name: MUTATION_FIELD, 'type: mutationType};
         }
         parser:__Type? subscriptionType = self.schema.subscriptionType;
         if subscriptionType !is () {
-            fieldMap["subscription"] = {args: {}, name: "subscription", 'type: subscriptionType};
+            fieldMap[SUBSCRIPTION_FIELD] = {args: {}, name: SUBSCRIPTION_FIELD, 'type: subscriptionType};
         }
         string fieldMapSdl = self.addBraces(self.addAsBlock(check self.exportFieldMap(fieldMap, 1)));
 
