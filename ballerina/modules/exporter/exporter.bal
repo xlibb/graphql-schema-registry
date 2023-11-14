@@ -10,31 +10,41 @@ public class Exporter {
     
     public function export() returns string|ExportError {
         string[] sections = [];
-        if self.schema.appliedDirectives.length() > 0 {
-            sections.push(check self.exportSchemaType());
+
+        string? schemaSdl = check self.exportSchemaType();
+        if schemaSdl is string {
+            sections.push(schemaSdl);
         }
-        sections.push(check self.exportDirectives());
+        string? customDirectivesSdl = check self.exportDirectives();
+        if customDirectivesSdl is string {
+            sections.push(customDirectivesSdl);
+        }
         sections.push(check self.exportTypes());
+
         return string:'join(DOUBLE_LINE_BREAK, ...sections);
     }
 
-    function exportSchemaType() returns string|ExportError {
-        string appliedDirectivesSdl = check self.exportTypeAppliedDirectives(self.schema.appliedDirectives);
+    function exportSchemaType() returns string?|ExportError {
+        if self.schema.appliedDirectives.length() > 0 {
+            string appliedDirectivesSdl = check self.exportTypeAppliedDirectives(self.schema.appliedDirectives);
 
-        map<parser:__Field> fieldMap = {
-            [QUERY_FIELD]: {args: {}, name: QUERY_FIELD, 'type: self.schema.queryType}
-        };
-        parser:__Type? mutationType = self.schema.mutationType;
-        if mutationType !is () {
-            fieldMap[MUTATION_FIELD] = {args: {}, name: MUTATION_FIELD, 'type: mutationType};
-        }
-        parser:__Type? subscriptionType = self.schema.subscriptionType;
-        if subscriptionType !is () {
-            fieldMap[SUBSCRIPTION_FIELD] = {args: {}, name: SUBSCRIPTION_FIELD, 'type: subscriptionType};
-        }
-        string fieldMapSdl = self.addBraces(self.addAsBlock(check self.exportFieldMap(fieldMap, 1)));
+            map<parser:__Field> fieldMap = {
+                [QUERY_FIELD]: {args: {}, name: QUERY_FIELD, 'type: self.schema.queryType}
+            };
+            parser:__Type? mutationType = self.schema.mutationType;
+            if mutationType !is () {
+                fieldMap[MUTATION_FIELD] = {args: {}, name: MUTATION_FIELD, 'type: mutationType};
+            }
+            parser:__Type? subscriptionType = self.schema.subscriptionType;
+            if subscriptionType !is () {
+                fieldMap[SUBSCRIPTION_FIELD] = {args: {}, name: SUBSCRIPTION_FIELD, 'type: subscriptionType};
+            }
+            string fieldMapSdl = self.addBraces(self.addAsBlock(check self.exportFieldMap(fieldMap, 1)));
 
-        return SCHEMA_TYPE + appliedDirectivesSdl + fieldMapSdl;
+            return SCHEMA_TYPE + appliedDirectivesSdl + fieldMapSdl;
+        } else {
+            return ();
+        }
     }
 
     function getKeyValuePair(string key, string value) returns string {
@@ -71,7 +81,7 @@ public class Exporter {
         }
 
         string descriptionSdl = self.exportDescription('type.description, 0);
-        string appliedDirectivesSdl = check self.exportTypeAppliedDirectives('type.appliedDirectives);
+        string appliedDirectivesSdl = check self.exportTypeAppliedDirectives('type.appliedDirectives, EMPTY_STRING);
         string possibleTypesSdl = check self.exportPossibleTypes(possibleTypes);
 
         return descriptionSdl + UNION_TYPE + SPACE + typeName + appliedDirectivesSdl + SPACE + EQUAL + SPACE + possibleTypesSdl;
@@ -184,10 +194,10 @@ public class Exporter {
         return implementsSdl;
     }
 
-    function exportTypeAppliedDirectives(parser:__AppliedDirective[] dirs, string altPrefix = SPACE, boolean addEndingBreak = true) returns string|ExportError {
+    function exportTypeAppliedDirectives(parser:__AppliedDirective[] dirs, string alternative = SPACE, boolean addEndingBreak = true) returns string|ExportError {
         return dirs.length() > 0 ? 
                         self.addAsBlock(check self.exportAppliedDirectives(dirs, false, 1), addEndingBreak) 
-                        : altPrefix;
+                        : alternative;
     }
 
     function exportTypeName(parser:__Type 'type) returns string|ExportError {
@@ -233,7 +243,7 @@ public class Exporter {
         return argsSdl;
     }
 
-    function exportDirectives() returns string|ExportError {
+    function exportDirectives() returns string?|ExportError {
         string[] directives = [];
         foreach parser:__Directive directive in self.schema.directives {
             if parser:isBuiltInDirective(directive.name) {
@@ -242,7 +252,8 @@ public class Exporter {
             directives.push(check self.exportDirective(directive));
         }
         directives = directives.sort();
-        return string:'join(DOUBLE_LINE_BREAK, ...directives);
+
+        return directives.length() > 0 ? string:'join(DOUBLE_LINE_BREAK, ...directives) : ();
     }
 
     function exportDirective(parser:__Directive directive) returns string|ExportError {
