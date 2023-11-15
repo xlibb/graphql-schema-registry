@@ -1,29 +1,27 @@
 import ballerina/test;
-import graphql_schema_registry.parser;
 import graphql_schema_registry.exporter;
 
 @test:Config {
     groups: ["merger", "example"],
     dataProvider: dataProviderSimpleRealworldExample
 }
-function testSimpleRealworldExample(string typeName) returns error? {
-    [parser:__Schema, Subgraph[]] schemas = check getSchemas("simple_realworld_example");
-    Supergraph supergraph = check (new Merger(schemas[1])).merge();
-
+function testSimpleRealworldExample(TestSchemas schemas, string typeName) returns error? {
     test:assertEquals(
-        supergraph.schema.types.get(typeName),
-        schemas[0].types.get(typeName)
+        schemas.merged.types.get(typeName),
+        schemas.parsed.types.get(typeName)
     );
 }
 
-function dataProviderSimpleRealworldExample() returns [string][] {
+function dataProviderSimpleRealworldExample() returns [TestSchemas, string][]|error {
+    TestSchemas schemas = check getMergedAndParsedSchemas("simple_realworld_example");
+
     return [
-        ["Product"],
-        ["Review"],
-        ["ReviewInput"],
-        ["User"],
-        ["Query"],
-        ["Mutation"]
+        [schemas, "Product"],
+        [schemas, "Review"],
+        [schemas, "ReviewInput"],
+        [schemas, "User"],
+        [schemas, "Query"],
+        [schemas, "Mutation"]
     ];
 }
 
@@ -31,9 +29,8 @@ function dataProviderSimpleRealworldExample() returns [string][] {
     groups: ["merger", "example"]
 }
 function testSimpleRealworldExampleExportSDL() returns error? {
-    [parser:__Schema, Subgraph[]] schemas = check getSchemas("simple_realworld_example");
-    Supergraph supergraph = check (new Merger(schemas[1])).merge();
+    TestSchemas schemas = check getMergedAndParsedSchemas("simple_realworld_example");
 
-    string export = check (new exporter:Exporter(supergraph.schema)).export();
-    test:assertEquals(export, check getSupergraphSdlFromFileName("simple_realworld_example"));
+    string exportedSdl = check (new exporter:Exporter(schemas.merged)).export();
+    test:assertEquals(exportedSdl, check getSupergraphSdlFromFileName("simple_realworld_example"));
 }

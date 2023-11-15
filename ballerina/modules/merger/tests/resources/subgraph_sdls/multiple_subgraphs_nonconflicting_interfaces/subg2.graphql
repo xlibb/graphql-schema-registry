@@ -1,8 +1,0 @@
-type Query {
-    address: String
-}
-
-"Qux interface description"
-interface Qux {
-    name: String
-}

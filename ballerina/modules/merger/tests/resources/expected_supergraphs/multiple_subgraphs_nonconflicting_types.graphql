@@ -19,12 +19,40 @@ directive @join__unionMember(graph: join__Graph!, member: String!) repeatable on
 
 directive @link(url: String, as: String, for: link__Purpose, import: [link__Import]) repeatable on SCHEMA
 
+type Bar
+  @join__type(graph: SUBG1)
+{
+  name: String
+}
+
+"""Baz type description"""
+type Baz
+  @join__type(graph: SUBG2)
+{
+  name: String
+  qux: Qux
+}
+
+"""Bux interface description"""
+interface Bux
+  @join__type(graph: SUBG1)
+{
+  name: String
+}
+
+"""Foo type description"""
+type Foo
+  @join__type(graph: SUBG1)
+{
+  name: String
+  bar: Bar
+}
+
 scalar join__FieldSet
 
 enum join__Graph {
   SUBG1 @join__graph(name: "subg1", url: "http://subg1")
   SUBG2 @join__graph(name: "subg2", url: "http://subg2")
-  SUBG3 @join__graph(name: "subg3", url: "http://subg3")
 }
 
 scalar link__Import
@@ -44,13 +72,20 @@ enum link__Purpose {
 type Query
   @join__type(graph: SUBG1)
   @join__type(graph: SUBG2)
-  @join__type(graph: SUBG3)
+{
+  name: String @join__field(graph: SUBG1)
+  address: String @join__field(graph: SUBG2)
+}
+
+type Qux
+  @join__type(graph: SUBG2)
 {
   name: String
-  waldo(
-    """Subgraph 1 Description"""
-    input: Boolean
-  ): String
-  bar: Int @join__field(graph: SUBG1, type: "Int!") @join__field(graph: SUBG3, type: "Int!") @join__field(graph: SUBG2, type: "Int")
-  thud(input: ID!): String
+}
+
+"""Waldo interface description"""
+interface Waldo
+  @join__type(graph: SUBG2)
+{
+  name: String
 }

@@ -1,8 +1,0 @@
-type Query {
-    name: String
-}
-
-"Bar interface description"
-interface Bar {
-    name: String
-}

@@ -1,29 +1,27 @@
 import ballerina/test;
-import graphql_schema_registry.parser;
 
 @test:Config {
-    groups: ["merger", "directives", "filter"],
+    groups: ["merger", "compatible", "directives", "filter"],
     dataProvider: dataProviderDirectiveDefinitionPresence
 }
-function testDirectiveDefinitionPresence(string directiveName) returns error? {
-    [parser:__Schema, Subgraph[]] schemas = check getSchemas("directive_definition_presence");
-    Supergraph supergraph = check (new Merger(schemas[1])).merge();
-
+function testDirectiveDefinitionPresence(TestSchemas schemas, string directiveName) {
     test:assertEquals(
-        supergraph.schema.directives.hasKey(directiveName), 
-        schemas[0].directives.hasKey(directiveName)
+        schemas.merged.directives.hasKey(directiveName), 
+        schemas.parsed.directives.hasKey(directiveName)
     );
-    if (supergraph.schema.directives.hasKey(directiveName) && schemas[0].directives.hasKey(directiveName)) {
+    if (schemas.merged.directives.hasKey(directiveName) && schemas.parsed.directives.hasKey(directiveName)) {
         test:assertEquals(
-            supergraph.schema.directives.get(directiveName),
-            schemas[0].directives.get(directiveName)
+            schemas.merged.directives.get(directiveName),
+            schemas.parsed.directives.get(directiveName)
         );
     }
 }
 
-function dataProviderDirectiveDefinitionPresence() returns [string][] {
+function dataProviderDirectiveDefinitionPresence() returns [TestSchemas, string][]|error {
+    TestSchemas schemas = check getMergedAndParsedSchemas("directive_definition_presence");
+
     return [
-        ["foo"],
-        ["executableFoo"]
+        [ schemas, "foo" ],
+        [ schemas, "executableFoo" ]
     ];
 }

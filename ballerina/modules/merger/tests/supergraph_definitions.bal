@@ -1,53 +1,50 @@
 import ballerina/test;
-import graphql_schema_registry.parser;
 
 @test:Config {
-    groups: ["merger", "federation", "types", "single"],
+    groups: ["merger", "compatible", "federation_definitions"],
     dataProvider: dataProviderFederationSupergraphTypes
 }
-function testSupergraphFederationTypes(string typeName) returns error? {
-    [parser:__Schema, Subgraph[]] schemas = check getSchemas("supergraph_definitions");
-    Supergraph supergraph = check (new Merger(schemas[1])).merge();
-
-    if (schemas[0].types.hasKey(typeName) && supergraph.schema.types.hasKey(typeName)) {
-        test:assertEquals(supergraph.schema.types[typeName], schemas[0].types[typeName]);
+function testSupergraphFederationTypes(TestSchemas schemas, string typeName) {
+    if (schemas.parsed.types.hasKey(typeName) && schemas.merged.types.hasKey(typeName)) {
+        test:assertEquals(schemas.merged.types[typeName], schemas.parsed.types[typeName]);
     } else {
         test:assertFail(string `Could not find '${typeName}'`);
     }
 }
 
-function dataProviderFederationSupergraphTypes() returns [string][] {
+function dataProviderFederationSupergraphTypes() returns [TestSchemas, string][]|error {
+    TestSchemas schemas = check getMergedAndParsedSchemas("supergraph_definitions");
+
     return [
-        [JOIN_FIELDSET_TYPE],
-        [LINK_IMPORT_TYPE],
-        [LINK_PURPOSE_TYPE],
-        [JOIN_GRAPH_TYPE]
+        [schemas, JOIN_FIELDSET_TYPE],
+        [schemas, LINK_IMPORT_TYPE],
+        [schemas, LINK_PURPOSE_TYPE],
+        [schemas, JOIN_GRAPH_TYPE]
     ];
 }
 
 @test:Config {
-    groups: ["merger", "federation", "directives", "nonconflicting"],
+    groups: ["merger", "compatible", "federation_definitions"],
     dataProvider: dataProviderSupergraphFederationDirectives
 }
-function testSupergraphFederationDirectives(string directiveName) returns error? {
-    [parser:__Schema, Subgraph[]] schemas = check getSchemas("supergraph_definitions");
-    Supergraph supergraph = check (new Merger(schemas[1])).merge();
-
-    if (schemas[0].directives.hasKey(directiveName) && supergraph.schema.directives.hasKey(directiveName)) {
-        test:assertEquals(schemas[0].directives[directiveName], supergraph.schema.directives[directiveName]);
+function testSupergraphFederationDirectives(TestSchemas schemas, string directiveName) returns error? {
+    if (schemas.parsed.directives.hasKey(directiveName) && schemas.merged.directives.hasKey(directiveName)) {
+        test:assertEquals(schemas.parsed.directives[directiveName], schemas.merged.directives[directiveName]);
     } else {
         test:assertFail(string `Could not find '${directiveName}'`);
     }
 }
 
-function dataProviderSupergraphFederationDirectives() returns [string][] {
+function dataProviderSupergraphFederationDirectives() returns [TestSchemas, string][]|error {
+    TestSchemas schemas = check getMergedAndParsedSchemas("supergraph_definitions");
+
     return [
-        [LINK_DIR],
-        [JOIN_GRAPH_DIR],
-        [JOIN_UNION_MEMBER_DIR],
-        [JOIN_ENUMVALUE_DIR],
-        [JOIN_FIELD_DIR],
-        [JOIN_IMPLEMENTS_DIR],
-        [JOIN_TYPE_DIR]
+        [schemas, LINK_DIR],
+        [schemas, JOIN_GRAPH_DIR],
+        [schemas, JOIN_UNION_MEMBER_DIR],
+        [schemas, JOIN_ENUMVALUE_DIR],
+        [schemas, JOIN_FIELD_DIR],
+        [schemas, JOIN_IMPLEMENTS_DIR],
+        [schemas, JOIN_TYPE_DIR]
     ];
 }

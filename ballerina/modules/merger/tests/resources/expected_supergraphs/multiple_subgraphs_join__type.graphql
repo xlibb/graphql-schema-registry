@@ -19,33 +19,46 @@ directive @join__unionMember(graph: join__Graph!, member: String!) repeatable on
 
 directive @link(url: String, as: String, for: link__Purpose, import: [link__Import]) repeatable on SCHEMA
 
+"""Subgraph 1 description"""
 type Bar
   @join__type(graph: SUBG1)
-{
-  name: String
-}
-
-"""Baz type description"""
-type Baz
   @join__type(graph: SUBG2)
+  @join__type(graph: SUBG3)
 {
   name: String
-  qux: Qux
 }
 
-"""Foo type description"""
-type Foo
+"""Subgraph 3 description"""
+interface Bux
   @join__type(graph: SUBG1)
+  @join__type(graph: SUBG2)
+  @join__type(graph: SUBG3)
 {
   name: String
-  bar: Bar
 }
+
+"""Subgraph 1 description"""
+scalar Email
+  @join__type(graph: SUBG1)
+  @join__type(graph: SUBG2)
+  @join__type(graph: SUBG3)
+
+"""Subgraph 1 description"""
+union Foo
+  @join__type(graph: SUBG1)
+  @join__type(graph: SUBG2)
+  @join__type(graph: SUBG3)
+  @join__unionMember(graph: SUBG1, member: "Bar")
+  @join__unionMember(graph: SUBG2, member: "Bar")
+  @join__unionMember(graph: SUBG3, member: "Bar")
+ = Bar
 
 scalar join__FieldSet
 
 enum join__Graph {
   SUBG1 @join__graph(name: "subg1", url: "http://subg1")
   SUBG2 @join__graph(name: "subg2", url: "http://subg2")
+  SUBG3 @join__graph(name: "subg3", url: "http://subg3")
 }
 
 scalar link__Import
@@ -65,13 +78,19 @@ enum link__Purpose {
 type Query
   @join__type(graph: SUBG1)
   @join__type(graph: SUBG2)
+  @join__type(graph: SUBG3)
 {
   name: String @join__field(graph: SUBG1)
   address: String @join__field(graph: SUBG2)
+  foo: String @join__field(graph: SUBG3)
 }
 
-type Qux
+"""Subgraph 1 description"""
+enum Waldo
+  @join__type(graph: SUBG1)
   @join__type(graph: SUBG2)
+  @join__type(graph: SUBG3)
 {
-  name: String
+  COMPLETE @join__enumValue(graph: SUBG1) @join__enumValue(graph: SUBG2) @join__enumValue(graph: SUBG3)
+  FAIL @join__enumValue(graph: SUBG1) @join__enumValue(graph: SUBG2) @join__enumValue(graph: SUBG3)
 }

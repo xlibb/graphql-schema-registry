@@ -11,3 +11,8 @@ type Baz {
 type Qux {
     name: String
 }
+
+"Waldo interface description"
+interface Waldo {
+    name: String
+}

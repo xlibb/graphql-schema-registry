@@ -11,3 +11,8 @@ type Foo {
 type Bar {
     name: String
 }
+
+"Bux interface description"
+interface Bux {
+    name: String
+}
