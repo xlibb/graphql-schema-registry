@@ -6,10 +6,12 @@ public class Merger {
     private map<Subgraph> subgraphs;
     private map<parser:__EnumValue> joinGraphMap;
 
-    public function init(Subgraph[] subgraphs) {
+    public function init(Subgraph[] subgraphs) returns InternalError? {
         self.subgraphs = {};
         foreach Subgraph subgraph in subgraphs {
-            self.subgraphs[subgraph.name] = subgraph;
+            Subgraph updatedSubgraph = subgraph.clone();
+            updatedSubgraph.isSubgraph = check isFederation2Subgraph(updatedSubgraph);
+            self.subgraphs[subgraph.name] = updatedSubgraph;
         }
         self.joinGraphMap = {};
         self.supergraph = {
@@ -33,6 +35,10 @@ public class Merger {
         check self.applyJoinTypeDirectives();
         check self.populateRootTypes();
         return self.supergraph;
+    }
+
+    public function getSubgraphs() returns map<Subgraph> {
+        return self.subgraphs.clone();
     }
 
     function addFederationDefinitions() returns InternalError? {

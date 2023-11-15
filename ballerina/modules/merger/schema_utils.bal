@@ -266,3 +266,8 @@ function addTypeDefinition(parser:__Schema schema, parser:__Type 'type) returns 
 function addDirectiveDefinition(parser:__Schema schema, parser:__Directive directive) {
     schema.directives[directive.name] = directive;
 }
+
+function getAppliedDirectives(string name, parser:__AppliedDirective[] directives) returns parser:__AppliedDirective[] {
+    parser:__AppliedDirective[] filter = directives.filter(a => a.definition.name === name);
+    return filter;
+}

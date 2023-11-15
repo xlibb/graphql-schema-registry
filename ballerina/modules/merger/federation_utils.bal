@@ -46,6 +46,7 @@ enum LinkPurpose {
     SECURITY
 }
 
+const string FEDERATION_SPEC_URL = "https://specs.apollo.dev/federation/v2.0";
 const string LINK_SPEC_URL = "https://specs.apollo.dev/link/v1.0";
 const string JOIN_SPEC_URL = "https://specs.apollo.dev/join/v0.3";
 
@@ -205,4 +206,17 @@ function isSubgraphFederationDirective(string directiveName) returns boolean {
 
 function isFederationFieldType(string name) returns boolean {
     return FEDERATION_FIELD_TYPES.indexOf(name) !is ();
+}
+
+function isFederation2Subgraph(Subgraph subgraph) returns InternalError|boolean {
+    parser:__AppliedDirective[] linkDirs = getAppliedDirectives(LINK_DIR, subgraph.schema.appliedDirectives);
+    boolean isFederation2Subgraph = false;
+    foreach parser:__AppliedDirective linkDir in linkDirs {
+        if linkDir.args.hasKey(URL_FIELD) {
+            isFederation2Subgraph = linkDir.args.get(URL_FIELD).value === FEDERATION_SPEC_URL;
+        } else {
+            return error InternalError(string `'@${LINK_DIR}' must contain '${URL_FIELD}'`);
+        }
+    }
+    return isFederation2Subgraph;
 }

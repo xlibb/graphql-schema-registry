@@ -54,7 +54,7 @@ function getSchemas(string fileName, string subgraph_prefix = "subg") returns [p
 
 function getMergedAndParsedSchemas(string fileName) returns TestSchemas|error {
     [parser:__Schema, Subgraph[]] schemas = check getSchemas(fileName);
-    parser:__Schema merged = (check (new Merger(schemas[1])).merge()).schema;
+    parser:__Schema merged = (check (check new Merger(schemas[1])).merge()).schema;
 
     return {
         parsed: schemas[0],
