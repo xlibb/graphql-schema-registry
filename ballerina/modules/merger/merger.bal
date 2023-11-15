@@ -29,6 +29,7 @@ public class Merger {
         check self.mergeInterfaceTypes();
         check self.mergeInputTypes();
         check self.mergeEnumTypes();
+        check self.mergeScalarTypes();
         check self.applyJoinTypeDirectives();
         check self.populateRootTypes();
         return self.supergraph;
@@ -257,9 +258,10 @@ public class Merger {
     }
 
     function mergeInterfaceTypes() returns MergeError|InternalError? {
+        Hint[] hints = [];
         map<parser:__Type> supergraphInterfaceTypes = self.getSupergraphTypesOfKind(parser:INTERFACE);
-        foreach [string, parser:__Type] [interfaceName, interface] in supergraphInterfaceTypes.entries() {
-            Subgraph[] subgraphs = self.getDefiningSubgraphs(interfaceName);
+        foreach [string, parser:__Type] [typeName, interface] in supergraphInterfaceTypes.entries() {
+            Subgraph[] subgraphs = self.getDefiningSubgraphs(typeName);
 
             // ---------- Merge Descriptions -----------
             // [Subgraph, string?][] descriptions = subgraphs.map(s => [s, s.schema.types.get(typeName).description]);
@@ -267,19 +269,17 @@ public class Merger {
             foreach Subgraph subgraph in subgraphs {
                 descriptionSourcecs.push([
                     subgraph,
-                    getTypeFromTypeMap(subgraph.schema, interfaceName).description
+                    getTypeFromTypeMap(subgraph.schema, typeName).description
                 ]);
             }
             MergedResult descriptionMergeResult = self.mergeDescription(descriptionSourcecs);
             interface.description = <string?>descriptionMergeResult.result;
-            if descriptionMergeResult.hints.length() > 0 {
-                // Handle discription hints
-            }
+            appendHints(hints, descriptionMergeResult.hints, typeName);
 
             // ---------- Merge Fields -----------
            FieldMapSource[] fieldMaps = [];
             foreach Subgraph subgraph in subgraphs {
-                map<parser:__Field>? subgraphFields = subgraph.schema.types.get(interfaceName).fields;
+                map<parser:__Field>? subgraphFields = subgraph.schema.types.get(typeName).fields;
                 if subgraphFields is map<parser:__Field> {
                     fieldMaps.push([ subgraph, subgraphFields ]);
                 }
@@ -329,7 +329,9 @@ public class Merger {
     }
 
     function mergeEnumTypes() returns InternalError? {
+        Hint[] hints = [];
         map<parser:__Type> supergraphEnumTypes = self.getSupergraphTypesOfKind(parser:ENUM);
+
         foreach [string, parser:__Type] [typeName, mergedType] in supergraphEnumTypes.entries() {
             if isSubgraphFederationType(typeName) {
                 continue;
@@ -339,7 +341,6 @@ public class Merger {
             EnumTypeUsage usage = self.getEnumTypeUsage(mergedType);
 
             // ---------- Merge Descriptions -----------
-            // [Subgraph, string?][] descriptions = subgraphs.map(s => [s, s.schema.types.get(typeName).description]);
             DescriptionSource[] descriptionSources = [];
             foreach Subgraph subgraph in subgraphs {
                 descriptionSources.push([
@@ -349,9 +350,7 @@ public class Merger {
             }
             MergedResult descriptionMergeResult = self.mergeDescription(descriptionSources);
             mergedType.description = <string?>descriptionMergeResult.result;
-            if descriptionMergeResult.hints.length() > 0 {
-                // Handle discription hints
-            }
+            appendHints(hints, descriptionMergeResult.hints, typeName);
 
             // ---------- Merge Possible Types -----------
             EnumValueSetSource[] enumValueSources = [];
@@ -368,6 +367,31 @@ public class Merger {
                     mergedType.enumValues = <parser:__EnumValue[]?>mergedEnumValuesResult.result;
                 }
             }
+        }
+    }
+
+    function mergeScalarTypes() returns InternalError? {
+        Hint[] hints = [];
+        map<parser:__Type> supergraphScalarTypes = self.getSupergraphTypesOfKind(parser:SCALAR);
+
+        foreach [string, parser:__Type] [typeName, mergedType] in supergraphScalarTypes.entries() {
+            if isSubgraphFederationType(typeName) {
+                continue;
+            }
+            
+            Subgraph[] subgraphs = self.getDefiningSubgraphs(typeName);
+
+            // ---------- Merge Descriptions -----------
+            DescriptionSource[] descriptionSources = [];
+            foreach Subgraph subgraph in subgraphs {
+                descriptionSources.push([
+                    subgraph,
+                    getTypeFromTypeMap(subgraph.schema, typeName).description
+                ]);
+            }
+            MergedResult descriptionMergeResult = self.mergeDescription(descriptionSources);
+            mergedType.description = <string?>descriptionMergeResult.result;
+            appendHints(hints, descriptionMergeResult.hints, typeName);
         }
     }
 
@@ -394,11 +418,16 @@ public class Merger {
         }
 
         Hint[] hints = [];
-        string? mergedDescription = sourceGroups[0].data;
-
-        if sourceGroups.length() !== 1 { // Description has inconsistencies
+        string? mergedDescription = ();
+        if sourceGroups.length() === 1 { // Description has inconsistencies
+            mergedDescription = sourceGroups[0].data;
+        } else {
             HintDetail[] hintDetails = [];
             foreach DescriptionSources descriptionSource in sourceGroups {
+                if mergedDescription is () && descriptionSource.data !is () {
+                    mergedDescription = descriptionSource.data;
+                }
+
                 hintDetails.push({
                     value: descriptionSource.data,
                     consistentSubgraphs: descriptionSource.subgraphs,
