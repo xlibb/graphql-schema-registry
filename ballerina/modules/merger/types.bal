@@ -4,7 +4,7 @@ public type Subgraph record {|
     string name;
     string url;
     parser:__Schema schema;
-    boolean isSubgraph = false;
+    boolean isFederation2Subgraph = false;
 |};
 
 public type Supergraph record {|

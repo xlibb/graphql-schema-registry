@@ -5,13 +5,13 @@ import ballerina/test;
     dataProvider: dataProviderIsFederationSubgraph
 }
 function testIsFederationSubgraph(Subgraph subgraph, boolean expected) returns error? {
-    test:assertEquals(subgraph.isSubgraph, expected);
+    test:assertEquals(subgraph.isFederation2Subgraph, expected);
 }
 
 function dataProviderIsFederationSubgraph() returns [Subgraph, boolean][]|error {
     Subgraph[] subgraphs = check getSubgraphsFromFileName("is_federation_subgraph", "subg");
     foreach Subgraph subgraph in subgraphs {
-        subgraph.isSubgraph = check isFederation2Subgraph(subgraph);
+        subgraph.isFederation2Subgraph = check isFederation2Subgraph(subgraph);
     }
 
     return [

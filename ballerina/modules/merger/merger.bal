@@ -10,7 +10,7 @@ public class Merger {
         self.subgraphs = {};
         foreach Subgraph subgraph in subgraphs {
             Subgraph updatedSubgraph = subgraph.clone();
-            updatedSubgraph.isSubgraph = check isFederation2Subgraph(updatedSubgraph);
+            updatedSubgraph.isFederation2Subgraph = check isFederation2Subgraph(updatedSubgraph);
             self.subgraphs[subgraph.name] = updatedSubgraph;
         }
         self.joinGraphMap = {};
@@ -254,7 +254,7 @@ public class Merger {
                     fieldMapSources.push([
                         subgraph, 
                         check self.getFilteredFields(typeName, subgraphFields),
-                        !subgraph.isSubgraph || self.isTypeAllowsMergingFields(subgraphType)
+                        !subgraph.isFederation2Subgraph || self.isTypeAllowsMergingFields(subgraphType)
                     ]);
                 }
             }
@@ -293,7 +293,7 @@ public class Merger {
                     fieldMaps.push([ 
                         subgraph, 
                         subgraphFields,
-                        !subgraph.isSubgraph || self.isTypeAllowsMergingFields(subgraphType)
+                        !subgraph.isFederation2Subgraph || self.isTypeAllowsMergingFields(subgraphType)
                     ]);
                 }
             }
