@@ -29,9 +29,12 @@ type Bar
 type Foo
   @join__type(graph: SUBG1)
   @join__type(graph: SUBG2)
+  @join__type(graph: SUBG3)
 {
-  id: ID! @join__field(graph: SUBG1)
-  name: String
+  shareable_bux: ID @join__field(graph: SUBG1)
+  shareable_bar: ID! @join__field(graph: SUBG1) @join__field(graph: SUBG3)
+  shareable_foo: String @join__field(graph: SUBG1) @join__field(graph: SUBG2)
+  shareable_remove: String @join__field(graph: SUBG3)
 }
 
 scalar join__FieldSet
@@ -39,6 +42,7 @@ scalar join__FieldSet
 enum join__Graph {
   SUBG1 @join__graph(name: "subg1", url: "http://subg1")
   SUBG2 @join__graph(name: "subg2", url: "http://subg2")
+  SUBG3 @join__graph(name: "subg3", url: "http://subg3")
 }
 
 scalar link__Import
@@ -58,16 +62,18 @@ enum link__Purpose {
 type Query
   @join__type(graph: SUBG1)
   @join__type(graph: SUBG2)
+  @join__type(graph: SUBG3)
 {
   hello: String @join__field(graph: SUBG1)
   name: String @join__field(graph: SUBG2)
+  bar: String @join__field(graph: SUBG3)
 }
 
 type Waldo
   @join__type(graph: SUBG1)
   @join__type(graph: SUBG2)
 {
-  id: ID!
-  name: String!
-  age: Int
+  shareable_id: ID!
+  shareable_name: String!
+  shareable_age: Int
 }

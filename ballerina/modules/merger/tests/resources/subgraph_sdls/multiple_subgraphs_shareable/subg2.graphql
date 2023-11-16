@@ -1,12 +1,12 @@
 extend schema
-  @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@shareable"])
+  @link(url: "https://specs.apollo.dev/federation/v2.0", import: ["@shareable"])
 
 type Query {
     name: String
 }
 
 type Foo {
-    name: String @shareable
+    shareable_foo: String @shareable
 }
 
 type Bar {
@@ -15,7 +15,7 @@ type Bar {
 }
 
 type Waldo @shareable {
-    id: ID!
-    name: String!
-    age: Int
+    shareable_id: ID!
+    shareable_name: String!
+    shareable_age: Int
 }

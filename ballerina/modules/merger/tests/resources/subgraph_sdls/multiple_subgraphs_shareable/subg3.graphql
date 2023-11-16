@@ -1,0 +1,8 @@
+type Query {
+    bar: String
+}
+
+type Foo {
+    shareable_bar: ID!
+    shareable_remove: String
+}

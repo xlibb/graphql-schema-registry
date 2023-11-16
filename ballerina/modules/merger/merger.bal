@@ -208,7 +208,7 @@ public class Merger {
                 }                
             }
         }
-        printHints(hints);
+        // printHints(hints);
     }
 
     function mergeImplementsRelationship() returns InternalError? {
@@ -229,8 +229,8 @@ public class Merger {
     function mergeObjectTypes() returns MergeError|InternalError? {
         map<parser:__Type> supergraphObjectTypes = self.getSupergraphTypesOfKind(parser:OBJECT);
         Hint[] hints = [];
-        foreach [string, parser:__Type] [objectName, 'type] in supergraphObjectTypes.entries() {
-            Subgraph[] subgraphs = self.getDefiningSubgraphs(objectName);
+        foreach [string, parser:__Type] [typeName, 'type] in supergraphObjectTypes.entries() {
+            Subgraph[] subgraphs = self.getDefiningSubgraphs(typeName);
 
             // ---------- Merge Descriptions -----------
             // [Subgraph, string?][] descriptionSources = subgraphs.map(s => [s, s.schema.types.get(objectName).description]);
@@ -238,29 +238,31 @@ public class Merger {
             foreach Subgraph subgraph in subgraphs {
                 descriptionSources.push([
                     subgraph,
-                    getTypeFromTypeMap(subgraph.schema, objectName).description
+                    getTypeFromTypeMap(subgraph.schema, typeName).description
                 ]);
             }
             MergedResult descriptionMergeResult = self.mergeDescription(descriptionSources);
-            appendHints(hints, descriptionMergeResult.hints, objectName);
+            appendHints(hints, descriptionMergeResult.hints, typeName);
             'type.description = <string?>descriptionMergeResult.result;
 
             // ---------- Merge Fields -----------
             FieldMapSource[] fieldMapSources = [];
             foreach Subgraph subgraph in subgraphs {
-                map<parser:__Field>? subgraphFields = subgraph.schema.types.get(objectName).fields;
+                parser:__Type subgraphType = subgraph.schema.types.get(typeName);
+                map<parser:__Field>? subgraphFields = subgraphType.fields;
                 if subgraphFields is map<parser:__Field> {
                     fieldMapSources.push([
                         subgraph, 
-                        check self.getFilteredFields(objectName, subgraphFields) 
+                        check self.getFilteredFields(typeName, subgraphFields),
+                        !subgraph.isSubgraph || self.isTypeAllowsMergingFields(subgraphType)
                     ]);
                 }
             }
-            MergedResult mergedFields = check self.mergeFields(fieldMapSources, self.isTypeShareable('type));
-            appendHints(hints, mergedFields.hints, objectName);
+            MergedResult mergedFields = check self.mergeFields(fieldMapSources);
+            appendHints(hints, mergedFields.hints, typeName);
             'type.fields = <map<parser:__Field>>mergedFields.result;
         }
-        printHints(hints);
+        // printHints(hints);
     }
 
     function mergeInterfaceTypes() returns MergeError|InternalError? {
@@ -285,9 +287,14 @@ public class Merger {
             // ---------- Merge Fields -----------
            FieldMapSource[] fieldMaps = [];
             foreach Subgraph subgraph in subgraphs {
-                map<parser:__Field>? subgraphFields = subgraph.schema.types.get(typeName).fields;
+                parser:__Type subgraphType = subgraph.schema.types.get(typeName);
+                map<parser:__Field>? subgraphFields = subgraphType.fields;
                 if subgraphFields is map<parser:__Field> {
-                    fieldMaps.push([ subgraph, subgraphFields ]);
+                    fieldMaps.push([ 
+                        subgraph, 
+                        subgraphFields,
+                        !subgraph.isSubgraph || self.isTypeAllowsMergingFields(subgraphType)
+                    ]);
                 }
             }
             MergedResult mergedFields = check self.mergeFields(fieldMaps);
@@ -331,7 +338,7 @@ public class Merger {
             appendHints(hints, mergedArgResult.hints, inputTypeName);
 
         }
-        printHints(hints);
+        // printHints(hints);
     }
 
     function mergeEnumTypes() returns InternalError? {
@@ -541,17 +548,32 @@ public class Merger {
         return filteredEnumValues;
     }
 
-    function mergeFields(FieldMapSource[] sources, boolean isTypeShareable = false) returns MergedResult|MergeError|InternalError {
+    function mergeFields(FieldMapSource[] sources) returns MergedResult|MergeError|InternalError {
 
         // Get union of all the fields
         map<FieldSource[]> unionedFields = {};
-        foreach FieldMapSource [subgraph, subgraphFields] in sources {
+        foreach FieldMapSource [subgraph, subgraphFields, isTypeShareable] in sources {
             foreach [string, parser:__Field] [fieldName, fieldValue] in subgraphFields.entries() {
                 if !unionedFields.hasKey(fieldName) {
-                    unionedFields[fieldName] = [[subgraph, fieldValue]];
+                    unionedFields[fieldName] = [[subgraph, fieldValue, isTypeShareable]];
                 } else { // Handle Shareable here (!isTypeShareable && !self.isFieldShareable(fieldValue))
-                    unionedFields.get(fieldName).push([subgraph, fieldValue]);
+                    unionedFields.get(fieldName).push([subgraph, fieldValue, isTypeShareable]);
                 }
+            }
+        }
+
+        foreach [string, FieldSource[]] [fieldName, fieldSources] in unionedFields.entries() {
+            Subgraph[] shareableSubgraphs = [];
+            Subgraph[] nonShareableSubgraphs = [];
+            foreach FieldSource [subgraph, 'field, isTypeShareable] in fieldSources {
+                if isTypeShareable || self.isShareableOnField('field) {
+                    shareableSubgraphs.push(subgraph);
+                } else {
+                    nonShareableSubgraphs.push(subgraph);
+                }
+            }
+            if fieldSources.length() > 1 && shareableSubgraphs.length() !== fieldSources.length() {
+                _ = unionedFields.remove(fieldName); // Handle shareable error
             }
         }
 
@@ -564,7 +586,7 @@ public class Merger {
             DeprecationSource[] deprecationSources = []; // Handle deprecations
             TypeReferenceSource[] outputTypes = [];
 
-            foreach FieldSource [subgraph, mergingField] in fieldSources {
+            foreach FieldSource [subgraph, mergingField, _] in fieldSources {
                 inputFieldSources.push([
                     subgraph,
                     mergingField.args
@@ -1321,23 +1343,16 @@ public class Merger {
         }
     }
 
-    function isTypeShareable(parser:__Type 'type) returns boolean {
-        return self.isDirectiveApplied('type.appliedDirectives, SHAREABLE_DIR);
+    function isTypeAllowsMergingFields(parser:__Type 'type) returns boolean {
+        return self.isEntity('type).isEntity || self.isShareableOnType('type);
     }
 
-    function isFieldShareable(parser:__Field 'field) returns boolean {
-        return self.isDirectiveApplied('field.appliedDirectives, SHAREABLE_DIR);
+    function isShareableOnType(parser:__Type 'type) returns boolean {
+        return isDirectiveApplied('type.appliedDirectives, SHAREABLE_DIR);
     }
 
-    function isDirectiveApplied(parser:__AppliedDirective[] appliedDirectives, string directiveName) returns boolean {
-        boolean isApplied = false;
-        foreach parser:__AppliedDirective dir in appliedDirectives {
-            if dir.definition.name == directiveName {
-                isApplied = true;
-                break;
-            }
-        }
-        return isApplied;
+    function isShareableOnField(parser:__Field 'field) returns boolean {
+        return isDirectiveApplied('field.appliedDirectives, SHAREABLE_DIR);
     }
 
     function getConsistentInconsistentSubgraphs([Subgraph, anydata][] sources, [Subgraph, anydata][] defs) 

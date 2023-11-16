@@ -267,6 +267,17 @@ function addDirectiveDefinition(parser:__Schema schema, parser:__Directive direc
     schema.directives[directive.name] = directive;
 }
 
+function isDirectiveApplied(parser:__AppliedDirective[] appliedDirectives, string directiveName) returns boolean {
+    boolean isApplied = false;
+    foreach parser:__AppliedDirective dir in appliedDirectives {
+        if dir.definition.name == directiveName {
+            isApplied = true;
+            break;
+        }
+    }
+    return isApplied;
+}
+
 function getAppliedDirectives(string name, parser:__AppliedDirective[] directives) returns parser:__AppliedDirective[] {
     parser:__AppliedDirective[] filter = directives.filter(a => a.definition.name === name);
     return filter;
