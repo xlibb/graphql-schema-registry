@@ -11,8 +11,8 @@ function testConflictCompatibleInputTypes(TestSchemas schemas, string typeName, 
 
     if actualFields !is () && expectedFields !is () {
         test:assertEquals(
-            actualFields.get(fieldName).'type,
-            expectedFields.get(fieldName).'type
+            actualFields.get(fieldName),
+            expectedFields.get(fieldName)
         );
     } else {
         test:assertFail("actual/expected fields are null");

@@ -332,7 +332,7 @@ public class Merger {
                     inputFieldSources.push([ subgraph, subgraphFields ]);
                 }
             }
-            MergedResult mergedArgResult = check self.mergeInputValues(inputFieldSources); // Handle INPUT_FIELD_TYPE_MISMATCH
+            MergedResult mergedArgResult = check self.mergeInputValues(inputFieldSources, true); // Handle INPUT_FIELD_TYPE_MISMATCH
             map<parser:__InputValue> mergedFields = <map<parser:__InputValue>>mergedArgResult.result;
             'type.inputFields = mergedFields;
             appendHints(hints, mergedArgResult.hints, inputTypeName);
@@ -629,7 +629,7 @@ public class Merger {
             };
 
             check self.applyJoinFieldDirectives(
-                mergedField, 
+                mergedField.appliedDirectives, 
                 consistentSubgraphs = fieldSources.'map(s => s[0]),
                 hasInconsistentFields = unionedFields.get(fieldName).length() != sources.length(),
                 outputTypeMismatches = typeMergeResult.sources
@@ -696,7 +696,7 @@ public class Merger {
         };
     }
 
-    function mergeInputValues(InputFieldMapSource[] sources) returns MergedResult|MergeError|InternalError {
+    function mergeInputValues(InputFieldMapSource[] sources, boolean isTypeInputType = false) returns MergedResult|MergeError|InternalError {
         map<InputSource[]> unionedInputs = {};
         foreach InputFieldMapSource [subgraph, arguments] in sources {
             foreach parser:__InputValue arg in arguments {
@@ -749,12 +749,23 @@ public class Merger {
                 string? mergedDescription = <string?>descriptionMergeResult.result;
                 appendHints(hints, descriptionMergeResult.hints, argName);
 
-                mergedArguments[argName] = {
+                parser:__InputValue mergedInputField = {
                     name: argName, 
                     'type: mergedTypeReference,
                     description: mergedDescription, 
                     defaultValue: mergedDefaultValue 
                 };
+
+                if isTypeInputType {
+                    check self.applyJoinFieldDirectives(
+                        mergedInputField.appliedDirectives, 
+                        consistentSubgraphs = argDefs.'map(s => s[0]),
+                        hasInconsistentFields = false,
+                        outputTypeMismatches = inputTypeMergeResult.sources
+                    );
+                }
+
+                mergedArguments[argName] = mergedInputField;
                 
             } else {
                 ConsistentInconsistenceSubgraphs subgraphs = self.getConsistentInconsistentSubgraphs(sources, argDefs);
@@ -1047,28 +1058,34 @@ public class Merger {
         }
     }
 
-    function applyJoinFieldDirectives(parser:__Field 'field, Subgraph[] consistentSubgraphs, 
+    function applyJoinFieldDirectives(parser:__AppliedDirective[] appliedDirs, Subgraph[] consistentSubgraphs, 
                                       boolean hasInconsistentFields, TypeReferenceSources[] outputTypeMismatches) returns InternalError? {
 
         // Handle @override
         // Handle @external
 
-        map<map<anydata>> join__fieldArgs = {};
+        map<map<anydata>> joinFieldArgs = {};
         if hasInconsistentFields {
             foreach Subgraph subgraph in consistentSubgraphs {
-                join__fieldArgs[subgraph.name][GRAPH_FIELD] = self.joinGraphMap.get(subgraph.name);
+                joinFieldArgs[subgraph.name][GRAPH_FIELD] = self.joinGraphMap.get(subgraph.name);
             }
         }
 
         foreach TypeReferenceSources ref in outputTypeMismatches {
             foreach Subgraph subgraph in ref.subgraphs {
-                join__fieldArgs[subgraph.name][GRAPH_FIELD] = self.joinGraphMap.get(subgraph.name);
-                join__fieldArgs[subgraph.name][TYPE_FIELD] = check typeReferenceToString(ref.data);
+                joinFieldArgs[subgraph.name][GRAPH_FIELD] = self.joinGraphMap.get(subgraph.name);
+                joinFieldArgs[subgraph.name][TYPE_FIELD] = check typeReferenceToString(ref.data);
             }
         }
 
-        foreach map<anydata> args in join__fieldArgs {
-            'field.appliedDirectives.push(check self.getAppliedDirectiveFromName(JOIN_FIELD_DIR, args));
+        map<map<anydata>> sortedJoinFieldArgs = {};
+        string[] sortedSubgraphNames = joinFieldArgs.keys().sort(key = string:toLowerAscii);
+        foreach string subgraphName in sortedSubgraphNames {
+            sortedJoinFieldArgs[subgraphName] = joinFieldArgs.get(subgraphName);
+        }
+
+        foreach map<anydata> args in sortedJoinFieldArgs {
+            appliedDirs.push(check self.getAppliedDirectiveFromName(JOIN_FIELD_DIR, args));
         }
     }
 
