@@ -312,7 +312,7 @@ public class Exporter {
         string appliedDirectiveSdls = EMPTY_STRING;
         if directives.length() > 0 {
             string[] directiveSdls = [];
-            foreach parser:__AppliedDirective appliedDirective in directives {
+            foreach parser:__AppliedDirective appliedDirective in directives.sort("ascending", k => k.definition.name.toLowerAscii()) {
                 directiveSdls.push(check self.exportAppliedDirective(appliedDirective, indentation));
             }
             string seperator = inline ? SPACE : LINE_BREAK;
