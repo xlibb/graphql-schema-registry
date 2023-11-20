@@ -2,25 +2,11 @@ import ballerina/test;
 import ballerina/io;
 
 @test:Config {
-    groups: ["persist"]
+    groups: ["registry"]
 }
 function testRegister() returns error? {
     Registry registry = check new();
-    string|error composeResult = (check registry.publishSubgraph({
-        name: "subg1", 
-        url: "http://subg1",
-        sdl: string `
-        type Query {
-            name: String
-            age: Int
-        }`})).schema;
-    if composeResult is string {
-        io:println(composeResult);
-    } else {
-        return composeResult;
-    }
-
-    composeResult = (check registry.publishSubgraph({
+    SubgraphSchema schema = {
         name: "subg2",
         url: "http://subg2",
         sdl: string `
@@ -28,10 +14,19 @@ function testRegister() returns error? {
             name: String
             age: Int
             value: Boolean
-        }`})).schema;
-    if composeResult is string {
-        io:println(composeResult);
-    } else {
-        return composeResult;
-    }
+        }`
+    };
+    SupergraphSchema supergraphSchema = check registry.publishSubgraph(schema);
+
+    schema = {
+        name: "subg1",
+        url: "http://subg1",
+        sdl: string `
+        type Query {
+            name: String
+            age: Int
+        }`
+    };
+    supergraphSchema = check registry.publishSubgraph(schema);
+    io:println(supergraphSchema.schema);
 }
