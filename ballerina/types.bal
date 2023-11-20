@@ -1,4 +1,5 @@
 import graphql_schema_registry.registry;
+
 public distinct service class Subgraph {
     private final readonly & registry:SubgraphSchema schemaRecord;
 
@@ -32,6 +33,14 @@ public distinct service class Supergraph {
 
     resource function get schema() returns string {
         return self.schemaRecord.schema;
+    }
+
+    resource function get version() returns string|error {
+        registry:Version? & readonly version = self.schemaRecord.version;
+        if version is () {
+            return error("Invalid version");
+        }
+        return registry:getVersionAsString(version);
     }
 
 }

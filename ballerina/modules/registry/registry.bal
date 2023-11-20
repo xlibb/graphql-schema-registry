@@ -12,7 +12,7 @@ public class Registry {
 
     public function publishSubgraph(SubgraphSchema subgraphSchema) returns SupergraphSchema|error {
         SupergraphSchema composeResult = check self.composeSupergraph(subgraphSchema);
-        check self.registerSupergraph(composeResult);
+        composeResult = check self.registerSupergraph(composeResult);
         return composeResult;
     }
 
@@ -48,8 +48,8 @@ public class Registry {
         };
     }
 
-    function registerSupergraph(SupergraphSchema records) returns error? {
-        check self.persist.register({
+    function registerSupergraph(SupergraphSchema records) returns SupergraphSchema|error {
+        return self.persist.register({
             subgraphs: records.subgraphs,
             schema: records.schema
         });

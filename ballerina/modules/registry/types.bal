@@ -1,6 +1,6 @@
 const string PERSIST_EXTENSION = ".json";
 
-type Version record {|
+public type Version record {|
     int breaking;
     int dangerous;
     int safe;
@@ -9,6 +9,7 @@ type Version record {|
 public type SupergraphSchema record {|
     string schema;
     map<SubgraphSchema> subgraphs;
+    Version? version = ();
 |};
 
 public type SubgraphSchema record {|

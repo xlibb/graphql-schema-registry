@@ -13,10 +13,16 @@ class Persist {
         }
     }
 
-    public function register(SupergraphSchema records) returns error? {
+    public function register(SupergraphSchema records) returns SupergraphSchema|error {
         Version nextVersion = check self.getNextVersion();
         string newVersionLocation = check self.getRecordLocation(nextVersion);
-        check self.writeSchema(newVersionLocation, records);
+        SupergraphSchema updatedRecords = {
+            schema: records.schema,
+            subgraphs: records.subgraphs,
+            version: nextVersion
+        };
+        check self.writeSchema(newVersionLocation, updatedRecords);
+        return updatedRecords;
     }
 
     public function getLatestSchemas() returns SupergraphSchema?|error {

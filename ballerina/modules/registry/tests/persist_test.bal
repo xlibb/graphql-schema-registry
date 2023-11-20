@@ -13,7 +13,7 @@ function testPersistRegister() returns error? {
         },
         schema: "supergraph-sdl"
     };
-    check persist.register(record1);
+    _ = check persist.register(record1);
 
     SupergraphSchema record2 = {
         subgraphs: { 
@@ -22,7 +22,7 @@ function testPersistRegister() returns error? {
         },
         schema: "supergraph-sdl-2"
     };
-    check persist.register(record2);
+    _ = check persist.register(record2);
 }
 
 @test:Config {

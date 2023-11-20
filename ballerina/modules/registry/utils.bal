@@ -21,7 +21,7 @@ function createSubgraph(SubgraphSchema subgraphSchema) returns merger:Subgraph|e
     };
 }
 
-function getVersionAsString(Version version) returns string {
+public function getVersionAsString(Version version) returns string {
     return string:'join(".", version.breaking.toBalString(), version.dangerous.toBalString(), version.safe.toBalString());
 }
 
