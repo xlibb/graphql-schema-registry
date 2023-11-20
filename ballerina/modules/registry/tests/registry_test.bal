@@ -6,21 +6,21 @@ import ballerina/io;
 }
 function testRegister() returns error? {
     Registry registry = check new();
-    string|error composeResult = registry.publishSubgraph({
+    string|error composeResult = (check registry.publishSubgraph({
         name: "subg1", 
         url: "http://subg1",
         sdl: string `
         type Query {
             name: String
             age: Int
-        }`});
+        }`})).supergraph;
     if composeResult is string {
         io:println(composeResult);
     } else {
         return composeResult;
     }
 
-    composeResult = registry.publishSubgraph({
+    composeResult = (check registry.publishSubgraph({
         name: "subg2",
         url: "http://subg2",
         sdl: string `
@@ -28,7 +28,7 @@ function testRegister() returns error? {
             name: String
             age: Int
             value: Boolean
-        }`});
+        }`})).supergraph;
     if composeResult is string {
         io:println(composeResult);
     } else {

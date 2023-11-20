@@ -10,23 +10,23 @@ public class Registry {
         self.persist = check new("datasource");
     }
 
-    public function publishSubgraph(SubgraphSchema subgraphSchema) returns string|error {
+    public function publishSubgraph(SubgraphSchema subgraphSchema) returns SchemaSnapshot|error {
         SchemaSnapshot composeResult = check self.composeSupergraph(subgraphSchema);
         check self.registerSupergraph(composeResult);
-        return composeResult.supergraph;
+        return composeResult;
     }
 
-    public function dryRun(SubgraphSchema subgraphSchema) returns string|error {
+    public function dryRun(SubgraphSchema subgraphSchema) returns SchemaSnapshot|error {
         SchemaSnapshot composeResult = check self.composeSupergraph(subgraphSchema);
-        return composeResult.supergraph;
+        return composeResult;
     }
 
-    public function getLatestSupergraph() returns string|error {
+    public function getLatestSupergraph() returns SchemaSnapshot|error {
         SchemaSnapshot? snapshot = check self.persist.getLatestSchemas();
         if snapshot is () {
             return error RegistryError("No supergraph schemas found");
         }
-        return snapshot.supergraph;
+        return snapshot;
     }
 
     function composeSupergraph(SubgraphSchema subgraphSchema) returns SchemaSnapshot|error {
