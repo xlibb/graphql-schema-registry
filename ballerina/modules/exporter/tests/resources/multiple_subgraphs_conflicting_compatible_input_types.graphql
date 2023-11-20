@@ -36,8 +36,8 @@ input Foo
   diff_outer_non_nullable_type: [ID]! @join__field(graph: SUBG1, type: "[ID]") @join__field(graph: SUBG2, type: "[ID]!") @join__field(graph: SUBG3, type: "[ID]") @join__field(graph: SUBG4, type: "[ID]")
   diff_inner_non_nullable_type: [ID!] @join__field(graph: SUBG1, type: "[ID]") @join__field(graph: SUBG2, type: "[ID]") @join__field(graph: SUBG3, type: "[ID]") @join__field(graph: SUBG4, type: "[ID!]")
   diff_outer_inner_non_nullable_type: [ID!]! @join__field(graph: SUBG1, type: "[ID!]!") @join__field(graph: SUBG2, type: "[ID]") @join__field(graph: SUBG3, type: "[ID]") @join__field(graph: SUBG4, type: "[ID]")
-  diff_outer_inner_diff_non_nullable_type: [ID!]!  @join__field(graph: SUBG1, type: "[ID!]") @join__field(graph: SUBG2, type: "[ID!]") @join__field(graph: SUBG3, type: "[ID]!") @join__field(graph: SUBG4, type: "[ID]!")
-  diff_outer_inner_diff_wrapping_type: [ID!]!  @join__field(graph: SUBG1, type: "[ID!]") @join__field(graph: SUBG2, type: "[ID]!") @join__field(graph: SUBG3, type: "[ID]") @join__field(graph: SUBG4, type: "[ID!]!")
+  diff_outer_inner_diff_non_nullable_type: [ID!]! @join__field(graph: SUBG1, type: "[ID!]") @join__field(graph: SUBG2, type: "[ID!]") @join__field(graph: SUBG3, type: "[ID]!") @join__field(graph: SUBG4, type: "[ID]!")
+  diff_outer_inner_diff_wrapping_type: [ID!]! @join__field(graph: SUBG1, type: "[ID!]") @join__field(graph: SUBG2, type: "[ID]!") @join__field(graph: SUBG3, type: "[ID]") @join__field(graph: SUBG4, type: "[ID!]!")
 }
 
 scalar join__FieldSet

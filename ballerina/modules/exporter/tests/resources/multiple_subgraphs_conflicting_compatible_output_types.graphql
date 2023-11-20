@@ -70,12 +70,12 @@ type Fox
 }
 
 union Fred
-  @join__unionMember(graph: SUBG1, member: "Qux")
-  @join__unionMember(graph: SUBG2, member: "Fax")
-  @join__unionMember(graph: SUBG3, member: "Fox")
   @join__type(graph: SUBG1)
   @join__type(graph: SUBG2)
   @join__type(graph: SUBG3)
+  @join__unionMember(graph: SUBG1, member: "Qux")
+  @join__unionMember(graph: SUBG2, member: "Fax")
+  @join__unionMember(graph: SUBG3, member: "Fox")
  = Qux | Fax | Fox
 
 scalar join__FieldSet

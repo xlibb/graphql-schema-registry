@@ -27,7 +27,7 @@ function dataProviderExporter() returns [string][] {
         ["multiple_subgraphs_nonconflicting_interfaces"],
         ["multiple_subgraphs_conflicting_compatible_output_types"],
         ["interface_implements"],
-        ["basic_type_definitions"]
-        // ["multiple_subgraphs_conflicting_compatible_input_types"]
+        ["basic_type_definitions"],
+        ["multiple_subgraphs_conflicting_compatible_input_types"]
     ];
 }
