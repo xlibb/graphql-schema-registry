@@ -13,6 +13,10 @@ service / on new graphql:Listener(9090) {
         return new Supergraph(check registry.dryRun(schema));
     }
 
+    resource function get subgraph(string name) returns Subgraph|error {
+        return new Subgraph(check registry.getSubgraphByName(name));
+    }
+
     remote function publishSubgraph(registry:SubgraphSchema schema) returns Supergraph|error {
         return new Supergraph(check registry.publishSubgraph(schema));
     }

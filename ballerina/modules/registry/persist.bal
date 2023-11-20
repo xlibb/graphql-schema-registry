@@ -13,13 +13,13 @@ class Persist {
         }
     }
 
-    public function register(SchemaSnapshot records) returns error? {
+    public function register(SupergraphSchema records) returns error? {
         Version nextVersion = check self.getNextVersion();
         string newVersionLocation = check self.getRecordLocation(nextVersion);
         check self.writeSchema(newVersionLocation, records);
     }
 
-    public function getLatestSchemas() returns SchemaSnapshot?|error {
+    public function getLatestSchemas() returns SupergraphSchema?|error {
         Version? latestVersion = check self.getLatestVersion();
         if latestVersion is Version {
             return check self.getSchemasByVersion(latestVersion);
@@ -28,12 +28,12 @@ class Persist {
         }
     }
 
-    public function getSchemasByVerisonString(string versionStr) returns SchemaSnapshot|error {
+    public function getSchemasByVerisonString(string versionStr) returns SupergraphSchema|error {
         Version version = check getVersion(versionStr);
         return check self.getSchemasByVersion(version);
     }
 
-    function getSchemasByVersion(Version version) returns SchemaSnapshot|error {
+    function getSchemasByVersion(Version version) returns SupergraphSchema|error {
         string location = check self.getRecordLocation(version);
         json|io:Error readJson = io:fileReadJson(location);
         if readJson is io:Error {
@@ -67,11 +67,11 @@ class Persist {
         return incrementVersion(latestVersion ?: createInitialVersion());
     }
 
-    function writeSchema(string location, SchemaSnapshot records) returns error? {
+    function writeSchema(string location, SupergraphSchema records) returns error? {
         return check io:fileWriteJson(location, records.toJson());
     }
 
     function getRecordLocation(Version version) returns string|error {
-        return check file:joinPath(self.location, getVersionAsString(version) + ".json");
+        return check file:joinPath(self.location, getVersionAsString(version) + PERSIST_EXTENSION);
     }
 }

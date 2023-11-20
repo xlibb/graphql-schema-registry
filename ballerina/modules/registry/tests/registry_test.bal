@@ -13,7 +13,7 @@ function testRegister() returns error? {
         type Query {
             name: String
             age: Int
-        }`})).supergraph;
+        }`})).schema;
     if composeResult is string {
         io:println(composeResult);
     } else {
@@ -28,7 +28,7 @@ function testRegister() returns error? {
             name: String
             age: Int
             value: Boolean
-        }`})).supergraph;
+        }`})).schema;
     if composeResult is string {
         io:println(composeResult);
     } else {

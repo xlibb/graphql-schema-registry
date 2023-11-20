@@ -6,8 +6,8 @@ type Version record {|
     int safe;
 |};
 
-public type SchemaSnapshot record {|
-    string supergraph;
+public type SupergraphSchema record {|
+    string schema;
     map<SubgraphSchema> subgraphs;
 |};
 
