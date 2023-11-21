@@ -15,3 +15,9 @@ public type SubgraphSchema record {|
     string url;
     string sdl;
 |};
+
+public enum VersionIncrementOrder {
+    BREAKING,
+    DANGEROUS,
+    SAFE
+}

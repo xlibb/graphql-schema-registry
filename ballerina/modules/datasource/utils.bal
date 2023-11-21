@@ -45,12 +45,33 @@ public function createInitialVersion() returns Version {
     return createVersion(0, 0, 0);
 }
 
-public function incrementVersion(Version version, boolean breaking = false, boolean dangerous = false, boolean safe = true) returns Version {
-    return createVersion(
-        breaking = breaking ? version.breaking + 1 : version.breaking,
-        dangerous = dangerous ? version.dangerous + 1 : version.dangerous,
-        safe = safe ? version.safe + 1 : version.safe
-    );
+public function incrementVersion(Version version, VersionIncrementOrder 'order = DANGEROUS) returns Version {
+    match 'order {
+        BREAKING => {
+            return createVersion(
+                breaking = version.breaking + 1,
+                dangerous = 0,
+                safe = 0
+            );
+        }
+        DANGEROUS => {
+            return createVersion(
+                breaking = version.breaking,
+                dangerous = version.dangerous + 1,
+                safe = 0
+            );
+        }
+        SAFE => {
+            return createVersion(
+                breaking = version.breaking,
+                dangerous = version.dangerous,
+                safe = version.safe + 1
+            );
+        }
+        _ => {
+            return version;
+        }
+    }
 }
 
 public function createVersion(int breaking, int dangerous, int safe) returns Version {
