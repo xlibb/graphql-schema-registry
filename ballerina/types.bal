@@ -1,9 +1,9 @@
-import graphql_schema_registry.registry;
+import graphql_schema_registry.datasource;
 
 public distinct service class Subgraph {
-    private final readonly & registry:SubgraphSchema schemaRecord;
+    private final readonly & datasource:SubgraphSchema schemaRecord;
 
-    function init(registry:SubgraphSchema schema) {
+    function init(datasource:SubgraphSchema schema) {
         self.schemaRecord = schema.cloneReadOnly();
     }
 
@@ -21,9 +21,9 @@ public distinct service class Subgraph {
 }
 
 public distinct service class Supergraph {
-    private final readonly & registry:SupergraphSchema schemaRecord;
+    private final readonly & datasource:SupergraphSchema schemaRecord;
 
-    function init(registry:SupergraphSchema schemaRecord) {
+    function init(datasource:SupergraphSchema schemaRecord) {
         self.schemaRecord = schemaRecord.cloneReadOnly();
     }
 
@@ -36,11 +36,11 @@ public distinct service class Supergraph {
     }
 
     resource function get version() returns string|error {
-        registry:Version? & readonly version = self.schemaRecord.version;
+        datasource:Version? & readonly version = self.schemaRecord.version;
         if version is () {
             return error("Invalid version");
         }
-        return registry:getVersionAsString(version);
+        return datasource:getVersionAsString(version);
     }
 
 }

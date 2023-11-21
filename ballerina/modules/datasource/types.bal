@@ -1,5 +1,3 @@
-const string PERSIST_EXTENSION = ".json";
-
 public type Version record {|
     int breaking;
     int dangerous;

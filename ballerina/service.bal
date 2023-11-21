@@ -1,20 +1,21 @@
 import ballerina/graphql;
 import graphql_schema_registry.registry;
+import graphql_schema_registry.datasource;
 
 service / on new graphql:Listener(9090) {
 
     private registry:Registry registry;
 
     public function init() returns error? {
-        registry:Persist persistency = check new registry:Persist("datasource");
-        self.registry = check new registry:Registry(persistency);
+        datasource:Datasource datasource = check new FileDatasource("datasource");
+        self.registry = check new registry:Registry(datasource);
     }
 
     resource function get supergraph() returns Supergraph|error {
         return new Supergraph(check self.registry.getLatestSupergraph());
     }
 
-    resource function get dryRun(registry:SubgraphSchema schema) returns Supergraph|error {
+    resource function get dryRun(datasource:SubgraphSchema schema) returns Supergraph|error {
         return new Supergraph(check self.registry.dryRun(schema));
     }
 
@@ -22,7 +23,7 @@ service / on new graphql:Listener(9090) {
         return new Subgraph(check self.registry.getSubgraphByName(name));
     }
 
-    remote function publishSubgraph(registry:SubgraphSchema schema) returns Supergraph|error {
+    remote function publishSubgraph(datasource:SubgraphSchema schema) returns Supergraph|error {
         return new Supergraph(check self.registry.publishSubgraph(schema));
     }
 }

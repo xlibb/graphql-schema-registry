@@ -2,9 +2,15 @@ import graphql_schema_registry.merger;
 import graphql_schema_registry.parser;
 import ballerina/regex;
 
-const string FILE_EXTENSION_REGEX = "\\.[^.]+$";
+public function createSupergraphRecord(string schema, map<SubgraphSchema> subgraphs, Version version) returns SupergraphSchema {
+    return {
+        schema,
+        subgraphs,
+        version
+    };
+}
 
-function createSubgraphSdl(string name, string url, string sdl) returns SubgraphSchema {
+public function createSubgraphSdl(string name, string url, string sdl) returns SubgraphSchema {
     return {
         name,
         url,
@@ -12,7 +18,7 @@ function createSubgraphSdl(string name, string url, string sdl) returns Subgraph
     };
 }
 
-function createSubgraph(SubgraphSchema subgraphSchema) returns merger:Subgraph|error {
+public function createSubgraph(SubgraphSchema subgraphSchema) returns merger:Subgraph|error {
     parser:__Schema schema = check (new parser:Parser(subgraphSchema.sdl, parser:SUBGRAPH_SCHEMA)).parse();
     return {
         name: subgraphSchema.name,
@@ -25,7 +31,7 @@ public function getVersionAsString(Version version) returns string {
     return string:'join(".", version.breaking.toBalString(), version.dangerous.toBalString(), version.safe.toBalString());
 }
 
-function getVersion(string version) returns Version|error {
+public function getVersionFromString(string version) returns Version|error {
     string[] versions = regex:split(version, "\\.");
     int[] versionValues = versions.'map(v => check int:fromString(v));
     return createVersion(
@@ -35,11 +41,11 @@ function getVersion(string version) returns Version|error {
     );
 }
 
-function createInitialVersion() returns Version {
+public function createInitialVersion() returns Version {
     return createVersion(0, 0, 0);
 }
 
-function incrementVersion(Version version, boolean breaking = false, boolean dangerous = false, boolean safe = true) returns Version {
+public function incrementVersion(Version version, boolean breaking = false, boolean dangerous = false, boolean safe = true) returns Version {
     return createVersion(
         breaking = breaking ? version.breaking + 1 : version.breaking,
         dangerous = dangerous ? version.dangerous + 1 : version.dangerous,
@@ -47,7 +53,7 @@ function incrementVersion(Version version, boolean breaking = false, boolean dan
     );
 }
 
-function createVersion(int breaking, int dangerous, int safe) returns Version {
+public function createVersion(int breaking, int dangerous, int safe) returns Version {
     return {
         breaking,
         dangerous,
