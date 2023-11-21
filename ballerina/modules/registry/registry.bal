@@ -6,8 +6,8 @@ public class Registry {
 
     private Persist persist;
 
-    public function init() returns error? {
-        self.persist = check new("datasource");
+    public function init(Persist persist) returns error? {
+        self.persist = persist;
     }
 
     public function publishSubgraph(SubgraphSchema subgraphSchema) returns SupergraphSchema|error {

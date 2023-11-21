@@ -5,7 +5,8 @@ import ballerina/io;
     groups: ["registry"]
 }
 function testRegister() returns error? {
-    Registry registry = check new();
+    Persist persistency = check new Persist("datasource");
+    Registry registry = check new(persistency);
     SubgraphSchema schema = {
         name: "subg2",
         url: "http://subg2",

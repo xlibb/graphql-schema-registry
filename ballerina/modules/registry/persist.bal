@@ -2,7 +2,7 @@ import ballerina/file;
 import ballerina/io;
 import ballerina/regex;
 
-class Persist {
+public class Persist {
 
     private string location;
 
