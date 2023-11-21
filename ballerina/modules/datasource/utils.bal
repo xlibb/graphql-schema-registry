@@ -1,6 +1,6 @@
 import graphql_schema_registry.merger;
 import graphql_schema_registry.parser;
-import ballerina/regex;
+import ballerina/lang.regexp as regex;
 
 public function createSupergraphRecord(string schema, map<SubgraphSchema> subgraphs, Version version) returns SupergraphSchema {
     return {
@@ -32,7 +32,7 @@ public function getVersionAsString(Version version) returns string {
 }
 
 public function getVersionFromString(string version) returns Version|error {
-    string[] versions = regex:split(version, "\\.");
+    string[] versions = regex:split(re `\.`, version);
     int[] versionValues = versions.'map(v => check int:fromString(v));
     return createVersion(
         breaking = versionValues[0],

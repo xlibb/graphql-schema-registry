@@ -1,10 +1,7 @@
 import graphql_schema_registry.datasource as datasource;
 import ballerina/file;
 import ballerina/io;
-import ballerina/regex;
-
-const string FILE_EXTENSION_REGEX = "\\.[^.]+$";
-const string PERSIST_EXTENSION = ".json";
+import ballerina/lang.array;
 
 class FileDatasource {
     *datasource:Datasource;
@@ -29,14 +26,7 @@ class FileDatasource {
 
     public function getSchemasByVersion(datasource:Version version) returns datasource:SupergraphSchema|datasource:DatasourceError {
         string location = check self.getRecordLocation(version);
-        json|io:Error readJson = io:fileReadJson(location);
-        if readJson is io:Error {
-            return error datasource:DatasourceError(readJson.message());
-        }
-        datasource:SupergraphSchema|error supergraphSchema = readJson.cloneWithType();
-        if supergraphSchema is error {
-            return error datasource:DatasourceError(supergraphSchema.message());
-        }
+        datasource:SupergraphSchema supergraphSchema = check self.readRecord(location);
         return supergraphSchema;
     }
 
@@ -44,7 +34,7 @@ class FileDatasource {
         datasource:Version nextVersion = check self.getNextVersion();
         string newVersionLocation = check self.getRecordLocation(nextVersion);
         datasource:SupergraphSchema updatedRecords = datasource:createSupergraphRecord(records.schema, records.subgraphs, nextVersion);
-        io:Error? fileWriteResult = io:fileWriteJson(newVersionLocation, updatedRecords.toJson());
+        io:Error? fileWriteResult = self.writeRecord(newVersionLocation, updatedRecords);
         if fileWriteResult is io:Error {
             return error datasource:DatasourceError(fileWriteResult.message());
         }
@@ -73,10 +63,9 @@ class FileDatasource {
                 return error datasource:DatasourceError(fileName.message());
             }
 
-            string versionStr = regex:replace(fileName, FILE_EXTENSION_REGEX, "");
-            datasource:Version|error version = datasource:getVersionFromString(versionStr);
+            datasource:Version|error version = datasource:getVersionFromString(fileName);
             if version is error {
-                return error datasource:DatasourceError(string `Unable to cast version '${versionStr}'`);
+                return error datasource:DatasourceError(string `Unable to cast version '${fileName}'`);
             }
 
             versions.push(version);
@@ -89,15 +78,45 @@ class FileDatasource {
         return datasource:incrementVersion(latestVersion ?: datasource:createInitialVersion());
     }
 
-    function writeSchema(string location, datasource:SupergraphSchema records) returns error? {
-        return check io:fileWriteJson(location, records.toJson());
+    function writeRecord(string location, datasource:SupergraphSchema records) returns io:Error? {
+        return check io:fileWriteString(location, records.toJsonString().toBytes().toBase64());
+        // return check io:fileWriteJson(location, records.toJson());
+    }
+
+    function readRecord(string location) returns datasource:SupergraphSchema|datasource:DatasourceError {
+        string|io:Error encodedRecord = io:fileReadString(location);
+        if encodedRecord is io:Error {
+            return error datasource:DatasourceError(string `Unable to read '${location}'. ${encodedRecord.message()}`);
+        }
+        return check self.decodeRecord(encodedRecord);
     }
 
     function getRecordLocation(datasource:Version version) returns string|datasource:DatasourceError {
-        string|file:Error joinPath = file:joinPath(self.location, datasource:getVersionAsString(version) + PERSIST_EXTENSION);
+        string|file:Error joinPath = file:joinPath(self.location, datasource:getVersionAsString(version));
         if joinPath is file:Error {
             return error datasource:DatasourceError(joinPath.message());
         }
         return joinPath;
+    }
+
+    function encodeRecord(datasource:SupergraphSchema schemaRecord) returns string {
+        return schemaRecord.toJsonString().toBytes().toBase64();
+    }
+
+    function decodeRecord(string encodedRecord) returns datasource:SupergraphSchema|datasource:DatasourceError {
+        byte[]|error data = array:fromBase64(encodedRecord);
+        if data is error {
+            return error datasource:DatasourceError(string `Unable to decode base64. ${data.message()}`);
+        }
+        string|error jsonString = string:fromBytes(data);
+        if jsonString is error {
+            return error datasource:DatasourceError(string `Unable to read json. ${jsonString.message()}`);
+        }
+        datasource:SupergraphSchema|error schemaRecord = jsonString.fromJsonStringWithType(datasource:SupergraphSchema);
+        if schemaRecord is error {
+            return error datasource:DatasourceError(string `Unable to create type from json. ${schemaRecord.message()}`);
+        }
+        return schemaRecord;
+
     }
 }
