@@ -1,11 +1,5 @@
 import graphql_schema_registry.datasource;
 
-type SchemaRecord record {|
-    string supergraph;
-    datasource:SubgraphSchema[] subgraphs;
-    datasource:Version version;
-|};
-
 public distinct service class Subgraph {
     private final readonly & datasource:SubgraphSchema schemaRecord;
 

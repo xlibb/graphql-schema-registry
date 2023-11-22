@@ -4,6 +4,12 @@ import ballerina/io;
 import ballerina/lang.array;
 import ballerina/uuid;
 
+type SchemaRecord record {|
+    string supergraph;
+    datasource:SubgraphSchema[] subgraphs;
+    datasource:Version version;
+|};
+
 class FileDatasource {
     *datasource:Datasource;
 
