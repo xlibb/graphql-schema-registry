@@ -1,5 +1,11 @@
 import graphql_schema_registry.datasource;
 
+type SchemaRecord record {|
+    string supergraph;
+    datasource:SubgraphSchema[] subgraphs;
+    datasource:Version version;
+|};
+
 public distinct service class Subgraph {
     private final readonly & datasource:SubgraphSchema schemaRecord;
 
@@ -12,7 +18,7 @@ public distinct service class Subgraph {
     }
 
     resource function get id() returns string {
-        return "<not implemented>";
+        return self.schemaRecord.id;
     }
 
     resource function get schema() returns string {

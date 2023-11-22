@@ -15,7 +15,7 @@ service / on new graphql:Listener(9090) {
         return new Supergraph(check self.registry.getLatestSupergraph());
     }
 
-    resource function get dryRun(datasource:SubgraphSchema schema) returns Supergraph|error {
+    resource function get dryRun(datasource:InputSubgraph schema) returns Supergraph|error {
         return new Supergraph(check self.registry.dryRun(schema));
     }
 
@@ -23,7 +23,7 @@ service / on new graphql:Listener(9090) {
         return new Subgraph(check self.registry.getSubgraphByName(name));
     }
 
-    remote function publishSubgraph(datasource:SubgraphSchema schema) returns Supergraph|error {
+    remote function publishSubgraph(datasource:InputSubgraph schema) returns Supergraph|error {
         return new Supergraph(check self.registry.publishSubgraph(schema));
     }
 }

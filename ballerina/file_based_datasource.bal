@@ -2,6 +2,7 @@ import graphql_schema_registry.datasource as datasource;
 import ballerina/file;
 import ballerina/io;
 import ballerina/lang.array;
+import ballerina/uuid;
 
 class FileDatasource {
     *datasource:Datasource;
@@ -26,19 +27,26 @@ class FileDatasource {
 
     public function getSchemasByVersion(datasource:Version version) returns datasource:SupergraphSchema|datasource:DatasourceError {
         string location = check self.getRecordLocation(version);
-        datasource:SupergraphSchema supergraphSchema = check self.readRecord(location);
-        return supergraphSchema;
+        SchemaRecord schemaRecord = check self.readRecord(location);
+        return self.schemaRecordToSupergraph(schemaRecord);
     }
 
-    public function register(datasource:SupergraphSchema records) returns datasource:SupergraphSchema|datasource:DatasourceError {
-        datasource:Version nextVersion = check self.getNextVersion();
-        string newVersionLocation = check self.getRecordLocation(nextVersion);
-        datasource:SupergraphSchema updatedRecords = datasource:createSupergraphRecord(records.schema, records.subgraphs, nextVersion);
-        io:Error? fileWriteResult = self.writeRecord(newVersionLocation, updatedRecords);
+    public function registerSupergraph(datasource:SupergraphSchema schema) returns datasource:SupergraphSchema|datasource:DatasourceError {
+        string newVersionLocation = check self.getRecordLocation(schema.version);
+        io:Error? fileWriteResult = self.writeRecord(newVersionLocation, self.SupergraphToSchemaRecord(schema));
         if fileWriteResult is io:Error {
             return error datasource:DatasourceError(fileWriteResult.message());
         }
-        return updatedRecords;
+        return schema;
+    }
+
+    public function registerSubgraph(datasource:InputSubgraph subgraph) returns datasource:SubgraphSchema {
+        return datasource:createSubgraphSdl(
+            id = uuid:createType4AsString(),
+            name = subgraph.name,
+            url = subgraph.url,
+            sdl = subgraph.sdl
+        );
     }
 
     public function getLatestVersion() returns datasource:Version?|datasource:DatasourceError {
@@ -78,12 +86,31 @@ class FileDatasource {
         return datasource:incrementVersion(latestVersion ?: datasource:createInitialVersion());
     }
 
-    function writeRecord(string location, datasource:SupergraphSchema records) returns io:Error? {
+    function writeRecord(string location, SchemaRecord records) returns io:Error? {
         return check io:fileWriteString(location, records.toJsonString().toBytes().toBase64());
-        // return check io:fileWriteJson(location, records.toJson());
     }
 
-    function readRecord(string location) returns datasource:SupergraphSchema|datasource:DatasourceError {
+    function schemaRecordToSupergraph(SchemaRecord 'record) returns datasource:SupergraphSchema {
+        map<datasource:SubgraphSchema> subgraphs = {};
+        foreach datasource:SubgraphSchema subgraph in 'record.subgraphs {
+            subgraphs[subgraph.name] = subgraph;
+        }
+        return datasource:createSupergraphRecord(
+            schema = 'record.supergraph,
+            subgraphs = subgraphs,
+            version = 'record.version
+        );
+    }
+
+    function SupergraphToSchemaRecord(datasource:SupergraphSchema schema) returns SchemaRecord {
+        return {
+            supergraph: schema.schema,
+            subgraphs: schema.subgraphs.toArray(),
+            version: schema.version
+        };
+    }
+
+    function readRecord(string location) returns SchemaRecord|datasource:DatasourceError {
         string|io:Error encodedRecord = io:fileReadString(location);
         if encodedRecord is io:Error {
             return error datasource:DatasourceError(string `Unable to read '${location}'. ${encodedRecord.message()}`);
@@ -99,11 +126,11 @@ class FileDatasource {
         return joinPath;
     }
 
-    function encodeRecord(datasource:SupergraphSchema schemaRecord) returns string {
+    function encodeRecord(SchemaRecord schemaRecord) returns string {
         return schemaRecord.toJsonString().toBytes().toBase64();
     }
 
-    function decodeRecord(string encodedRecord) returns datasource:SupergraphSchema|datasource:DatasourceError {
+    function decodeRecord(string encodedRecord) returns SchemaRecord|datasource:DatasourceError {
         byte[]|error data = array:fromBase64(encodedRecord);
         if data is error {
             return error datasource:DatasourceError(string `Unable to decode base64. ${data.message()}`);
@@ -112,7 +139,7 @@ class FileDatasource {
         if jsonString is error {
             return error datasource:DatasourceError(string `Unable to read json. ${jsonString.message()}`);
         }
-        datasource:SupergraphSchema|error schemaRecord = jsonString.fromJsonStringWithType(datasource:SupergraphSchema);
+        SchemaRecord|error schemaRecord = jsonString.fromJsonStringWithType(SchemaRecord);
         if schemaRecord is error {
             return error datasource:DatasourceError(string `Unable to create type from json. ${schemaRecord.message()}`);
         }

@@ -10,19 +10,20 @@ public function createSupergraphRecord(string schema, map<SubgraphSchema> subgra
     };
 }
 
-public function createSubgraphSdl(string name, string url, string sdl) returns SubgraphSchema {
+public function createSubgraphSdl(string id, string name, string url, string sdl) returns SubgraphSchema {
     return {
+        id,
         name,
         url,
         sdl
     };
 }
 
-public function createSubgraph(SubgraphSchema subgraphSchema) returns merger:Subgraph|error {
-    parser:__Schema schema = check (new parser:Parser(subgraphSchema.sdl, parser:SUBGRAPH_SCHEMA)).parse();
+public function createSubgraph(string name, string url, string sdl) returns merger:Subgraph|error {
+    parser:__Schema schema = check (new parser:Parser(sdl, parser:SUBGRAPH_SCHEMA)).parse();
     return {
-        name: subgraphSchema.name,
-        url: subgraphSchema.url,
+        name: name,
+        url: url,
         schema: schema
     };
 }

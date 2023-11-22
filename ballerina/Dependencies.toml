@@ -212,6 +212,9 @@ version = "0.0.0"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"}
 ]
+modules = [
+	{org = "ballerina", packageName = "lang.regexp", moduleName = "lang.regexp"}
+]
 
 [[package]]
 org = "ballerina"
@@ -291,18 +294,6 @@ dependencies = [
 
 [[package]]
 org = "ballerina"
-name = "regex"
-version = "1.4.3"
-dependencies = [
-	{org = "ballerina", name = "jballerina.java"},
-	{org = "ballerina", name = "lang.string"}
-]
-modules = [
-	{org = "ballerina", packageName = "regex", moduleName = "regex"}
-]
-
-[[package]]
-org = "ballerina"
 name = "task"
 version = "2.5.0"
 dependencies = [
@@ -349,6 +340,9 @@ dependencies = [
 	{org = "ballerina", name = "lang.int"},
 	{org = "ballerina", name = "time"}
 ]
+modules = [
+	{org = "ballerina", packageName = "uuid", moduleName = "uuid"}
+]
 
 [[package]]
 org = "ballerina"
@@ -380,8 +374,9 @@ dependencies = [
 	{org = "ballerina", name = "io"},
 	{org = "ballerina", name = "jballerina.java"},
 	{org = "ballerina", name = "lang.array"},
-	{org = "ballerina", name = "regex"},
-	{org = "ballerina", name = "test"}
+	{org = "ballerina", name = "lang.regexp"},
+	{org = "ballerina", name = "test"},
+	{org = "ballerina", name = "uuid"}
 ]
 modules = [
 	{org = "xlibb", packageName = "graphql_schema_registry", moduleName = "graphql_schema_registry"},
