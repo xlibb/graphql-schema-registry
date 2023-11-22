@@ -24,7 +24,7 @@ function dataProviderMergedSdls() returns [string][] {
         ["multiple_subgraphs_conflicting_compatible_input_types"],
         ["multiple_subgraphs_conflicting_compatible_interfaces"],
         ["multiple_subgraphs_conflicting_compatible_objects"],
-        // ["multiple_subgraphs_conflicting_compatible_output_types"],
+        ["multiple_subgraphs_conflicting_compatible_output_types"],
         ["multiple_subgraphs_conflicting_compatible_union_types"],
         ["multiple_subgraphs_conflicting_interface_implements"],
         ["multiple_subgraphs_join__Graph"],

@@ -57,10 +57,10 @@ type Foo
   diff_outer_non_nullable_type: [ID] @join__field(graph: SUBG1, type: "[ID]") @join__field(graph: SUBG2, type: "[ID]!") @join__field(graph: SUBG3, type: "[ID]") @join__field(graph: SUBG4, type: "[ID]")
   diff_inner_non_nullable_type: [ID] @join__field(graph: SUBG1, type: "[ID]") @join__field(graph: SUBG2, type: "[ID]") @join__field(graph: SUBG3, type: "[ID]") @join__field(graph: SUBG4, type: "[ID!]")
   diff_outer_inner_non_nullable_type: [ID] @join__field(graph: SUBG1, type: "[ID!]!") @join__field(graph: SUBG2, type: "[ID]") @join__field(graph: SUBG3, type: "[ID]") @join__field(graph: SUBG4, type: "[ID]")
+  diff_outer_inner_diff_non_nullable_type: [ID] @join__field(graph: SUBG1, type: "[ID!]") @join__field(graph: SUBG2, type: "[ID!]") @join__field(graph: SUBG3, type: "[ID]!") @join__field(graph: SUBG4, type: "[ID]!")
+  diff_outer_inner_diff_wrapping_type: [ID] @join__field(graph: SUBG1, type: "[ID!]") @join__field(graph: SUBG2, type: "[ID]!") @join__field(graph: SUBG3, type: "[ID]") @join__field(graph: SUBG4, type: "[ID!]!")
   interface_implements: Bar @join__field(graph: SUBG1, type: "Waldo") @join__field(graph: SUBG2, type: "Bar") @join__field(graph: SUBG3, type: "Bux")
   union_member: Fred @join__field(graph: SUBG1, type: "Fred") @join__field(graph: SUBG2, type: "Fax") @join__field(graph: SUBG3, type: "Fox")
-  diff_outer_inner_diff_non_nullable_type: [ID]  @join__field(graph: SUBG1, type: "[ID!]") @join__field(graph: SUBG2, type: "[ID!]") @join__field(graph: SUBG3, type: "[ID]!") @join__field(graph: SUBG4, type: "[ID]!")
-  diff_outer_inner_diff_wrapping_type: [ID]  @join__field(graph: SUBG1, type: "[ID!]") @join__field(graph: SUBG2, type: "[ID]!") @join__field(graph: SUBG3, type: "[ID]") @join__field(graph: SUBG4, type: "[ID!]!")
 }
 
 type Fox
@@ -70,12 +70,12 @@ type Fox
 }
 
 union Fred
-  @join__unionMember(graph: SUBG1, member: "Qux")
-  @join__unionMember(graph: SUBG2, member: "Fax")
-  @join__unionMember(graph: SUBG3, member: "Fox")
   @join__type(graph: SUBG1)
   @join__type(graph: SUBG2)
   @join__type(graph: SUBG3)
+  @join__unionMember(graph: SUBG1, member: "Qux")
+  @join__unionMember(graph: SUBG2, member: "Fax")
+  @join__unionMember(graph: SUBG3, member: "Fox")
  = Qux | Fax | Fox
 
 scalar join__FieldSet

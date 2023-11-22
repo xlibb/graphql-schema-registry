@@ -10,9 +10,11 @@ function testConflictCompatibleOutputTypes(TestSchemas schemas, string typeName,
     map<parser:__Field>? expectedFields = schemas.parsed.types.get(typeName).fields;
 
     if actualFields !is () && expectedFields !is () {
-        test:assertEquals(
-            actualFields.get(fieldName).'type,
-            expectedFields.get(fieldName).'type
+        test:assertTrue(
+            assertOutputTypes(
+                actualFields.get(fieldName).'type,
+                expectedFields.get(fieldName).'type
+            )
         );
     } else {
         test:assertFail("actual/expected fields are null");
@@ -40,4 +42,16 @@ function dataProviderConflictCompatibleOutputTypes() returns [TestSchemas, strin
         [ schemas, typeName, "interface_implements" ],
         [ schemas, typeName, "union_member" ]
     ];
+}
+
+function assertOutputTypes(parser:__Type typeA, parser:__Type typeB) returns boolean {
+    parser:__Type? typeAWrappedType = typeA.ofType;
+    parser:__Type? typeBWrappedType = typeB.ofType;
+
+    if typeAWrappedType is () && typeBWrappedType is () {
+        return typeA.name == typeB.name;
+    } else if typeAWrappedType !is () && typeBWrappedType !is () {
+        return assertOutputTypes(typeAWrappedType, typeBWrappedType);
+    } 
+    return false;
 }
