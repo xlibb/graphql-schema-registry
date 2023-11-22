@@ -5,7 +5,8 @@ import ballerina/lang.array;
 import ballerina/uuid;
 
 type SchemaRecord record {|
-    string supergraph;
+    string schema;
+    string apiSchema;
     datasource:SubgraphSchema[] subgraphs;
     datasource:Version version;
 |};
@@ -102,7 +103,8 @@ class FileDatasource {
             subgraphs[subgraph.name] = subgraph;
         }
         return datasource:createSupergraphRecord(
-            schema = 'record.supergraph,
+            schema = 'record.schema,
+            apiSchema = 'record.apiSchema,
             subgraphs = subgraphs,
             version = 'record.version
         );
@@ -110,7 +112,8 @@ class FileDatasource {
 
     function SupergraphToSchemaRecord(datasource:SupergraphSchema schema) returns SchemaRecord {
         return {
-            supergraph: schema.schema,
+            schema: schema.schema,
+            apiSchema: schema.apiSchema,
             subgraphs: schema.subgraphs.toArray(),
             version: schema.version
         };

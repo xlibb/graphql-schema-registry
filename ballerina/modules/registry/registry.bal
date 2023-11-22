@@ -29,11 +29,12 @@ public class Registry {
         filteredSubgraphs.push(check datasource:createSubgraph(subgraphSchema.name, subgraphSchema.url, subgraphSchema.sdl));
         merger:Supergraph composedSupergraph = check self.mergeSubgraphs(filteredSubgraphs);
         string supergraphSdl = check self.exportSchema(composedSupergraph.schema);
+        string apiSchemaSdl = check self.exportSchema(merger:getApiSchema(composedSupergraph.schema));
 
         datasource:Version version = datasource:incrementVersion(
                                         check self.datasource.getLatestVersion() ?: datasource:createInitialVersion()
                                     );
-        return datasource:createSupergraphRecord(supergraphSdl, subgraphs, version);
+        return datasource:createSupergraphRecord(supergraphSdl, apiSchemaSdl, subgraphs, version);
     }
 
     public function getLatestSupergraph() returns datasource:SupergraphSchema|error {

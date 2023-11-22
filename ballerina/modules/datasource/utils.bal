@@ -2,9 +2,10 @@ import graphql_schema_registry.merger;
 import graphql_schema_registry.parser;
 import ballerina/lang.regexp as regex;
 
-public function createSupergraphRecord(string schema, map<SubgraphSchema> subgraphs, Version version) returns SupergraphSchema {
+public function createSupergraphRecord(string schema, string apiSchema, map<SubgraphSchema> subgraphs, Version version) returns SupergraphSchema {
     return {
         schema,
+        apiSchema,
         subgraphs,
         version
     };

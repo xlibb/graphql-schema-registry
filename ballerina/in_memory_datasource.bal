@@ -3,6 +3,7 @@ import graphql_schema_registry.datasource;
 type SupergraphSchemaRecord record {|
     readonly datasource:Version version;
     string sdl;
+    string apiSchemaSdl;
     int[] subgraphs;
 |};
 
@@ -92,7 +93,8 @@ class InMemoryDatasource {
         return {
             version: schema.version.cloneReadOnly(),
             sdl: schema.schema,
-            subgraphs: subgraphs
+            subgraphs: subgraphs,
+            apiSchemaSdl: schema.apiSchema
         };
     }
 
@@ -104,6 +106,7 @@ class InMemoryDatasource {
         return {
             version: 'record.version,
             schema: 'record.sdl,
+            apiSchema: 'record.apiSchemaSdl,
             subgraphs: subgraphs
         };
     }

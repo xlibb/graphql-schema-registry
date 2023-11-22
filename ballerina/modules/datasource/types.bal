@@ -6,6 +6,7 @@ public type Version record {|
 
 public type SupergraphSchema record {|
     string schema;
+    string apiSchema;
     map<SubgraphSchema> subgraphs;
     Version version;
 |};

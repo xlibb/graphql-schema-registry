@@ -43,4 +43,8 @@ public distinct service class Supergraph {
         return datasource:getVersionAsString(version);
     }
 
+    resource function get apiSchema() returns string {
+        return self.schemaRecord.apiSchema;
+    }
+
 }
