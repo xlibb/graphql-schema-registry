@@ -34,6 +34,7 @@ function dataProviderMergedSdls() returns [string][] {
         ["multiple_subgraphs_shareable"],
         ["multiple_subgraphs_types_description"],
         ["single_subgraph_join__type"],
-        ["supergraph_definitions"]
+        ["supergraph_definitions"],
+        ["full_schema"]
     ];
 }

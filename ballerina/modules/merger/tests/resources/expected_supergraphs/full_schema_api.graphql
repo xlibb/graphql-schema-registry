@@ -1,0 +1,165 @@
+interface Bar {
+  avg: Float
+}
+
+interface Bux {
+  id: ID
+}
+
+enum EnumBar {
+  BUX
+  BOX
+  BIX
+  BAX
+}
+
+enum EnumFoo {
+  BAR
+  BUN
+  BRO
+  BIL
+}
+
+enum EnumThud {
+  FRED
+  RICK
+}
+
+enum EnumWaldo {
+  QUZ
+  NUX
+  NOX
+  NIX
+}
+
+type Foo implements Bux & Bar {
+  name: String
+  id: ID
+  avg: Float
+}
+
+input InputFoo {
+  diff_non_nullable_type_1: ID!
+  diff_non_nullable_type_2: ID!
+  diff_outer_non_nullable_type: [ID]!
+}
+
+type Mutation {
+  """Adds a new review"""
+  addReview(
+    """The review to be added."""
+    input: ReviewInput!
+  ): Review!
+}
+
+type OutputFoo {
+  diff_non_nullable_type_1: ID
+  diff_non_nullable_type_2: ID
+  diff_outer_non_nullable_type: [ID]
+  diff_inner_non_nullable_type: [ID]
+  diff_outer_inner_non_nullable_type: [ID]
+}
+
+"""Represents a product in the system"""
+type Product {
+  """The unique ID of the product"""
+  id: ID!
+
+  """The name of the product"""
+  name: String!
+
+  """The description of the product"""
+  description: String!
+
+  """The price of the product"""
+  price: Float!
+  reviews: [Review!]!
+}
+
+type Query {
+  """Returns the list of products"""
+  products: [Product!]!
+
+  """
+  Returns the product for the given id. If the product does not exist, returns null
+  """
+  product(
+    """ID of the product to be retrieved"""
+    id: ID!
+  ): Product
+
+  """Returns the list of users"""
+  users: [User!]!
+
+  """Returns a list of reviews"""
+  reviews: [Review!]!
+}
+
+type Review {
+  """The ID of the review"""
+  id: ID!
+
+  """The title of the review"""
+  title: String!
+
+  """The review comment"""
+  comment: String!
+
+  """The rating of the review (0 to 5)"""
+  rating: Int!
+
+  """The author of the review"""
+  author: User!
+
+  """The product that the review is for"""
+  product: Product!
+}
+
+"""The input type for the addReview mutation"""
+input ReviewInput {
+  """The title of the review"""
+  title: String!
+
+  """The comment of the review"""
+  comment: String!
+
+  """The rating of the review. This is an integer between 0 and 5"""
+  rating: Int!
+
+  """The ID of the review author"""
+  authorId: String!
+
+  """The product ID that the review is for"""
+  productId: String!
+}
+
+type UnionBar {
+  name(id: ID!): String
+}
+
+type UnionBux {
+  name: String
+}
+
+union UnionFoo = UnionBar | UnionBux | UnionWaldo | UnionQux
+
+type UnionQux {
+  name: String
+}
+
+type UnionWaldo {
+  name: String
+}
+
+"""Represents a user in the system"""
+type User {
+  """The unique identifier for the user"""
+  id: ID!
+
+  """The name of the user"""
+  name: String!
+
+  """The email of the user"""
+  email: String!
+  reviews: [Review!]!
+}

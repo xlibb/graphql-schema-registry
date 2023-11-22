@@ -1,0 +1,65 @@
+extend schema @link(url: "https://specs.apollo.dev/federation/v2.0", import: ["@key", "@shareable"]) 
+
+type Query {
+  "Returns the list of users"
+  users: [User!]!
+}
+
+"Represents a user in the system"
+type User @key(fields: "id") {
+  "The unique identifier for the user"
+  id: ID!
+  "The name of the user"
+  name: String!
+  "The email of the user"
+  email: String!
+}
+
+interface Bar {
+	avg: Float
+}
+
+type Foo implements Bar {
+  name: String @shareable
+	avg: Float
+}
+
+union UnionFoo = UnionWaldo
+
+type UnionWaldo {
+    name: String
+}
+
+input InputFoo {
+    diff_non_nullable_type_1: ID
+    diff_non_nullable_type_2: ID
+    diff_outer_non_nullable_type: [ID]!
+}
+
+type OutputFoo {
+    diff_non_nullable_type_1: ID @shareable
+    diff_non_nullable_type_2: ID @shareable
+    diff_outer_non_nullable_type: [ID]! @shareable
+    diff_inner_non_nullable_type: [ID] @shareable
+    diff_outer_inner_non_nullable_type: [ID] @shareable
+}
+
+enum EnumWaldo {
+    QUZ
+    NOX
+}
+
+enum EnumBar {
+    BUX
+    BIX
+}
+
+enum EnumThud {
+    FRED
+    RICK
+}
+
+enum EnumFoo {
+    BAR
+    BRO
+}
