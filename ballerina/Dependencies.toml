@@ -169,9 +169,6 @@ dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
 	{org = "ballerina", name = "lang.__internal"}
 ]
-modules = [
-	{org = "ballerina", packageName = "lang.array", moduleName = "lang.array"}
-]
 
 [[package]]
 org = "ballerina"
@@ -340,9 +337,6 @@ dependencies = [
 	{org = "ballerina", name = "lang.int"},
 	{org = "ballerina", name = "time"}
 ]
-modules = [
-	{org = "ballerina", packageName = "uuid", moduleName = "uuid"}
-]
 
 [[package]]
 org = "ballerina"
@@ -373,10 +367,8 @@ dependencies = [
 	{org = "ballerina", name = "graphql"},
 	{org = "ballerina", name = "io"},
 	{org = "ballerina", name = "jballerina.java"},
-	{org = "ballerina", name = "lang.array"},
 	{org = "ballerina", name = "lang.regexp"},
-	{org = "ballerina", name = "test"},
-	{org = "ballerina", name = "uuid"}
+	{org = "ballerina", name = "test"}
 ]
 modules = [
 	{org = "xlibb", packageName = "graphql_schema_registry", moduleName = "graphql_schema_registry"},

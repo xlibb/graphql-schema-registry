@@ -1,29 +1,44 @@
-public type Version record {|
-    int breaking;
-    int dangerous;
-    int safe;
-|};
-
-public type SupergraphSchema record {|
+public type Supergraph record {|
+    readonly string version;
     string schema;
     string apiSchema;
-    map<SubgraphSchema> subgraphs;
-    Version version;
+    Subgraph[] subgraphs;
 |};
 
-public type InputSubgraph record {|
-    string name;
+public type Subgraph record {|
+    readonly int id;
+    readonly string name;
     string url;
-    string sdl;
+    string schema;
 |};
 
-public type SubgraphSchema record {|
-    *InputSubgraph;
-    string id;
+public type SupergraphSubgraph record {|
+    readonly int id;
+    string supergraphVersion;
+    int subgraphId;
+    string subgraphName;
 |};
 
-public enum VersionIncrementOrder {
-    BREAKING,
-    DANGEROUS,
-    SAFE
-}
+public type SupergraphInsert Supergraph;
+
+public type SubgraphInsert record {|
+    readonly string name;
+    string url;
+    string schema;
+|};
+
+public type SupergraphUpdate record {|
+    string schema?;
+    string apiSchema?;
+|};
+
+public type SubgraphUpdate record {|
+    string url?;
+    string schema?;
+|};
+
+public type SupergraphSubgraphInsert record {|
+    string supergraphVersion;
+    int subgraphId;
+    string subgraphName;
+|};

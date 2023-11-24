@@ -1,121 +1,183 @@
 import graphql_schema_registry.datasource;
 
-type SupergraphSchemaRecord record {|
-    readonly datasource:Version version;
-    string sdl;
-    string apiSchemaSdl;
-    int[] subgraphs;
+type InMemorySupergraph record {|
+    readonly string version;
+    string schema;
+    string apiSchema;
 |};
 
-type SubgraphSchemaRecord record {|
+type InMemorySubgraph record {|
+    readonly string name;
     readonly int id;
-    string sdl;
-    string name;
     string url;
+    string schema;
 |};
 
-class InMemoryDatasource {
+type SupergraphSubgraph record {|
+    readonly int id;
+    string supergraphVersion;
+    int subgraphId;
+    string subgraphName;
+|};
+
+public isolated client class InMemoryDatasource {
     *datasource:Datasource;
 
-    private table<SupergraphSchemaRecord> key(version) supergraphRecords;
-    private table<SubgraphSchemaRecord> key(id) subgraphRecords;
+    private final table<InMemorySupergraph> key(version) supergraphTable;
+    private final table<InMemorySubgraph> key(id, name) subgraphTable;
+    private final table<SupergraphSubgraph> key(id) supergraphSubgraphTable;
 
     public function init() {
-        self.supergraphRecords = table [];
-        self.subgraphRecords = table [];
+        self.supergraphTable = table [];
+        self.subgraphTable = table [];
+        self.supergraphSubgraphTable = table [];
     }
 
-    public function getLatestSchemas() returns datasource:SupergraphSchema?|datasource:DatasourceError {
-        datasource:Version? latestVersion = check self.getLatestVersion();
-        if latestVersion is datasource:Version {
-            return check self.getSchemasByVersion(latestVersion);
-        } else {
-            return ();
+    isolated resource function get supergraphs() returns datasource:Supergraph[]|datasource:Error {
+        lock {
+            datasource:Supergraph[] supergraphs = [];
+            foreach InMemorySupergraph supergraph in self.supergraphTable {
+                datasource:Subgraph[] subgraphs = self.getSubgraphsOfVersion(supergraph.version);
+                supergraphs.push({
+                    version: supergraph.version,
+                    schema: supergraph.schema,
+                    apiSchema: supergraph.apiSchema,
+                    subgraphs: subgraphs
+                });
+            }
+            return supergraphs.clone();
         }
     }
 
-    public function getLatestVersion() returns datasource:Version?|datasource:DatasourceError {
-        datasource:Version[] versions = self.supergraphRecords.keys();
-        if versions.length() > 0 {
-            return versions[versions.length() - 1];
-        } 
-        return ();
-    }
-
-    public function getSchemasByVersion(datasource:Version version) returns datasource:SupergraphSchema|datasource:DatasourceError {
-        readonly & datasource:Version readonlyVersion = version.cloneReadOnly();
-        if self.supergraphRecords.hasKey(readonlyVersion) {
-            SupergraphSchemaRecord supergraphRecord = self.supergraphRecords.get(readonlyVersion);
-            return self.recordToSupergraphSchema(supergraphRecord);
-        } else {
-            return error datasource:DatasourceError(string `Cannot find supergraph with version '${datasource:getVersionAsString(readonlyVersion)}'`);
+    isolated resource function get supergraphs/[string version]() returns datasource:Supergraph|datasource:Error {
+        lock {
+            if !self.supergraphTable.hasKey(version) {
+                return error datasource:Error(string `No supergraph found with version '${version}'.`);
+            }
+            InMemorySupergraph supergraph = self.supergraphTable.get(version);
+            datasource:Subgraph[] subgraphs = self.getSubgraphsOfVersion(supergraph.version);
+            return {
+                version: supergraph.version,
+                schema: supergraph.schema,
+                apiSchema: supergraph.apiSchema,
+                subgraphs: subgraphs.clone()
+            };
         }
     }
 
-    public function registerSubgraph(datasource:InputSubgraph subgraph) returns datasource:SubgraphSchema|datasource:DatasourceError {
-        SubgraphSchemaRecord 'record = {
-            id: self.subgraphRecords.nextKey(),
-            name: subgraph.name,
-            url: subgraph.url,
-            sdl: subgraph.sdl
-        };
-        self.subgraphRecords.add('record);
-        return self.recordToSubgraphSchema('record);
-    }
-
-    public function registerSupergraph(datasource:SupergraphSchema schema) returns datasource:SupergraphSchema|datasource:DatasourceError {
-        SupergraphSchemaRecord 'record = check self.supergraphSchemaToRecord(schema);
-        self.supergraphRecords.add('record);
-        return schema;
-    }
-
-    function subgraphSchemaToRecord(datasource:SubgraphSchema schema) returns SubgraphSchemaRecord|datasource:DatasourceError {
-        int id = check self.getSubgraphId(schema.id);
-        return {
-            id: id,
-            name: schema.name,
-            url: schema.url,
-            sdl: schema.sdl
-        };
-    }
-
-    function recordToSubgraphSchema(SubgraphSchemaRecord 'record) returns datasource:SubgraphSchema {
-        return {
-            id: 'record.id.toString(),
-            name: 'record.name,
-            url: 'record.url,
-            sdl: 'record.sdl
-        };
-    }
-
-    function supergraphSchemaToRecord(datasource:SupergraphSchema schema) returns SupergraphSchemaRecord|datasource:DatasourceError {
-        int[] subgraphs = schema.subgraphs.toArray().map(s => check self.getSubgraphId(s.id));
-        return {
-            version: schema.version.cloneReadOnly(),
-            sdl: schema.schema,
-            subgraphs: subgraphs,
-            apiSchemaSdl: schema.apiSchema
-        };
-    }
-
-    function recordToSupergraphSchema(SupergraphSchemaRecord 'record) returns datasource:SupergraphSchema {
-        map<datasource:SubgraphSchema> subgraphs = map from var subgraph in self.subgraphRecords
-                                                   join var currentSubgraph in 'record.subgraphs
-                                                   on subgraph.id equals currentSubgraph
-                                                   select [subgraph.name, self.recordToSubgraphSchema(subgraph)];
-        return {
-            version: 'record.version,
-            schema: 'record.sdl,
-            apiSchema: 'record.apiSchemaSdl,
-            subgraphs: subgraphs
-        };
-    }
-
-    function getSubgraphId(string stringId) returns int|datasource:DatasourceError {
-        int|error id = int:fromString(stringId);
-        if id is error {
-            return error datasource:DatasourceError(string `Cannot convert id '${stringId}'.`);
+    isolated resource function post supergraphs(datasource:SupergraphInsert data) returns datasource:Error? {
+        lock {
+            if self.supergraphTable.hasKey(data.version) {
+                return error datasource:Error(string `A supergraph already exists with the given version '${data.version}'`);
+            }
+            self.supergraphTable.add({
+                version: data.version,
+                schema: data.schema,
+                apiSchema: data.apiSchema
+            });
         }
-        return id;
+    }
+
+    // isolated resource function put supergraphs/[string version](datasource:SupergraphUpdate value) returns datasource:Supergraph|datasource:Error {
+    // }
+
+    // isolated resource function delete supergraphs/[string version]() returns datasource:Supergraph|datasource:Error {
+    // }
+
+    isolated resource function get versions() returns string[]|datasource:Error {
+        lock {
+            string[] version = from var supergraph in self.supergraphTable
+                               select supergraph.version;
+            return version.clone();
+        }
+    }
+
+    isolated resource function get subgraphs() returns datasource:Subgraph[]|datasource:Error {
+        lock {
+            return self.subgraphTable.toArray().clone();
+        }
+    }
+
+    isolated resource function get subgraphs/[int id]/[string name]() returns datasource:Subgraph|datasource:Error {
+        lock {
+            if !self.subgraphTable.hasKey([id, name]) {
+                return error datasource:Error(string `A subgraph with the given name '${name}' and id '${id}' doesn't exist.`);
+            }
+            return self.subgraphTable.get([id, name]).clone();
+        }
+    }
+
+    isolated resource function get subgraphs/[string name]() returns datasource:Subgraph[]|datasource:Error {
+        lock {
+            table<datasource:Subgraph> result = from var subgraph in self.subgraphTable
+                                                where subgraph.name == name
+                                                select subgraph;
+            return result.toArray().clone();
+        }
+    }
+
+    isolated resource function post subgraphs(datasource:SubgraphInsert data) returns [int, string]|datasource:Error {
+        lock {
+            int[] ids = from var subgraph in self.subgraphTable
+                        where subgraph.name == data.name
+                        order by subgraph.id descending
+                        select subgraph.id;
+            int nextId = ids.length() > 0 ? ids[0] : 0 + 1;
+            self.subgraphTable.add({
+                id: nextId,
+                name: data.name,
+                url: data.url,
+                schema: data.schema
+            });
+            return [nextId, data.name];
+        }
+    }
+
+    // isolated resource function put subgraphs/[int id]/[string name](datasource:SubgraphUpdate value) returns datasource:Subgraph|datasource:Error {
+    // }
+
+    // isolated resource function delete subgraphs/[int id]/[string name]() returns datasource:Subgraph|datasource:Error {
+    // }
+
+    isolated resource function get supergraphsubgraphs() returns datasource:SupergraphSubgraph[]|datasource:Error {
+        lock {
+            return self.supergraphSubgraphTable.toArray().clone();
+        }
+    }
+
+    // isolated resource function get supergraphsubgraphs/[int id]() returns datasource:SupergraphSubgraph|datasource:Error {
+    // }
+
+    isolated resource function post supergraphsubgraphs(datasource:SupergraphSubgraphInsert[] data) returns int[]|datasource:Error {
+        lock {
+            int[] keys = [];
+            foreach datasource:SupergraphSubgraphInsert 'record in data.clone() {
+                    int nextKey = self.supergraphSubgraphTable.nextKey();
+                    self.supergraphSubgraphTable.add({
+                        id: nextKey,
+                        subgraphId: 'record.subgraphId,
+                        subgraphName: 'record.subgraphName,
+                        supergraphVersion: 'record.supergraphVersion
+                    });
+                keys.push(nextKey);
+            }
+            return keys.clone();
+        }
+    }
+
+    // isolated resource function put supergraphsubgraphs/[int id]() returns datasource:SupergraphSubgraph|datasource:Error {
+    // }
+
+    // isolated resource function delete supergraphsubgraphs/[int id]() returns datasource:SupergraphSubgraph|datasource:Error {
+    // }
+
+    isolated function getSubgraphsOfVersion(string version) returns datasource:Subgraph[] {
+        lock {
+            table<datasource:Subgraph> tableResult = from var 'join in self.supergraphSubgraphTable
+                                                     from var subgraph in self.subgraphTable
+                                                     where 'join.supergraphVersion === version && 'join.subgraphId === subgraph.id && 'join.subgraphName === subgraph.name
+                                                     select subgraph;
+            return tableResult.clone().toArray();
+        }
     }
 }

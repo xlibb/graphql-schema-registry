@@ -1,1 +1,1 @@
-public type DatasourceError distinct error;
+public type Error distinct error;
