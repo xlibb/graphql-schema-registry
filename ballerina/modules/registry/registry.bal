@@ -29,11 +29,12 @@ public class Registry {
 
     public function getLatestSupergraph() returns Supergraph|datasource:Error|RegistryError {
         datasource:Supergraph supergraph = check self.getLatestSupergraphRecord();
+        map<datasource:Subgraph> subgraphs = check self.getLatestSubgraphs();
         return {
             schema: supergraph.schema,
             apiSchema: supergraph.apiSchema,
             version: supergraph.version,
-            subgraphs: supergraph.subgraphs.map(s => { name: s.name, url: s.url, schema: s.schema })
+            subgraphs: subgraphs.map(s => { name: s.name, url: s.url, schema: s.schema }).toArray()
         };
     }
 
@@ -89,8 +90,7 @@ public class Registry {
         check self.datasource->/supergraphs.post({
             version: input.version,
             schema: input.schema,
-            apiSchema: input.apiSchema,
-            subgraphs: inputSubgraphs
+            apiSchema: input.apiSchema
         });
         _ = check self.datasource->/supergraphsubgraphs.post(
             inputSubgraphs.map(s => {
@@ -106,12 +106,12 @@ public class Registry {
     }
 
     function getSubgraphsOfSupergraphAsMap(string version) returns map<datasource:Subgraph>|datasource:Error {
-        datasource:Supergraph supergraph = check self.getSupergraph(version);
-        map<datasource:Subgraph> subgraphs = {};
-        foreach datasource:Subgraph subgraph in supergraph.subgraphs {
-            subgraphs[subgraph.name] = subgraph;
+        datasource:Subgraph[] subgraphs = check self.datasource->/supergraphs/[version]/subgraphs;
+        map<datasource:Subgraph> mappedSubgraphs = {};
+        foreach datasource:Subgraph subgraph in subgraphs {
+            mappedSubgraphs[subgraph.name] = subgraph;
         }
-        return subgraphs;
+        return mappedSubgraphs;
     }
 
     function getLatestSubgraphs() returns map<datasource:Subgraph>|datasource:Error {

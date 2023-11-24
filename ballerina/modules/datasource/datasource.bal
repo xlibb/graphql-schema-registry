@@ -5,6 +5,8 @@ public type Datasource isolated client object {
 
     isolated resource function get supergraphs/[string version]() returns Supergraph|Error;
 
+    isolated resource function get supergraphs/[string version]/subgraphs() returns Subgraph[]|Error;
+
     isolated resource function post supergraphs(SupergraphInsert data) returns Error?;
 
     // isolated resource function put supergraphs/[string version](SupergraphUpdate value) returns Supergraph|Error;

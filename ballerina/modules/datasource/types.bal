@@ -2,7 +2,6 @@ public type Supergraph record {|
     readonly string version;
     string schema;
     string apiSchema;
-    Subgraph[] subgraphs;
 |};
 
 public type Subgraph record {|

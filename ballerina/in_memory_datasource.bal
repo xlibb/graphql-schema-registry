@@ -1,31 +1,11 @@
 import graphql_schema_registry.datasource;
 
-type InMemorySupergraph record {|
-    readonly string version;
-    string schema;
-    string apiSchema;
-|};
-
-type InMemorySubgraph record {|
-    readonly string name;
-    readonly int id;
-    string url;
-    string schema;
-|};
-
-type SupergraphSubgraph record {|
-    readonly int id;
-    string supergraphVersion;
-    int subgraphId;
-    string subgraphName;
-|};
-
 public isolated client class InMemoryDatasource {
     *datasource:Datasource;
 
-    private final table<InMemorySupergraph> key(version) supergraphTable;
-    private final table<InMemorySubgraph> key(id, name) subgraphTable;
-    private final table<SupergraphSubgraph> key(id) supergraphSubgraphTable;
+    private final table<datasource:Supergraph> key(version) supergraphTable;
+    private final table<datasource:Subgraph> key(id, name) subgraphTable;
+    private final table<datasource:SupergraphSubgraph> key(id) supergraphSubgraphTable;
 
     public function init() {
         self.supergraphTable = table [];
@@ -35,17 +15,7 @@ public isolated client class InMemoryDatasource {
 
     isolated resource function get supergraphs() returns datasource:Supergraph[]|datasource:Error {
         lock {
-            datasource:Supergraph[] supergraphs = [];
-            foreach InMemorySupergraph supergraph in self.supergraphTable {
-                datasource:Subgraph[] subgraphs = self.getSubgraphsOfVersion(supergraph.version);
-                supergraphs.push({
-                    version: supergraph.version,
-                    schema: supergraph.schema,
-                    apiSchema: supergraph.apiSchema,
-                    subgraphs: subgraphs
-                });
-            }
-            return supergraphs.clone();
+            return self.supergraphTable.toArray().clone();
         }
     }
 
@@ -54,14 +24,17 @@ public isolated client class InMemoryDatasource {
             if !self.supergraphTable.hasKey(version) {
                 return error datasource:Error(string `No supergraph found with version '${version}'.`);
             }
-            InMemorySupergraph supergraph = self.supergraphTable.get(version);
-            datasource:Subgraph[] subgraphs = self.getSubgraphsOfVersion(supergraph.version);
-            return {
-                version: supergraph.version,
-                schema: supergraph.schema,
-                apiSchema: supergraph.apiSchema,
-                subgraphs: subgraphs.clone()
-            };
+            return self.supergraphTable.get(version).clone();
+        }
+    }
+
+    isolated resource function get supergraphs/[string version]/subgraphs() returns datasource:Subgraph[]|datasource:Error {
+        lock {
+            table<datasource:Subgraph> tableResult = from var 'join in self.supergraphSubgraphTable
+                                                     from var subgraph in self.subgraphTable
+                                                     where 'join.supergraphVersion === version && 'join.subgraphId === subgraph.id && 'join.subgraphName === subgraph.name
+                                                     select subgraph;
+            return tableResult.clone().toArray();
         }
     }
 
@@ -70,11 +43,7 @@ public isolated client class InMemoryDatasource {
             if self.supergraphTable.hasKey(data.version) {
                 return error datasource:Error(string `A supergraph already exists with the given version '${data.version}'`);
             }
-            self.supergraphTable.add({
-                version: data.version,
-                schema: data.schema,
-                apiSchema: data.apiSchema
-            });
+            self.supergraphTable.add(data.clone());
         }
     }
 
@@ -122,7 +91,7 @@ public isolated client class InMemoryDatasource {
                         where subgraph.name == data.name
                         order by subgraph.id descending
                         select subgraph.id;
-            int nextId = ids.length() > 0 ? ids[0] : 0 + 1;
+            int nextId = (ids.length() > 0 ? ids[0] : 0) + 1;
             self.subgraphTable.add({
                 id: nextId,
                 name: data.name,
@@ -170,14 +139,4 @@ public isolated client class InMemoryDatasource {
 
     // isolated resource function delete supergraphsubgraphs/[int id]() returns datasource:SupergraphSubgraph|datasource:Error {
     // }
-
-    isolated function getSubgraphsOfVersion(string version) returns datasource:Subgraph[] {
-        lock {
-            table<datasource:Subgraph> tableResult = from var 'join in self.supergraphSubgraphTable
-                                                     from var subgraph in self.subgraphTable
-                                                     where 'join.supergraphVersion === version && 'join.subgraphId === subgraph.id && 'join.subgraphName === subgraph.name
-                                                     select subgraph;
-            return tableResult.clone().toArray();
-        }
-    }
 }
