@@ -1,0 +1,17 @@
+{
+    "errors": [
+        {
+            "message": "No registered supergraph",
+            "locations": [
+                {
+                    "line": 2,
+                    "column": 5
+                }
+            ],
+            "path": [
+                "supergraph"
+            ]
+        }
+    ],
+    "data": null
+}

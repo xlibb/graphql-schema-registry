@@ -1,0 +1,16 @@
+{
+    "data": {
+        "dryRun": {
+            "schema": "schema\n  @link(url: \"https://specs.apollo.dev/link/v1.0\")\n  @link(url: \"https://specs.apollo.dev/join/v0.3\", for: EXECUTION)\n{\n  query: Query\n}\n\ndirective @join__enumValue(graph: join__Graph!) repeatable on ENUM_VALUE\n\ndirective @join__field(graph: join__Graph, requires: join__FieldSet, provides: join__FieldSet, type: String, external: Boolean, override: String, usedOverridden: Boolean) repeatable on FIELD_DEFINITION | INPUT_FIELD_DEFINITION\n\ndirective @join__graph(name: String!, url: String!) on ENUM_VALUE\n\ndirective @join__implements(graph: join__Graph!, interface: String!) repeatable on OBJECT | INTERFACE\n\ndirective @join__type(graph: join__Graph!, key: join__FieldSet, extension: Boolean! = false, resolvable: Boolean! = true, isInterfaceObject: Boolean! = false) repeatable on OBJECT | INTERFACE | UNION | ENUM | INPUT_OBJECT | SCALAR\n\ndirective @join__unionMember(graph: join__Graph!, member: String!) repeatable on UNION\n\ndirective @link(url: String, as: String, for: link__Purpose, import: [link__Import]) repeatable on SCHEMA\n\nscalar join__FieldSet\n\nenum join__Graph {\n  SUBG2 @join__graph(name: \"subg2\", url: \"http://subg2\")\n}\n\nscalar link__Import\n\nenum link__Purpose {\n  \"\"\"\n  `SECURITY` features provide metadata necessary to securely resolve fields.\n  \"\"\"\n  SECURITY\n\n  \"\"\"\n  `EXECUTION` features provide metadata necessary for operation execution.\n  \"\"\"\n  EXECUTION\n}\n\ntype Query\n  @join__type(graph: SUBG2)\n{\n  name: String\n  age: Int\n  value: Boolean\n}",
+            "apiSchema": "type Query {\n  name: String\n  age: Int\n  value: Boolean\n}",
+            "version": "0.1.0",
+            "subgraphs": [
+                {
+                    "name": "subg2",
+                    "schema": "extend schema \n    @link(url: \"https://specs.apollo.dev/federation/v2.0\", import: [\"@shareable\"])\n\ntype Query {\n    name: String @shareable\n    age: Int @shareable\n    value: Boolean\n}"
+                }
+            ],
+            "hints": []
+        }
+    }
+}

@@ -1,0 +1,27 @@
+query DryRun {
+    dryRun(
+        schema: {
+            name: "subg2"
+            url: "http://subg2"
+            schema: """
+            extend schema 
+                @link(url: "https://specs.apollo.dev/federation/v2.0", import: ["@shareable"])
+            
+            type Query {
+                name: String @shareable
+                age: Int @shareable
+                value: Boolean
+            }
+            """
+        }
+    ) {
+        schema
+        apiSchema
+        version
+        subgraphs {
+            name
+            schema
+        }
+        hints
+    }
+}            
