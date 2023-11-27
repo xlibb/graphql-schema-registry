@@ -34,7 +34,8 @@ public class Registry {
             schema: supergraph.schema,
             apiSchema: supergraph.apiSchema,
             version: supergraph.version,
-            subgraphs: subgraphs.map(s => { name: s.name, url: s.url, schema: s.schema }).toArray()
+            subgraphs: subgraphs.map(s => { name: s.name, url: s.url, schema: s.schema }).toArray(),
+            hints: []
         };
     }
 
@@ -58,21 +59,23 @@ public class Registry {
             schema: composeResult.schema,
             apiSchema: composeResult.apiSchema,
             subgraphs: mergingSubgraphList,
-            version: nextVersion
+            version: nextVersion,
+            hints: composeResult.hints
         };
         
     }
 
     function composeSupergraph(Subgraph[] subgraphs) returns ComposedSupergraphSchemas|datasource:Error|RegistryError|error {
         merger:Subgraph[] mergingSubgraphs = subgraphs.map(s => check self.parseSubgraph(s.name, s.url, s.schema));
-        merger:Supergraph composedSupergraph = check self.mergeSubgraphs(mergingSubgraphs);
+        merger:SupergraphMergeResult composedSupergraph = check self.mergeSubgraphs(mergingSubgraphs);
 
-        string supergraphSdl = check self.exportSchema(composedSupergraph.schema);
-        string apiSchemaSdl = check self.exportSchema(merger:getApiSchema(composedSupergraph.schema));
+        string supergraphSdl = check self.exportSchema(composedSupergraph.result.schema);
+        string apiSchemaSdl = check self.exportSchema(merger:getApiSchema(composedSupergraph.result.schema));
 
         return {
             schema: supergraphSdl,
-            apiSchema: apiSchemaSdl
+            apiSchema: apiSchemaSdl,
+            hints: composedSupergraph.hints
         };
     }
 
@@ -177,8 +180,8 @@ public class Registry {
         return string `${breaking}.${dangerous}.${safe}`;
     }
 
-    function mergeSubgraphs(merger:Subgraph[] subgraphs) returns merger:Supergraph|error {
-        return check (check new merger:Merger(subgraphs)).merge();
+    function mergeSubgraphs(merger:Subgraph[] subgraphs) returns merger:SupergraphMergeResult|error {
+        return (check (check new merger:Merger(subgraphs)).merge());
     }
 
     function exportSchema(parser:__Schema schema) returns string|exporter:ExportError {

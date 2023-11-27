@@ -43,4 +43,8 @@ public distinct service class Supergraph {
         return self.schemaRecord.apiSchema;
     }
 
+    resource function get hints() returns string[] {
+        return self.schemaRecord.hints;
+    }
+
 }

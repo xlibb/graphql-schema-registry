@@ -3,6 +3,7 @@ public type Supergraph record {|
     string apiSchema;
     string version;
     Subgraph[] subgraphs;
+    string[] hints;
 |};
 
 public type Subgraph record {|
@@ -14,6 +15,7 @@ public type Subgraph record {|
 public type ComposedSupergraphSchemas record {|
     string schema;
     string apiSchema;
+    string[] hints;
 |};
 
 public enum VersionIncrementOrder {

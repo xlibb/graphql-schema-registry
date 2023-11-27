@@ -20,21 +20,31 @@ public class Merger {
         };
     }
 
-    public function merge() returns Supergraph|MergeError|InternalError {
+    public function merge() returns SupergraphMergeResult|MergeError|InternalError {
         check self.addFederationDefinitions();
         check self.populateFederationJoinGraphEnum();
         check self.addTypesShallow();
         check self.addDirectives();
-        check self.mergeUnionTypes();
+        Hint[] unionMergeHints = check self.mergeUnionTypes() ?: [];
         check self.mergeImplementsRelationship();
-        check self.mergeObjectTypes();
-        check self.mergeInterfaceTypes();
-        check self.mergeInputTypes();
-        check self.mergeEnumTypes();
-        check self.mergeScalarTypes();
+        Hint[] objectMergeHints = check self.mergeObjectTypes() ?: [];
+        Hint[] interfaceMergeHints = check self.mergeInterfaceTypes() ?: [];
+        Hint[] inputTypeMergeHints = check self.mergeInputTypes() ?: [];
+        Hint[] enumTypeMergeHints = check self.mergeEnumTypes() ?: [];
+        Hint[] scalarTypeMergeHints = check self.mergeScalarTypes() ?: [];
         check self.applyJoinTypeDirectives();
         check self.populateRootTypes();
-        return self.supergraph;
+
+        Hint[] hints = [ ...unionMergeHints,
+                         ...objectMergeHints,
+                         ...interfaceMergeHints,
+                         ...inputTypeMergeHints,
+                         ...enumTypeMergeHints,
+                         ...scalarTypeMergeHints ];
+        return {
+            result: self.supergraph,
+            hints: printHints(hints)
+        };
     }
 
     public function getSubgraphs() returns map<Subgraph> {
@@ -165,7 +175,7 @@ public class Merger {
         }
     }
 
-    function mergeUnionTypes() returns InternalError? {
+    function mergeUnionTypes() returns Hint[]|InternalError? {
         map<parser:__Type> supergraphUnionTypes = self.getSupergraphTypesOfKind(parser:UNION);
         Hint[] hints = [];
         foreach [string, parser:__Type] [typeName, mergedType] in supergraphUnionTypes.entries() {
@@ -208,7 +218,7 @@ public class Merger {
                 }                
             }
         }
-        // printHints(hints);
+        return hints;
     }
 
     function mergeImplementsRelationship() returns InternalError? {
@@ -226,7 +236,7 @@ public class Merger {
         }
     }
 
-    function mergeObjectTypes() returns MergeError|InternalError? {
+    function mergeObjectTypes() returns Hint[]|MergeError|InternalError? {
         map<parser:__Type> supergraphObjectTypes = self.getSupergraphTypesOfKind(parser:OBJECT);
         Hint[] hints = [];
         foreach [string, parser:__Type] [typeName, 'type] in supergraphObjectTypes.entries() {
@@ -262,10 +272,10 @@ public class Merger {
             appendHints(hints, mergedFields.hints, typeName);
             'type.fields = <map<parser:__Field>>mergedFields.result;
         }
-        // printHints(hints);
+        return hints;
     }
 
-    function mergeInterfaceTypes() returns MergeError|InternalError? {
+    function mergeInterfaceTypes() returns Hint[]|MergeError|InternalError? {
         Hint[] hints = [];
         map<parser:__Type> supergraphInterfaceTypes = self.getSupergraphTypesOfKind(parser:INTERFACE);
         foreach [string, parser:__Type] [typeName, interface] in supergraphInterfaceTypes.entries() {
@@ -302,9 +312,10 @@ public class Merger {
 
             interface.possibleTypes = [];
         }
+        return hints;
     }
 
-    function mergeInputTypes() returns MergeError|InternalError? {
+    function mergeInputTypes() returns Hint[]|MergeError|InternalError? {
         map<parser:__Type> supergraphInputTypes = self.getSupergraphTypesOfKind(parser:INPUT_OBJECT);
         Hint[] hints = [];
 
@@ -338,10 +349,10 @@ public class Merger {
             appendHints(hints, mergedArgResult.hints, inputTypeName);
 
         }
-        // printHints(hints);
+        return hints;
     }
 
-    function mergeEnumTypes() returns InternalError? {
+    function mergeEnumTypes() returns Hint[]|InternalError? {
         Hint[] hints = [];
         map<parser:__Type> supergraphEnumTypes = self.getSupergraphTypesOfKind(parser:ENUM);
 
@@ -381,14 +392,15 @@ public class Merger {
                 }
             }
         }
+        return hints;
     }
 
-    function mergeScalarTypes() returns InternalError? {
+    function mergeScalarTypes() returns Hint[]|InternalError? {
         Hint[] hints = [];
         map<parser:__Type> supergraphScalarTypes = self.getSupergraphTypesOfKind(parser:SCALAR);
 
         foreach [string, parser:__Type] [typeName, mergedType] in supergraphScalarTypes.entries() {
-            if isSubgraphFederationType(typeName) {
+            if isSubgraphFederationType(typeName) || parser:isBuiltInType(typeName) {
                 continue;
             }
             
@@ -406,6 +418,7 @@ public class Merger {
             mergedType.description = <string?>descriptionMergeResult.result;
             appendHints(hints, descriptionMergeResult.hints, typeName);
         }
+        return hints;
     }
 
     function mergeDescription(DescriptionSource[] sources) returns MergedResult {

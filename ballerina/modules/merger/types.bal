@@ -76,13 +76,13 @@ type ConsistentInconsistenceSubgraphs record {|
     Subgraph[] inconsistent;
 |};
 
-type HintDetail record {|
+public type HintDetail record {|
     anydata value;
     Subgraph[] consistentSubgraphs;
     Subgraph[] inconsistentSubgraphs;
 |};
 
-type Hint record {|
+public type Hint record {|
     string code;
     string[] location;
     HintDetail[] details;
@@ -101,4 +101,9 @@ type PossibleTypesMergeResult record {|
 type TypeReferenceMergeResult record {|
     *MergedResult;
     TypeReferenceSources[] sources; 
+|};
+
+public type SupergraphMergeResult record {|
+    Supergraph result;
+    string[] hints;
 |};
