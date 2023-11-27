@@ -751,11 +751,12 @@ public class Merger {
                 parser:__Type mergedTypeReference = <parser:__Type>inputTypeMergeResult.result;
                 appendHints(hints, inputTypeMergeResult.hints, argName);
 
-                MergeResult|MergeError defaultValueMergeResult = check self.mergeDefaultValues(defaultValueSources);
+                MergedResult|MergeError defaultValueMergeResult = check self.mergeDefaultValues(defaultValueSources);
                 if defaultValueMergeResult is MergeError {
                     // Handle default value inconsistency
                     continue;
                 }               
+                appendHints(hints, defaultValueMergeResult.hints, argName);
                 anydata? mergedDefaultValue = defaultValueMergeResult.result;
 
                 MergedResult descriptionMergeResult = self.mergeDescription(descriptionSources);
@@ -808,7 +809,7 @@ public class Merger {
         };
     }
 
-    function mergeDefaultValues(DefaultValueSource[] sources) returns MergeResult|MergeError {
+    function mergeDefaultValues(DefaultValueSource[] sources) returns MergedResult|MergeError {
         map<DefaultValueSources> unionedDefaultValues = {};
         foreach DefaultValueSource [subgraph, value] in sources {
             string? valueString = value.toString();
@@ -826,6 +827,27 @@ public class Merger {
             return {
                 result: unionedDefaultValues.get(defaultValueKey).data,
                 hints: []
+            };
+        } else if unionedDefaultValues.length() == 2 && unionedDefaultValues.keys().indexOf("") !is () {
+            string defaultValueKey = "";
+
+            HintDetail[] details = [];
+            foreach [string, DefaultValueSources] [key, value] in unionedDefaultValues.entries() {
+                details.push({
+                    consistentSubgraphs: value.subgraphs,
+                    value:  key,
+                    inconsistentSubgraphs: []
+                });
+            }
+
+            Hint hint = {
+                code: INCONSISTENT_DEFAULT_VALUE_PRESENCE,
+                location: [],
+                details: details
+            };
+            return {
+                result: unionedDefaultValues.get(defaultValueKey).data,
+                hints: [hint]
             };
         } else {
             // Handle default value inconsistency
