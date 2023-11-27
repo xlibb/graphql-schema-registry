@@ -569,7 +569,7 @@ public class Merger {
             foreach [string, parser:__Field] [fieldName, fieldValue] in subgraphFields.entries() {
                 if !unionedFields.hasKey(fieldName) {
                     unionedFields[fieldName] = [[subgraph, fieldValue, isTypeShareable]];
-                } else { // Handle Shareable here (!isTypeShareable && !self.isFieldShareable(fieldValue))
+                } else { 
                     unionedFields.get(fieldName).push([subgraph, fieldValue, isTypeShareable]);
                 }
             }
@@ -590,7 +590,6 @@ public class Merger {
             }
         }
 
-        // Merge all the unioned fields
         Hint[] hints = [];
         map<parser:__Field> mergedFields = {};
         foreach [string, FieldSource[]] [fieldName, fieldSources] in unionedFields.entries() {
@@ -640,6 +639,19 @@ public class Merger {
                 description: mergedDescription,
                 'type: mergedOutputType
             };
+
+            ConsistentInconsistenceSubgraphs subgraphs = self.getConsistentInconsistentSubgraphs(sources.map(f => [f[0], f[1]]), fieldSources.map(f => [f[0], f[1]]));
+            if subgraphs.inconsistent.length() != 0 { // Add hints only if there are inconsistencies
+                hints.push({
+                    code: INCONSISTENT_TYPE_FIELD,
+                    location: [fieldName],
+                    details: [{
+                        value: fieldName,
+                        inconsistentSubgraphs: subgraphs.inconsistent,
+                        consistentSubgraphs: subgraphs.consistent
+                    }]
+                });
+            }
 
             check self.applyJoinFieldDirectives(
                 mergedField.appliedDirectives, 
