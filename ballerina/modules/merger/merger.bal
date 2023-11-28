@@ -271,6 +271,10 @@ public class Merger {
         Hint[] hints = [];
         MergeError[] errors = [];
         foreach [string, parser:__Type] [typeName, 'type] in supergraphObjectTypes.entries() {
+            if parser:isBuiltInType(typeName) || isSupergraphFederationType(typeName) {
+                continue;
+            }
+
             Subgraph[] subgraphs = self.getDefiningSubgraphs(typeName);
 
             // ---------- Merge Descriptions -----------
@@ -620,6 +624,7 @@ public class Merger {
             }
         }
 
+        MergeError[] errors = [];
         foreach [string, FieldSource[]] [fieldName, fieldSources] in unionedFields.entries() {
             Subgraph[] shareableSubgraphs = [];
             Subgraph[] nonShareableSubgraphs = [];
@@ -632,11 +637,19 @@ public class Merger {
             }
             if fieldSources.length() > 1 && shareableSubgraphs.length() !== fieldSources.length() {
                 _ = unionedFields.remove(fieldName); // Handle shareable error
+                check appendErrors(errors, [error MergeError("Invalid field sharing", hint = {
+                    code: INVALID_FIELD_SHARING,
+                    location: [],
+                    details: [{
+                        value: "shareable",
+                        consistentSubgraphs: shareableSubgraphs,
+                        inconsistentSubgraphs: nonShareableSubgraphs
+                    }]
+                })], fieldName);
             }
         }
 
         Hint[] hints = [];
-        MergeError[] errors = [];
         map<parser:__Field> mergedFields = {};
         foreach [string, FieldSource[]] [fieldName, fieldSources] in unionedFields.entries() {
             InputFieldMapSource[] inputFieldSources = [];
