@@ -866,7 +866,7 @@ public class Merger {
                 boolean isRequiredTypeFound = argDefs.some(v => isTypeRequired(v[1].'type));
                 if isRequiredTypeFound {
                     hint.code = REQUIRED_ARGUMENT_MISSING_IN_SOME_SUBGRAPH;
-                    return error MergeError("Required argument is missing on some subgraph(s)", hint = hint);
+                    errors.push(error MergeError("Required argument is missing on some subgraph(s)", hint = hint));
                 }
             }
         }
