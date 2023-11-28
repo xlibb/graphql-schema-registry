@@ -30,8 +30,25 @@ public class Merger {
         check self.addDirectives();
         Hint[] unionMergeHints = check self.mergeUnionTypes() ?: [];
         check self.mergeImplementsRelationship();
-        Hint[] objectMergeHints = check self.mergeObjectTypes() ?: [];
-        Hint[] interfaceMergeHints = check self.mergeInterfaceTypes() ?: [];
+
+        Hint[] mergeHints = [];
+
+        Hint[]|MergeError[] objectMergeHints = check self.mergeObjectTypes();
+        if objectMergeHints is MergeError[] {
+            return transformErrorMessages(objectMergeHints);
+        }
+        if objectMergeHints is Hint[] {
+            mergeHints.push(...objectMergeHints);
+        }
+
+        Hint[]|MergeError[] interfaceMergeHints = check self.mergeInterfaceTypes();
+        if interfaceMergeHints is MergeError[] {
+            return transformErrorMessages(interfaceMergeHints);
+        }
+        if interfaceMergeHints is Hint[] {
+            mergeHints.push(...interfaceMergeHints);
+        }
+
         Hint[] inputTypeMergeHints = check self.mergeInputTypes() ?: [];
         Hint[] enumTypeMergeHints = check self.mergeEnumTypes() ?: [];
         Hint[] scalarTypeMergeHints = check self.mergeScalarTypes() ?: [];
@@ -39,8 +56,9 @@ public class Merger {
         check self.populateRootTypes();
 
         Hint[] hints = [ ...unionMergeHints,
-                         ...objectMergeHints,
-                         ...interfaceMergeHints,
+                        //  ...objectMergeHints,
+                        //  ...interfaceMergeHints,
+                         ...mergeHints,
                          ...inputTypeMergeHints,
                          ...enumTypeMergeHints,
                          ...scalarTypeMergeHints ];
@@ -242,9 +260,10 @@ public class Merger {
         }
     }
 
-    isolated function mergeObjectTypes() returns Hint[]|MergeError|InternalError? {
+    isolated function mergeObjectTypes() returns Hint[]|MergeError|MergeError[]|InternalError {
         map<parser:__Type> supergraphObjectTypes = self.getSupergraphTypesOfKind(parser:OBJECT);
         Hint[] hints = [];
+        MergeError[] errors = [];
         foreach [string, parser:__Type] [typeName, 'type] in supergraphObjectTypes.entries() {
             Subgraph[] subgraphs = self.getDefiningSubgraphs(typeName);
 
@@ -274,15 +293,20 @@ public class Merger {
                     ]);
                 }
             }
-            MergedResult mergedFields = check self.mergeFields(fieldMapSources);
+            MergedResult|MergeError[] mergedFields = check self.mergeFields(fieldMapSources);
+            if mergedFields is MergeError[] {
+                check appendErrors(errors, mergedFields, typeName);
+                continue;
+            }
             appendHints(hints, mergedFields.hints, typeName);
             'type.fields = <map<parser:__Field>>mergedFields.result;
         }
-        return hints;
+        return errors.length() > 0 ? errors : hints;
     }
 
-    isolated function mergeInterfaceTypes() returns Hint[]|MergeError|InternalError? {
+    isolated function mergeInterfaceTypes() returns Hint[]|MergeError|MergeError[]|InternalError {
         Hint[] hints = [];
+        MergeError[] errors = [];
         map<parser:__Type> supergraphInterfaceTypes = self.getSupergraphTypesOfKind(parser:INTERFACE);
         foreach [string, parser:__Type] [typeName, interface] in supergraphInterfaceTypes.entries() {
             Subgraph[] subgraphs = self.getDefiningSubgraphs(typeName);
@@ -313,12 +337,16 @@ public class Merger {
                     ]);
                 }
             }
-            MergedResult mergedFields = check self.mergeFields(fieldMaps);
+            MergedResult|MergeError[] mergedFields = check self.mergeFields(fieldMaps);
+            if mergedFields is MergeError[] {
+                check appendErrors(errors, mergedFields, typeName);
+                continue;
+            }
             interface.fields = <map<parser:__Field>>mergedFields.result;
 
             interface.possibleTypes = [];
         }
-        return hints;
+        return errors.length() > 0 ? errors : hints;
     }
 
     isolated function mergeInputTypes() returns Hint[]|MergeError|InternalError? {
@@ -567,7 +595,7 @@ public class Merger {
         return filteredEnumValues;
     }
 
-    isolated function mergeFields(FieldMapSource[] sources) returns MergedResult|MergeError|InternalError {
+    isolated function mergeFields(FieldMapSource[] sources) returns MergedResult|MergeError|MergeError[]|InternalError {
 
         // Get union of all the fields
         map<FieldSource[]> unionedFields = {};
@@ -597,6 +625,7 @@ public class Merger {
         }
 
         Hint[] hints = [];
+        MergeError[] errors = [];
         map<parser:__Field> mergedFields = {};
         foreach [string, FieldSource[]] [fieldName, fieldSources] in unionedFields.entries() {
             InputFieldMapSource[] inputFieldSources = [];
@@ -631,11 +660,15 @@ public class Merger {
             appendHints(hints, mergeDescriptionResult.hints, fieldName);
             string? mergedDescription = <string?>mergeDescriptionResult.result;
 
-            TypeReferenceMergeResult|MergeError typeMergeResult = check self.mergeTypeReferenceSet(outputTypes, OUTPUT);
+            TypeReferenceMergeResult|MergeError|InternalError typeMergeResult = self.mergeTypeReferenceSet(outputTypes, OUTPUT);
             if typeMergeResult is MergeError {
                 // Handle errors
+                check appendErrors(errors, [typeMergeResult], fieldName);
                 continue;
             }                
+            if typeMergeResult is InternalError {
+                return typeMergeResult;
+            }
             appendHints(hints, typeMergeResult.hints, fieldName);
             parser:__Type mergedOutputType = <parser:__Type>typeMergeResult.result;
 
@@ -670,10 +703,7 @@ public class Merger {
 
         }
 
-        return {
-            result: mergedFields,
-            hints: hints
-        };
+        return errors.length() > 0 ? errors : { result: mergedFields, hints: hints };
         
     }
 
@@ -932,9 +962,29 @@ public class Merger {
             
             if mergedTypeReference !is () {
                 // mergedTypeReference = check mergerFn(mergedTypeReference, typeReference); 
-                mergedTypeReference = refType == OUTPUT ? 
-                                        check self.getMergedOutputTypeReference(mergedTypeReference, typeReference) :
-                                        check self.getMergedInputTypeReference(mergedTypeReference, typeReference);
+                parser:__Type?|MergeError|InternalError result = refType == OUTPUT ? 
+                                        self.getMergedOutputTypeReference(mergedTypeReference, typeReference) :
+                                        self.getMergedInputTypeReference(mergedTypeReference, typeReference);
+                if result is MergeError {
+                    HintDetail[] details = [];
+                    foreach [string, TypeReferenceSources] [typeName, typeSources] in unionedReferences.entries() {
+                        details.push({
+                            value: typeName,
+                            consistentSubgraphs: typeSources.subgraphs,
+                            inconsistentSubgraphs: []
+                        });
+                    }
+                    Hint|error hint = result.detail().hint.cloneWithType();
+                    if hint is error {
+                        return error InternalError(hint.message());
+                    }
+                    hint.details = details;
+                    return error MergeError(result.message(), hint = hint);
+                }
+                if result is InternalError {
+                    return result;
+                }
+                mergedTypeReference = result;
             }
         }
 
