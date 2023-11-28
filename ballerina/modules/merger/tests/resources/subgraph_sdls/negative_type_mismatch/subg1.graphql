@@ -1,0 +1,11 @@
+type Query {
+    name: String
+}
+
+type Foo {
+    name: String
+}
+
+type Fux {
+    name: ID
+}

@@ -7,10 +7,12 @@ type TestSchemas record {|
     parser:__Schema merged;
 |};
 
+string testResourcesPath = check file:joinPath("modules", "merger", "tests", "resources");
+
 function getSubgraphsFromFileName(string folderName, string subgraph_prefix) returns Subgraph[]|error {
     Subgraph[] subgraphs = [];
 
-    string path = check file:joinPath("modules", "merger", "tests", "resources", "subgraph_sdls", folderName);
+    string path = check file:joinPath(testResourcesPath, "subgraph_sdls", folderName);
     file:MetaData[] & readonly readDir = check file:readDir(path);
     
     int subgraph_no = 1;
@@ -34,9 +36,16 @@ function getSubgraphsFromFileName(string folderName, string subgraph_prefix) ret
     return subgraphs;
 }
 
+type ErrorMessages string[];
+function getExpectedErrorMessages(string testName) returns string[]|error {
+    string path = check file:joinPath(testResourcesPath, "expected_errors", string `${testName}.json`);
+    json errorsJson = check io:fileReadJson(path);
+    return check errorsJson.cloneWithType(ErrorMessages);
+}
+
 function getSupergraphSdlFromFileName(string fileName) returns string|error {
     string gqlFileName = string `${fileName}.graphql`;
-    string path = check file:joinPath("modules", "merger", "tests", "resources", "expected_supergraphs", gqlFileName);
+    string path = check file:joinPath(testResourcesPath, "expected_supergraphs", gqlFileName);
     return check io:fileReadString(path);
 }
 
@@ -54,10 +63,14 @@ function getSchemas(string fileName, string subgraph_prefix = "subg") returns [p
 
 function getMergedAndParsedSchemas(string fileName) returns TestSchemas|error {
     [parser:__Schema, Subgraph[]] schemas = check getSchemas(fileName);
-    parser:__Schema merged = (check (check new Merger(schemas[1])).merge()).result.schema;
+    SupergraphMergeResult|MergeError[]|InternalError|error merged = (check new Merger(schemas[1])).merge();
+    if merged is SupergraphMergeResult {
+        return {
+            parsed: schemas[0],
+            merged: merged.result.schema
+        };
+    } else {
+        return error("Supergraph merge failure");
+    }
 
-    return {
-        parsed: schemas[0],
-        merged: merged
-    };
 }

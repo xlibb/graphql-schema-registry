@@ -201,7 +201,12 @@ public isolated class Registry {
     }
 
     isolated function mergeSubgraphs(merger:Subgraph[] subgraphs) returns merger:SupergraphMergeResult|error {
-        return (check (check new merger:Merger(subgraphs)).merge());
+        merger:SupergraphMergeResult|merger:MergeError[]|merger:InternalError|error merged = (check new merger:Merger(subgraphs)).merge();
+        if merged is merger:SupergraphMergeResult {
+            return merged;
+        } else {
+            return error("Supergraph merge failure");
+        }
     }
 
     isolated function exportSchema(parser:__Schema schema) returns string|exporter:ExportError {

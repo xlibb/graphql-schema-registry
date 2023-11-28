@@ -107,3 +107,6 @@ public type SupergraphMergeResult record {|
     Supergraph result;
     string[] hints;
 |};
+
+public type MergeHints Hint[];
+public type MergeErrors MergeError[];

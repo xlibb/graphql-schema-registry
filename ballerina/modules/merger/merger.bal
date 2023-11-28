@@ -20,10 +20,13 @@ public class Merger {
         };
     }
 
-    public isolated function merge() returns SupergraphMergeResult|MergeError|InternalError {
+    public isolated function merge() returns SupergraphMergeResult|MergeError[]|InternalError|error {
         check self.addFederationDefinitions();
         check self.populateFederationJoinGraphEnum();
-        check self.addTypesShallow();
+        MergeError[]? shallowTypeMergeResult = check self.addTypesShallow();
+        if shallowTypeMergeResult is MergeError[] {
+            return transformErrorMessages(shallowTypeMergeResult);
+        }
         check self.addDirectives();
         Hint[] unionMergeHints = check self.mergeUnionTypes() ?: [];
         check self.mergeImplementsRelationship();
@@ -97,7 +100,7 @@ public class Merger {
         }
     }
 
-    isolated function addTypesShallow() returns MergeError|InternalError? {
+    isolated function addTypesShallow() returns MergeError[]|InternalError? {
         map<map<TypeKindSources>> typeMap = {};
         foreach Subgraph subgraph in self.subgraphs {
             foreach [string, parser:__Type] [typeName, 'type] in subgraph.schema.types.entries() {
@@ -127,6 +130,8 @@ public class Merger {
                 }
             }
         }
+
+        MergeError[] errors = [];
         foreach [string, map<TypeKindSources>] [typeName, typeKindMap] in typeMap.entries() {
             if typeKindMap.length() === 1 {
                 check self.addTypeToSupergraph({
@@ -149,9 +154,10 @@ public class Merger {
                     location: [ typeName ],
                     details: details
                 };
-                return error MergeError("Type kind mismatch", hint = mismatchHint);
+                errors.push(error MergeError("Type kind mismatch", hint = mismatchHint));
             }
         }
+        return errors.length() > 0 ? errors : ();
     }
 
     isolated function addDirectives() returns InternalError? {
