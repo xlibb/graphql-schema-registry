@@ -1,0 +1,8 @@
+{
+    "data": {
+        "subgraph": {
+            "name": "subg1",
+            "schema": "type Query {\n    name(age: Int): String\n    age: Int!\n}\n\ntype Foo {\n    name: String\n}\n\ntype Bar {\n    name: String\n}\n\nunion UnionFoo = Foo | Bar"
+        }
+    }
+}

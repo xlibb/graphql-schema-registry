@@ -21,9 +21,9 @@ isolated service / on new graphql:Listener(9090) {
         return new Supergraph(check self.registry.dryRun(schema));
     }
 
-    // resource function get subgraph(string name) returns Subgraph|error {
-    //     return new Subgraph(check self.registry.getSubgraphByName(name));
-    // }
+    isolated resource function get subgraph(string name) returns Subgraph|error {
+        return new Subgraph(check self.registry.getSubgraphByName(name));
+    }
 
     isolated remote function publishSubgraph(SubgraphInput schema) returns Supergraph|error {
         return new Supergraph(check self.registry.publishSubgraph(schema));

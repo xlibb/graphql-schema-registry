@@ -39,6 +39,24 @@ public isolated class Registry {
         };
     }
 
+    public isolated function getSubgraphByName(string name) returns Subgraph|datasource:Error|RegistryError {
+        datasource:Subgraph[] subgraphs = check self.datasource->/subgraphs/[name];
+        if subgraphs.length() > 0 {
+            datasource:Subgraph latestSubgraph = subgraphs.sort(
+                                                    "descending", 
+                                                    key = isolated function (datasource:Subgraph s) returns int {
+                                                        return s.id;
+                                                    })[0];
+            return {
+                name: latestSubgraph.name,
+                url: latestSubgraph.url,
+                schema: latestSubgraph.schema
+            };
+        } else {
+            return error RegistryError(string `No subgraph found with the name '${name}'`);
+        }
+    }
+
     isolated function getLatestSupergraphRecord() returns datasource:Supergraph|datasource:Error|RegistryError {
         string? latestVersion = check self.getLatestSupergraphVersion();
         if latestVersion is () {
