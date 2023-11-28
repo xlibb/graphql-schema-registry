@@ -1,0 +1,7 @@
+type Query {
+    name: String
+}
+
+type Bar {
+    bar(name: String = "Bux", age: Int = 30, foo: ID): String
+}

@@ -809,7 +809,6 @@ public class Merger {
 
                 TypeReferenceMergeResult|MergeError|InternalError inputTypeMergeResult = self.mergeTypeReferenceSet(typeReferenceSources, INPUT);
                 if inputTypeMergeResult is MergeError {
-                    // Handle errors
                     check appendErrors(errors, [inputTypeMergeResult], argName);
                     continue;
                 }
@@ -819,9 +818,9 @@ public class Merger {
                 parser:__Type mergedTypeReference = <parser:__Type>inputTypeMergeResult.result;
                 appendHints(hints, inputTypeMergeResult.hints, argName);
 
-                MergedResult|MergeError defaultValueMergeResult = check self.mergeDefaultValues(defaultValueSources);
+                MergedResult|MergeError defaultValueMergeResult = self.mergeDefaultValues(defaultValueSources);
                 if defaultValueMergeResult is MergeError {
-                    // Handle default value inconsistency
+                    check appendErrors(errors, [defaultValueMergeResult], argName);
                     continue;
                 }               
                 appendHints(hints, defaultValueMergeResult.hints, argName);
