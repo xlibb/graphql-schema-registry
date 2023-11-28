@@ -1,6 +1,6 @@
 import graphql_schema_registry.parser;
 
-function createSchema() returns parser:__Schema {
+isolated function createSchema() returns parser:__Schema {
     [map<parser:__Type>, map<parser:__Directive>] [types, directives] = getBuiltInDefinitions();
     return {
         types,
@@ -9,7 +9,7 @@ function createSchema() returns parser:__Schema {
     };
 }
 
-function createObjectType(string name, map<parser:__Field> fields = {}, parser:__Type[] interfaces = [], parser:__AppliedDirective[] applied_directives = []) returns parser:__Type {
+isolated function createObjectType(string name, map<parser:__Field> fields = {}, parser:__Type[] interfaces = [], parser:__AppliedDirective[] applied_directives = []) returns parser:__Type {
     return {
         kind: parser:OBJECT,
         name: name,
@@ -19,7 +19,7 @@ function createObjectType(string name, map<parser:__Field> fields = {}, parser:_
     };
 }
 
-function createDirective(string name, string? description, parser:__DirectiveLocation[] locations, map<parser:__InputValue> args, boolean isRepeatable) returns parser:__Directive {
+isolated function createDirective(string name, string? description, parser:__DirectiveLocation[] locations, map<parser:__InputValue> args, boolean isRepeatable) returns parser:__Directive {
     return {
         name,
         description,
@@ -28,15 +28,35 @@ function createDirective(string name, string? description, parser:__DirectiveLoc
         isRepeatable
     };
 }
-function getBuiltInDefinitions() returns [map<parser:__Type>, map<parser:__Directive>] {
+isolated function getBuiltInDefinitions() returns [map<parser:__Type>, map<parser:__Directive>] {
     parser:__Type query_type = createObjectType(parser:QUERY_TYPE);
     map<parser:__Type> types = {};
 
-    types[parser:BOOLEAN] = parser:gql_Boolean.clone();
-    types[parser:STRING] = parser:gql_String.clone();
-    types[parser:FLOAT] = parser:gql_Float.clone();
-    types[parser:INT] = parser:gql_Int.clone();
-    types[parser:ID] = parser:gql_ID.clone();
+    types[parser:BOOLEAN] = {
+                                kind: parser:SCALAR,
+                                name: parser:BOOLEAN,
+                                description: "Built-in Boolean"
+                            };
+    types[parser:STRING] =  {
+                                kind: parser:SCALAR,
+                                name: parser:STRING,
+                                description: "Built-in String"
+                            };
+    types[parser:FLOAT] =   {
+                                kind: parser:SCALAR,
+                                name: parser:FLOAT,
+                                description: "Built-in Float"
+                            };
+    types[parser:INT] =     {
+                                kind: parser:SCALAR,
+                                name: parser:INT,
+                                description: "Built-in Int"
+                            };
+    types[parser:ID] =      {
+                                kind: parser:SCALAR,
+                                name: parser:ID,
+                                description: "Built-in ID"
+                            };
     types[parser:QUERY_TYPE] = query_type;
 
     map<parser:__Directive> directives = getBuiltInDirectives(types);
@@ -44,7 +64,7 @@ function getBuiltInDefinitions() returns [map<parser:__Type>, map<parser:__Direc
     return [ types, directives ];
 }
 
-function getBuiltInDirectives(map<parser:__Type> types) returns map<parser:__Directive> {
+isolated function getBuiltInDirectives(map<parser:__Type> types) returns map<parser:__Directive> {
     parser:__Directive include = createDirective(
         parser:INCLUDE_DIR,
         "Directs the executor to include this field or fragment only when the `if` argument is true",
@@ -109,7 +129,7 @@ function getBuiltInDirectives(map<parser:__Type> types) returns map<parser:__Dir
 }
 
 // Get the __AppliedDirective for a given __Directive and it's arguments. Default arguments will be added automatically.
-function getAppliedDirectiveFromDirective(parser:__Directive directive, map<anydata> arguments) returns parser:__AppliedDirective|InternalError {
+isolated function getAppliedDirectiveFromDirective(parser:__Directive directive, map<anydata> arguments) returns parser:__AppliedDirective|InternalError {
     map<parser:__AppliedDirectiveInputValue> applied_args = directive.args.'map(m => { 
                                                                                         value: m.defaultValue, 
                                                                                         definition: m.'type 
@@ -130,7 +150,7 @@ function getAppliedDirectiveFromDirective(parser:__Directive directive, map<anyd
     };
 }
 
-function getDirectiveLocationsFromStrings(string[] locations) returns parser:__DirectiveLocation[]|InternalError {
+isolated function getDirectiveLocationsFromStrings(string[] locations) returns parser:__DirectiveLocation[]|InternalError {
     parser:__DirectiveLocation[] enumLocations = [];
     foreach string location in locations {
         enumLocations.push(check getDirectiveLocationFromString(location));
@@ -139,7 +159,7 @@ function getDirectiveLocationsFromStrings(string[] locations) returns parser:__D
 }
 
 // Change parser to Parse DirectiveLocations as enums
-function getDirectiveLocationFromString(string location) returns parser:__DirectiveLocation|InternalError {
+isolated function getDirectiveLocationFromString(string location) returns parser:__DirectiveLocation|InternalError {
     match location {
         "QUERY" => { return parser:QUERY; }
         "MUTATION" => { return parser:MUTATION; }
@@ -164,7 +184,7 @@ function getDirectiveLocationFromString(string location) returns parser:__Direct
     }
 }
 
-function typeReferenceToString(parser:__Type 'type) returns string|InternalError {
+isolated function typeReferenceToString(parser:__Type 'type) returns string|InternalError {
     match 'type.kind {
         parser:LIST => { 
             parser:__Type? ofType = 'type.ofType;
@@ -186,7 +206,7 @@ function typeReferenceToString(parser:__Type 'type) returns string|InternalError
     }
 }
 
-function implementInterface(parser:__Type 'type, parser:__Type interface) returns InternalError? {
+isolated function implementInterface(parser:__Type 'type, parser:__Type interface) returns InternalError? {
     parser:__Type[]? interfaces = 'type.interfaces;
     if interfaces is parser:__Type[] {
         interfaces.push(interface);
@@ -198,64 +218,70 @@ function implementInterface(parser:__Type 'type, parser:__Type interface) return
 function applyDirective(parser:__Type|parser:__InputValue 'type, parser:__AppliedDirective appliedDirective) returns InternalError? {
 
 }
-function getMutualType(parser:__Type typeA, parser:__Type typeB) returns parser:__Type? {
-    if isParentType(typeA, typeB) {
+isolated function getMutualType(parser:__Type typeA, parser:__Type typeB) returns parser:__Type? {
+    if isParentType(typeA.cloneReadOnly(), typeB.cloneReadOnly()) {
         return typeA;
-    } else if isParentType(typeB, typeA) {
+    } else if isParentType(typeB.cloneReadOnly(), typeA.cloneReadOnly()) {
         return typeB;
-    } else if isUnionMember(typeA, typeB) {
+    } else if isUnionMember(typeA.cloneReadOnly(), typeB.cloneReadOnly()) {
         return typeA;
-    } else if isUnionMember(typeB, typeA) {
+    } else if isUnionMember(typeB.cloneReadOnly(), typeA.cloneReadOnly()) {
         return typeB;
     } else {
         return ();
     }
 }
 
-function isParentType(parser:__Type parent, parser:__Type child) returns boolean {
+isolated function isParentType(parser:__Type & readonly parent, parser:__Type & readonly child) returns boolean {
     parser:__Type[]? interfaces = child.interfaces;
     if interfaces !is () {
-        return interfaces.some(t => t.name == parent.name);
+        // return interfaces.some(t => t.name == parent.name);
+        return interfaces.some(isolated function(parser:__Type t) returns boolean {
+            return t.name == parent.name;
+        });
     } else {
         return false;
     }
 }
 
-function isUnionMember(parser:__Type unionType, parser:__Type unionMember) returns boolean {
+isolated function isUnionMember(parser:__Type & readonly unionType, parser:__Type & readonly unionMember) returns boolean {
     parser:__Type[]? possibleTypes = unionType.possibleTypes;
     if possibleTypes !is () {
-        return possibleTypes.some(t => t.name == unionMember.name);
+        // return possibleTypes.some(t => t.name == unionMember.name);
+        return possibleTypes.some(isolated function(parser:__Type t) returns boolean {
+            return t.name == unionMember.name;
+        });
     } else {
         return false;
     }
 
 }
 
-function isTypeRequired(parser:__Type 'type) returns boolean {
+isolated function isTypeRequired(parser:__Type 'type) returns boolean {
     return 'type.kind == parser:NON_NULL;
 }
 
-function getTypesOfKind(parser:__Schema schema, parser:__TypeKind kind) returns map<parser:__Type> {
+isolated function getTypesOfKind(parser:__Schema schema, parser:__TypeKind kind) returns map<parser:__Type> {
     return schema.types.filter(t => t.kind === kind);
 }
 
-function isDirectiveOnDirectiveMap(parser:__Schema schema, string name) returns boolean {
+isolated function isDirectiveOnDirectiveMap(parser:__Schema schema, string name) returns boolean {
     return schema.directives.hasKey(name);
 }
 
-function getDirectiveFromDirectiveMap(parser:__Schema schema, string name) returns parser:__Directive {
+isolated function getDirectiveFromDirectiveMap(parser:__Schema schema, string name) returns parser:__Directive {
     return schema.directives.get(name);
 }
 
-function isTypeOnTypeMap(parser:__Schema schema, string name) returns boolean {
+isolated function isTypeOnTypeMap(parser:__Schema schema, string name) returns boolean {
     return schema.types.hasKey(name);
 }
 
-function getTypeFromTypeMap(parser:__Schema schema, string name) returns parser:__Type {
+isolated function getTypeFromTypeMap(parser:__Schema schema, string name) returns parser:__Type {
     return schema.types.get(name);
 }
 
-function addTypeDefinition(parser:__Schema schema, parser:__Type 'type) returns InternalError? {
+isolated function addTypeDefinition(parser:__Schema schema, parser:__Type 'type) returns InternalError? {
     string? typeName = 'type.name;
     if typeName is () {
         return error InternalError("Type name cannot be null");
@@ -263,11 +289,11 @@ function addTypeDefinition(parser:__Schema schema, parser:__Type 'type) returns 
     schema.types[typeName] = 'type;
 }
 
-function addDirectiveDefinition(parser:__Schema schema, parser:__Directive directive) {
+isolated function addDirectiveDefinition(parser:__Schema schema, parser:__Directive directive) {
     schema.directives[directive.name] = directive;
 }
 
-function isDirectiveApplied(parser:__AppliedDirective[] appliedDirectives, string directiveName) returns boolean {
+isolated function isDirectiveApplied(parser:__AppliedDirective[] appliedDirectives, string directiveName) returns boolean {
     boolean isApplied = false;
     foreach parser:__AppliedDirective dir in appliedDirectives {
         if dir.definition.name == directiveName {
@@ -278,7 +304,7 @@ function isDirectiveApplied(parser:__AppliedDirective[] appliedDirectives, strin
     return isApplied;
 }
 
-function getAppliedDirectives(string name, parser:__AppliedDirective[] directives) returns parser:__AppliedDirective[] {
+isolated function getAppliedDirectives(string name, parser:__AppliedDirective[] directives) returns parser:__AppliedDirective[] {
     parser:__AppliedDirective[] filter = directives.filter(a => a.definition.name === name);
     return filter;
 }

@@ -6,7 +6,7 @@ public class Merger {
     private map<Subgraph> subgraphs;
     private map<parser:__EnumValue> joinGraphMap;
 
-    public function init(Subgraph[] subgraphs) returns InternalError? {
+    public isolated function init(Subgraph[] subgraphs) returns InternalError? {
         self.subgraphs = {};
         foreach Subgraph subgraph in subgraphs {
             Subgraph updatedSubgraph = subgraph.clone();
@@ -20,7 +20,7 @@ public class Merger {
         };
     }
 
-    public function merge() returns SupergraphMergeResult|MergeError|InternalError {
+    public isolated function merge() returns SupergraphMergeResult|MergeError|InternalError {
         check self.addFederationDefinitions();
         check self.populateFederationJoinGraphEnum();
         check self.addTypesShallow();
@@ -51,7 +51,7 @@ public class Merger {
         return self.subgraphs.clone();
     }
 
-    function addFederationDefinitions() returns InternalError? {
+    isolated function addFederationDefinitions() returns InternalError? {
         map<parser:__Type> federationTypes = check getFederationTypes(self.supergraph.schema.types);
         foreach parser:__Type 'type in federationTypes {
             check self.addTypeToSupergraph('type);
@@ -81,7 +81,7 @@ public class Merger {
         check self.applyLinkDirective(self.supergraph.schema, JOIN_SPEC_URL, EXECUTION);
     }
 
-    function populateFederationJoinGraphEnum() returns InternalError? {
+    isolated function populateFederationJoinGraphEnum() returns InternalError? {
         parser:__Type typeFromSupergraph = check self.getTypeFromSupergraph(JOIN_GRAPH_TYPE);
         parser:__EnumValue[]? enumValues = typeFromSupergraph.enumValues;
         if enumValues is parser:__EnumValue[] {
@@ -97,7 +97,7 @@ public class Merger {
         }
     }
 
-    function addTypesShallow() returns MergeError|InternalError? {
+    isolated function addTypesShallow() returns MergeError|InternalError? {
         map<map<TypeKindSources>> typeMap = {};
         foreach Subgraph subgraph in self.subgraphs {
             foreach [string, parser:__Type] [typeName, 'type] in subgraph.schema.types.entries() {
@@ -154,7 +154,7 @@ public class Merger {
         }
     }
 
-    function addDirectives() returns InternalError? {
+    isolated function addDirectives() returns InternalError? {
         foreach Subgraph subgraph in self.subgraphs {
             foreach [string, parser:__Directive] [key, value] in subgraph.schema.directives.entries() {
                 if parser:isBuiltInDirective(key) || !parser:isExecutableDirective(value) || isSubgraphFederationDirective(key) {
@@ -175,7 +175,7 @@ public class Merger {
         }
     }
 
-    function mergeUnionTypes() returns Hint[]|InternalError? {
+    isolated function mergeUnionTypes() returns Hint[]|InternalError? {
         map<parser:__Type> supergraphUnionTypes = self.getSupergraphTypesOfKind(parser:UNION);
         Hint[] hints = [];
         foreach [string, parser:__Type] [typeName, mergedType] in supergraphUnionTypes.entries() {
@@ -221,12 +221,12 @@ public class Merger {
         return hints;
     }
 
-    function mergeImplementsRelationship() returns InternalError? {
+    isolated function mergeImplementsRelationship() returns InternalError? {
         check self.mergeImplementsOf(parser:OBJECT);
         check self.mergeImplementsOf(parser:INTERFACE);
     }
 
-    function mergeImplementsOf(parser:__TypeKind kind) returns InternalError? {
+    isolated function mergeImplementsOf(parser:__TypeKind kind) returns InternalError? {
         map<parser:__Type> supergraphTypes = self.getSupergraphTypesOfKind(kind);
         foreach [string, parser:__Type] [typeName, 'type] in supergraphTypes.entries() {
             Subgraph[] subgraphs = self.getDefiningSubgraphs(typeName);
@@ -236,7 +236,7 @@ public class Merger {
         }
     }
 
-    function mergeObjectTypes() returns Hint[]|MergeError|InternalError? {
+    isolated function mergeObjectTypes() returns Hint[]|MergeError|InternalError? {
         map<parser:__Type> supergraphObjectTypes = self.getSupergraphTypesOfKind(parser:OBJECT);
         Hint[] hints = [];
         foreach [string, parser:__Type] [typeName, 'type] in supergraphObjectTypes.entries() {
@@ -275,7 +275,7 @@ public class Merger {
         return hints;
     }
 
-    function mergeInterfaceTypes() returns Hint[]|MergeError|InternalError? {
+    isolated function mergeInterfaceTypes() returns Hint[]|MergeError|InternalError? {
         Hint[] hints = [];
         map<parser:__Type> supergraphInterfaceTypes = self.getSupergraphTypesOfKind(parser:INTERFACE);
         foreach [string, parser:__Type] [typeName, interface] in supergraphInterfaceTypes.entries() {
@@ -315,7 +315,7 @@ public class Merger {
         return hints;
     }
 
-    function mergeInputTypes() returns Hint[]|MergeError|InternalError? {
+    isolated function mergeInputTypes() returns Hint[]|MergeError|InternalError? {
         map<parser:__Type> supergraphInputTypes = self.getSupergraphTypesOfKind(parser:INPUT_OBJECT);
         Hint[] hints = [];
 
@@ -352,7 +352,7 @@ public class Merger {
         return hints;
     }
 
-    function mergeEnumTypes() returns Hint[]|InternalError? {
+    isolated function mergeEnumTypes() returns Hint[]|InternalError? {
         Hint[] hints = [];
         map<parser:__Type> supergraphEnumTypes = self.getSupergraphTypesOfKind(parser:ENUM);
 
@@ -395,7 +395,7 @@ public class Merger {
         return hints;
     }
 
-    function mergeScalarTypes() returns Hint[]|InternalError? {
+    isolated function mergeScalarTypes() returns Hint[]|InternalError? {
         Hint[] hints = [];
         map<parser:__Type> supergraphScalarTypes = self.getSupergraphTypesOfKind(parser:SCALAR);
 
@@ -421,7 +421,7 @@ public class Merger {
         return hints;
     }
 
-    function mergeDescription(DescriptionSource[] sources) returns MergedResult {
+    isolated function mergeDescription(DescriptionSource[] sources) returns MergedResult {
         DescriptionSources[] sourceGroups = []; // Map cannot be used here because descriptions are Nullable
         foreach int i in 0...sources.length()-1 {
             string? description = sources[i][1];
@@ -473,7 +473,7 @@ public class Merger {
         };
     }
 
-    function mergeEnumValues(EnumValueSetSource[] sources, EnumTypeUsage usage) returns MergeResult|InternalError? {
+    isolated function mergeEnumValues(EnumValueSetSource[] sources, EnumTypeUsage usage) returns MergeResult|InternalError? {
         // Map between Enum value's name and Subgraphs which define that enum value along with it's definition of the enum value
         map<EnumValueSource[]> unionedEnumValues = {}; 
         foreach EnumValueSetSource [subgraph, enumValues] in sources {
@@ -524,7 +524,7 @@ public class Merger {
         };
     }
 
-    function filterEnumValuesBasedOnUsage(map<EnumValueSource[]> allEnumValues, 
+    isolated function filterEnumValuesBasedOnUsage(map<EnumValueSource[]> allEnumValues, 
                                           int contributingSubgraphCount, EnumTypeUsage usage
                                         ) returns map<EnumValueSource[]> {
         map<EnumValueSource[]> filteredEnumValues = {};
@@ -561,7 +561,7 @@ public class Merger {
         return filteredEnumValues;
     }
 
-    function mergeFields(FieldMapSource[] sources) returns MergedResult|MergeError|InternalError {
+    isolated function mergeFields(FieldMapSource[] sources) returns MergedResult|MergeError|InternalError {
 
         // Get union of all the fields
         map<FieldSource[]> unionedFields = {};
@@ -671,7 +671,7 @@ public class Merger {
         
     }
 
-    function mergePossibleTypes(PossibleTypesSource[] sources) returns PossibleTypesMergeResult|InternalError {
+    isolated function mergePossibleTypes(PossibleTypesSource[] sources) returns PossibleTypesMergeResult|InternalError {
         map<TypeReferenceSource[]> typeRefMap = {};
         map<parser:__Type> mergedPossibleTypes = {};
         Hint[] hints = [];
@@ -721,7 +721,7 @@ public class Merger {
         };
     }
 
-    function mergeInputValues(InputFieldMapSource[] sources, boolean isTypeInputType = false) returns MergedResult|MergeError|InternalError {
+    isolated function mergeInputValues(InputFieldMapSource[] sources, boolean isTypeInputType = false) returns MergedResult|MergeError|InternalError {
         map<InputSource[]> unionedInputs = {};
         foreach InputFieldMapSource [subgraph, arguments] in sources {
             foreach parser:__InputValue arg in arguments {
@@ -821,7 +821,7 @@ public class Merger {
         };
     }
 
-    function mergeDefaultValues(DefaultValueSource[] sources) returns MergedResult|MergeError {
+    isolated function mergeDefaultValues(DefaultValueSource[] sources) returns MergedResult|MergeError {
         map<DefaultValueSources> unionedDefaultValues = {};
         foreach DefaultValueSource [subgraph, value] in sources {
             string? valueString = value.toString();
@@ -880,7 +880,7 @@ public class Merger {
     
     }
 
-    function mergeInterfaceImplements(parser:__Type 'type, Subgraph[] subgraphs) returns InternalError? {
+    isolated function mergeInterfaceImplements(parser:__Type 'type, Subgraph[] subgraphs) returns InternalError? {
         string? typeName = 'type.name;
         if typeName is () {
             return error InternalError("Invalid supergraph type");
@@ -900,7 +900,7 @@ public class Merger {
         }
     }
 
-    function mergeTypeReferenceSet(TypeReferenceSource[] sources, TypeReferenceType refType) returns TypeReferenceMergeResult|MergeError|InternalError {
+    isolated function mergeTypeReferenceSet(TypeReferenceSource[] sources, TypeReferenceType refType) returns TypeReferenceMergeResult|MergeError|InternalError {
         map<TypeReferenceSources> unionedReferences = {};
         foreach TypeReferenceSource [subgraph, typeReference] in sources {
             string key = check typeReferenceToString(typeReference);
@@ -915,17 +915,8 @@ public class Merger {
             }
         }
 
-        HintCode code;
-        function (parser:__Type typeA, parser:__Type typeB) returns parser:__Type|InternalError|MergeError mergerFn;
-        if refType == OUTPUT {
-            mergerFn = self.getMergedOutputTypeReference;
-            code = INCONSISTENT_BUT_COMPATIBLE_OUTPUT_TYPE;
-        } else if refType == INPUT {
-            mergerFn = self.getMergedInputTypeReference;
-            code = INCONSISTENT_BUT_COMPATIBLE_INPUT_TYPE;
-        }
-
         Hint[] hints = [];
+        HintCode code = refType == OUTPUT ? INCONSISTENT_BUT_COMPATIBLE_OUTPUT_TYPE : INCONSISTENT_BUT_COMPATIBLE_INPUT_TYPE;
         parser:__Type? mergedTypeReference = ();
         foreach TypeReferenceSources ref in unionedReferences {
             parser:__Type typeReference = ref.data;
@@ -934,7 +925,10 @@ public class Merger {
             }
             
             if mergedTypeReference !is () {
-                mergedTypeReference = check mergerFn(mergedTypeReference, typeReference); 
+                // mergedTypeReference = check mergerFn(mergedTypeReference, typeReference); 
+                mergedTypeReference = refType == OUTPUT ? 
+                                        check self.getMergedOutputTypeReference(mergedTypeReference, typeReference) :
+                                        check self.getMergedInputTypeReference(mergedTypeReference, typeReference);
             }
         }
 
@@ -973,7 +967,7 @@ public class Merger {
         // return mergedTypeReference;
     }
 
-    function getMergedOutputTypeReference(parser:__Type typeA, parser:__Type typeB) returns parser:__Type|InternalError|MergeError {
+    isolated function getMergedOutputTypeReference(parser:__Type typeA, parser:__Type typeB) returns parser:__Type|InternalError|MergeError {
         parser:__Type? typeAWrappedType = typeA.ofType;
         parser:__Type? typeBWrappedType = typeB.ofType;
 
@@ -1006,7 +1000,7 @@ public class Merger {
         
     }
 
-    function getMergedInputTypeReference(parser:__Type typeA, parser:__Type typeB) returns parser:__Type|InternalError|MergeError {
+    isolated function getMergedInputTypeReference(parser:__Type typeA, parser:__Type typeB) returns parser:__Type|InternalError|MergeError {
         parser:__Type? typeAWrappedType = typeA.ofType;
         parser:__Type? typeBWrappedType = typeB.ofType;
 
@@ -1038,15 +1032,15 @@ public class Merger {
         }
     }
 
-    function addTypeToSupergraph(parser:__Type 'type) returns InternalError? {
+    isolated function addTypeToSupergraph(parser:__Type 'type) returns InternalError? {
         check addTypeDefinition(self.supergraph.schema, 'type);
     }
 
-    function addDirectiveToSupergraph(parser:__Directive directive) {
+    isolated function addDirectiveToSupergraph(parser:__Directive directive) {
         addDirectiveDefinition(self.supergraph.schema, directive);
     }
 
-    function populateRootTypes() returns InternalError? {
+    isolated function populateRootTypes() returns InternalError? {
         if self.isTypeOnSupergraph(parser:MUTATION_TYPE) {
             self.supergraph.schema.mutationType = check self.getTypeFromSupergraph(parser:MUTATION_TYPE);
         }
@@ -1055,7 +1049,7 @@ public class Merger {
         }
     }
 
-    function applyLinkDirective(parser:__Schema schema, string url, LinkPurpose? for = ()) returns InternalError? {
+    isolated function applyLinkDirective(parser:__Schema schema, string url, LinkPurpose? for = ()) returns InternalError? {
         map<anydata> argMap = {
             [URL_FIELD]: url
         };
@@ -1077,7 +1071,7 @@ public class Merger {
         );
     }
 
-    function applyJoinTypeDirectives() returns InternalError? {
+    isolated function applyJoinTypeDirectives() returns InternalError? {
         foreach [string, parser:__Type] [key, 'type] in self.supergraph.schema.types.entries() {
             if isSubgraphFederationType(key) || parser:isBuiltInType(key) {
                 continue;
@@ -1105,7 +1099,7 @@ public class Merger {
         }
     }
 
-    function applyJoinFieldDirectives(parser:__AppliedDirective[] appliedDirs, Subgraph[] consistentSubgraphs, 
+    isolated function applyJoinFieldDirectives(parser:__AppliedDirective[] appliedDirs, Subgraph[] consistentSubgraphs, 
                                       boolean hasInconsistentFields, TypeReferenceSources[] outputTypeMismatches) returns InternalError? {
 
         // Handle @override
@@ -1136,7 +1130,7 @@ public class Merger {
         }
     }
 
-    function applyJoinImplementsDirective(parser:__Type 'type, Subgraph subgraph, parser:__Type interfaceType) returns InternalError? {
+    isolated function applyJoinImplementsDirective(parser:__Type 'type, Subgraph subgraph, parser:__Type interfaceType) returns InternalError? {
         'type.appliedDirectives.push(
             check self.getAppliedDirectiveFromName(
                 JOIN_IMPLEMENTS_DIR,
@@ -1148,7 +1142,7 @@ public class Merger {
         );
     }
 
-    function applyJoinUnionMember(parser:__Type 'type, Subgraph subgraph, parser:__Type unionMember) returns InternalError? {
+    isolated function applyJoinUnionMember(parser:__Type 'type, Subgraph subgraph, parser:__Type unionMember) returns InternalError? {
         'type.appliedDirectives.push(
             check self.getAppliedDirectiveFromName(
                 JOIN_UNION_MEMBER_DIR,
@@ -1160,7 +1154,7 @@ public class Merger {
         );
     }
 
-    function applyJoinEnumDirective(parser:__EnumValue enumValue, Subgraph[] subgraphs) returns InternalError? {
+    isolated function applyJoinEnumDirective(parser:__EnumValue enumValue, Subgraph[] subgraphs) returns InternalError? {
         foreach Subgraph subgraph in subgraphs {
             enumValue.appliedDirectives.push(
                 check self.getAppliedDirectiveFromName(
@@ -1173,7 +1167,7 @@ public class Merger {
         }
     }
 
-    function applyJoinGraph(parser:__EnumValue enumValue, string name, string url) returns InternalError? {
+    isolated function applyJoinGraph(parser:__EnumValue enumValue, string name, string url) returns InternalError? {
         enumValue.appliedDirectives.push(
             check self.getAppliedDirectiveFromName(
                 JOIN_GRAPH_DIR,
@@ -1186,7 +1180,7 @@ public class Merger {
     }
 
     // Filter out the Subgraphs which defines the given typeName
-    function getDefiningSubgraphs(string typeName) returns Subgraph[] {
+    isolated function getDefiningSubgraphs(string typeName) returns Subgraph[] {
         Subgraph[] subgraphs = [];
         foreach Subgraph subgraph in self.subgraphs {
             if isTypeOnTypeMap(subgraph.schema, typeName) {
@@ -1197,7 +1191,7 @@ public class Merger {
         return subgraphs;
     }
 
-    function getEnumTypeUsage(parser:__Type enumType) returns EnumTypeUsage {
+    isolated function getEnumTypeUsage(parser:__Type enumType) returns EnumTypeUsage {
         EnumTypeUsage usage = {
             isUsedInInputs: false,
             isUsedInOutputs: false
@@ -1234,7 +1228,7 @@ public class Merger {
         return usage;
     }
 
-    function getEnumTypeUsageInFields(parser:__Type enumType, map<parser:__Field> fields) returns EnumTypeUsage {
+    isolated function getEnumTypeUsageInFields(parser:__Type enumType, map<parser:__Field> fields) returns EnumTypeUsage {
         EnumTypeUsage usage = {
             isUsedInInputs: false,
             isUsedInOutputs: false
@@ -1259,7 +1253,7 @@ public class Merger {
         return usage;
     }
 
-    function getEnumTypeUsageInArgs(parser:__Type enumType, map<parser:__InputValue> args) returns boolean {
+    isolated function getEnumTypeUsageInArgs(parser:__Type enumType, map<parser:__InputValue> args) returns boolean {
         boolean isUsedInInputs = false;
         foreach parser:__InputValue arg in args {
             if isUsedInInputs {
@@ -1275,11 +1269,11 @@ public class Merger {
         return isUsedInInputs;
     }
 
-    function getSupergraphTypesOfKind(parser:__TypeKind kind) returns map<parser:__Type> {
+    isolated function getSupergraphTypesOfKind(parser:__TypeKind kind) returns map<parser:__Type> {
         return getTypesOfKind(self.supergraph.schema, kind);
     }
 
-    function getFilteredFields(string typeName, map<parser:__Field> subgraphFields) returns map<parser:__Field>|InternalError {
+    isolated function getFilteredFields(string typeName, map<parser:__Field> subgraphFields) returns map<parser:__Field>|InternalError {
         map<parser:__Field> filteredFields = {};
         foreach [string, parser:__Field] [key, subgraphField] in subgraphFields.entries() {
             if !(typeName == parser:QUERY_TYPE && isFederationFieldType(key)) {
@@ -1320,7 +1314,7 @@ public class Merger {
         return getDirectiveFromDirectiveMap(self.supergraph.schema, subgraphDefinition.name);
     }
 
-    function getTypeFromSupergraph(string? name) returns parser:__Type|InternalError {
+    isolated function getTypeFromSupergraph(string? name) returns parser:__Type|InternalError {
         if name is () {
             return error InternalError(string `Type name cannot be null`);
         }
@@ -1331,11 +1325,11 @@ public class Merger {
         }
     }
 
-    function isTypeOnSupergraph(string typeName) returns boolean {
+    isolated function isTypeOnSupergraph(string typeName) returns boolean {
         return isTypeOnTypeMap(self.supergraph.schema, typeName);
     }
 
-    function isEntity(parser:__Type 'type) returns EntityStatus {
+    isolated function isEntity(parser:__Type 'type) returns EntityStatus {
         EntityStatus status = {
             isEntity: false,
             isResolvable: false,
@@ -1364,7 +1358,7 @@ public class Merger {
         return status;
     }
 
-    function getDirectiveFromSupergraph(string name) returns parser:__Directive|InternalError {
+    isolated function getDirectiveFromSupergraph(string name) returns parser:__Directive|InternalError {
         if self.isDirectiveOnSupergraph(name) {
             return getDirectiveFromDirectiveMap(self.supergraph.schema, name);
         } else {
@@ -1372,17 +1366,17 @@ public class Merger {
         }
     }
 
-    function getAppliedDirectiveFromName(string name, map<anydata> args) returns parser:__AppliedDirective|InternalError {
+    isolated function getAppliedDirectiveFromName(string name, map<anydata> args) returns parser:__AppliedDirective|InternalError {
         return check getAppliedDirectiveFromDirective(
             check self.getDirectiveFromSupergraph(name), args
         );
     }
 
-    function isDirectiveOnSupergraph(string directiveName) returns boolean {
+    isolated function isDirectiveOnSupergraph(string directiveName) returns boolean {
         return isDirectiveOnDirectiveMap(self.supergraph.schema, directiveName);
     }
 
-    function getInputValueMap(map<parser:__InputValue> sub_map) returns map<parser:__InputValue>|InternalError {
+    isolated function getInputValueMap(map<parser:__InputValue> sub_map) returns map<parser:__InputValue>|InternalError {
         map<parser:__InputValue> inputValueMap = {};
         foreach [string, parser:__InputValue] [key, value] in sub_map.entries() {
             inputValueMap[key] = {
@@ -1396,7 +1390,7 @@ public class Merger {
         return inputValueMap;
     }
 
-    function getInputTypeFromSupergraph(parser:__Type 'type) returns parser:__Type|InternalError {
+    isolated function getInputTypeFromSupergraph(parser:__Type 'type) returns parser:__Type|InternalError {
         if 'type.kind is parser:WRAPPING_TYPE {
             return parser:wrapType(
                 check self.getInputTypeFromSupergraph(<parser:__Type>'type.ofType), 
@@ -1407,19 +1401,19 @@ public class Merger {
         }
     }
 
-    function isTypeAllowsMergingFields(parser:__Type 'type) returns boolean {
+    isolated function isTypeAllowsMergingFields(parser:__Type 'type) returns boolean {
         return self.isEntity('type).isEntity || self.isShareableOnType('type);
     }
 
-    function isShareableOnType(parser:__Type 'type) returns boolean {
+    isolated function isShareableOnType(parser:__Type 'type) returns boolean {
         return isDirectiveApplied('type.appliedDirectives, SHAREABLE_DIR);
     }
 
-    function isShareableOnField(parser:__Field 'field) returns boolean {
+    isolated function isShareableOnField(parser:__Field 'field) returns boolean {
         return isDirectiveApplied('field.appliedDirectives, SHAREABLE_DIR);
     }
 
-    function getConsistentInconsistentSubgraphs([Subgraph, anydata][] sources, [Subgraph, anydata][] defs) 
+    isolated function getConsistentInconsistentSubgraphs([Subgraph, anydata][] sources, [Subgraph, anydata][] defs) 
                                                                             returns ConsistentInconsistenceSubgraphs {
         Subgraph[] consistentSubgraphs = [];
         Subgraph[] inconsistentSubgraphs = [];

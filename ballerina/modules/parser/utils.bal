@@ -15,30 +15,11 @@ public const string MUTATION_TYPE = "Mutation";
 public const string SUBSCRIPTION_TYPE = "Subscription";
 public const string _SERVICE_TYPE = "_Service";
 
-public string[] BUILT_IN_TYPES = [
-    _SERVICE_TYPE,
-    BOOLEAN,
-    STRING,
-    FLOAT,
-    INT,
-    ID
-];
+public type BUILT_IN_TYPES _SERVICE_TYPE | BOOLEAN | STRING | FLOAT | INT | ID;
 
-public __DirectiveLocation[] EXECUTABLE_DIRECTIVE_LOCATIONS = [
-    QUERY,
-    MUTATION,
-    SUBSCRIPTION,
-    FIELD,
-    FRAGMENT_DEFINITION,
-    FRAGMENT_SPREAD,
-    INLINE_FRAGMENT
-];
-public string[] BUILT_IN_DIRECTIVES = [
-    INCLUDE_DIR,
-    DEPRECATED_DIR,
-    SKIP_DIR,
-    SPECIFIED_BY_DIR
-];
+public type EXECUTABLE_DIRECTIVE_LOCATIONS QUERY | MUTATION | SUBSCRIPTION | FIELD | FRAGMENT_DEFINITION | FRAGMENT_SPREAD | INLINE_FRAGMENT;
+
+public type BUILT_IN_DIRECTIVES INCLUDE_DIR | DEPRECATED_DIR | SKIP_DIR | SPECIFIED_BY_DIR;
 
 public isolated function wrapType(__Type 'type, WRAPPING_TYPE kind) returns __Type {
     return {
@@ -47,19 +28,17 @@ public isolated function wrapType(__Type 'type, WRAPPING_TYPE kind) returns __Ty
     };
 }
 
-public function isBuiltInDirective(string directiveName) returns boolean {
-    return BUILT_IN_DIRECTIVES.indexOf(directiveName) !is ();
+public isolated function isBuiltInDirective(string directiveName) returns boolean {
+    return directiveName is BUILT_IN_DIRECTIVES;
 }
 
-public function isExecutableDirective(__Directive directive) returns boolean {
+public isolated function isExecutableDirective(__Directive directive) returns boolean {
     foreach __DirectiveLocation location in directive.locations {
-        if EXECUTABLE_DIRECTIVE_LOCATIONS.indexOf(location) !is () {
-            return true;
-        }
+        return location is EXECUTABLE_DIRECTIVE_LOCATIONS;
     }
     return false;
 }
 
-public function isBuiltInType(string typeName) returns boolean {
-    return BUILT_IN_TYPES.indexOf(typeName) !is ();
+public isolated function isBuiltInType(string typeName) returns boolean {
+    return typeName is BUILT_IN_TYPES;
 }

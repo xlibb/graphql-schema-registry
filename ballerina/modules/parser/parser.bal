@@ -1,14 +1,14 @@
 import ballerina/jballerina.java;
 
-public class Parser {
+public isolated class Parser {
 
-    private handle jObj;
+    private final handle jObj;
 
-    public function init(string schema, ParsingMode mode) {
+    public isolated function init(string schema, ParsingMode mode) {
         self.jObj = newParser(schema, mode);
     }
 
-    public function parse() returns __Schema|error {
+    public isolated function parse() returns __Schema|error {
         return <__Schema>parse(self.jObj);
     }
 
@@ -20,10 +20,10 @@ public enum ParsingMode {
     SUPERGRAPH_SCHEMA
 }
 
-function newParser(string schema, string modeStr) returns handle = @java:Constructor {
+isolated function newParser(string schema, string modeStr) returns handle = @java:Constructor {
     'class: "io.xlibb.schemaregistry.Parser"
 } external;
 
-function parse(handle jObj) returns any = @java:Method {
+isolated function parse(handle jObj) returns any = @java:Method {
     'class: "io.xlibb.schemaregistry.Parser"
 } external;

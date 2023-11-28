@@ -4,30 +4,30 @@ import graphql_schema_registry.parser;
 import graphql_schema_registry.datasource;
 import ballerina/lang.regexp as regex;
 
-public class Registry {
+public isolated class Registry {
 
-    private datasource:Datasource datasource;
+    private final datasource:Datasource datasource;
 
-    public function init(datasource:Datasource datasource) {
+    public isolated function init(datasource:Datasource datasource) {
         self.datasource = datasource;
     }
 
-    public function publishSubgraph(Subgraph input) returns Supergraph|error {
+    public isolated function publishSubgraph(Subgraph input) returns Supergraph|error {
         map<datasource:Subgraph> subgraphs = check self.getLatestSubgraphs();
         Supergraph generatedSupergraph = check self.generateSupergraph(input, subgraphs);
 
         subgraphs[input.name] = check self.registerSubgraph(input);
-        check self.registerSupergraph(generatedSupergraph, subgraphs.toArray());
+        check self.registerSupergraph(generatedSupergraph.cloneReadOnly(), subgraphs.toArray());
     
         return generatedSupergraph;
     }
 
-    public function dryRun(Subgraph input) returns Supergraph|error {
+    public isolated function dryRun(Subgraph input) returns Supergraph|error {
         map<datasource:Subgraph> subgraphs = check self.getLatestSubgraphs();
         return check self.generateSupergraph(input, subgraphs);
     }
 
-    public function getLatestSupergraph() returns Supergraph|datasource:Error|RegistryError {
+    public isolated function getLatestSupergraph() returns Supergraph|datasource:Error|RegistryError {
         datasource:Supergraph supergraph = check self.getLatestSupergraphRecord();
         map<datasource:Subgraph> subgraphs = check self.getLatestSubgraphs();
         return {
@@ -39,7 +39,7 @@ public class Registry {
         };
     }
 
-    function getLatestSupergraphRecord() returns datasource:Supergraph|datasource:Error|RegistryError {
+    isolated function getLatestSupergraphRecord() returns datasource:Supergraph|datasource:Error|RegistryError {
         string? latestVersion = check self.getLatestSupergraphVersion();
         if latestVersion is () {
             return error RegistryError("No registered supergraph");
@@ -47,7 +47,7 @@ public class Registry {
         return check self.getSupergraph(latestVersion);
     }
 
-    function generateSupergraph(Subgraph input, map<datasource:Subgraph> existingSubgraphs) returns Supergraph|datasource:Error|RegistryError|error {
+    isolated function generateSupergraph(Subgraph input, map<datasource:Subgraph> existingSubgraphs) returns Supergraph|datasource:Error|RegistryError|error {
         map<Subgraph> mergingSubgraphs = existingSubgraphs.map(s => { name: s.name, url: s.url, schema: s.schema });
         mergingSubgraphs[input.name] = { name: input.name, url: input.url, schema: input.schema };
         Subgraph[] mergingSubgraphList = mergingSubgraphs.toArray();
@@ -65,7 +65,7 @@ public class Registry {
         
     }
 
-    function composeSupergraph(Subgraph[] subgraphs) returns ComposedSupergraphSchemas|datasource:Error|RegistryError|error {
+    isolated function composeSupergraph(Subgraph[] subgraphs) returns ComposedSupergraphSchemas|datasource:Error|RegistryError|error {
         merger:Subgraph[] mergingSubgraphs = subgraphs.map(s => check self.parseSubgraph(s.name, s.url, s.schema));
         merger:SupergraphMergeResult composedSupergraph = check self.mergeSubgraphs(mergingSubgraphs);
 
@@ -79,7 +79,7 @@ public class Registry {
         };
     }
 
-    function registerSubgraph(Subgraph input) returns datasource:Subgraph|datasource:Error {
+    isolated function registerSubgraph(Subgraph input) returns datasource:Subgraph|datasource:Error {
         [int, string] persistedSubgraph = check self.datasource->/subgraphs.post({ name: input.name, url: input.url, schema: input.schema });
         return {
             id: persistedSubgraph[0],
@@ -89,26 +89,28 @@ public class Registry {
         };
     }
 
-    function registerSupergraph(Supergraph input, datasource:Subgraph[] inputSubgraphs) returns datasource:Error? {
+    isolated function registerSupergraph(Supergraph & readonly input, datasource:Subgraph[] inputSubgraphs) returns datasource:Error? {
         check self.datasource->/supergraphs.post({
             version: input.version,
             schema: input.schema,
             apiSchema: input.apiSchema
         });
         _ = check self.datasource->/supergraphsubgraphs.post(
-            inputSubgraphs.map(s => {
-                supergraphVersion: input.version,
-                subgraphId: s.id,
-                subgraphName: s.name
+            inputSubgraphs.map(isolated function (datasource:Subgraph s) returns datasource:SupergraphSubgraphInsert {
+                return {
+                    supergraphVersion: input.version,
+                    subgraphId: s.id,
+                    subgraphName: s.name
+                };
             })
         );
     }
 
-    function getSubgraph(int id, string name) returns datasource:Subgraph|datasource:Error {
+    isolated function getSubgraph(int id, string name) returns datasource:Subgraph|datasource:Error {
         return check self.datasource->/subgraphs/[id]/[name];
     }
 
-    function getSubgraphsOfSupergraphAsMap(string version) returns map<datasource:Subgraph>|datasource:Error {
+    isolated function getSubgraphsOfSupergraphAsMap(string version) returns map<datasource:Subgraph>|datasource:Error {
         datasource:Subgraph[] subgraphs = check self.datasource->/supergraphs/[version]/subgraphs;
         map<datasource:Subgraph> mappedSubgraphs = {};
         foreach datasource:Subgraph subgraph in subgraphs {
@@ -117,16 +119,16 @@ public class Registry {
         return mappedSubgraphs;
     }
 
-    function getLatestSubgraphs() returns map<datasource:Subgraph>|datasource:Error {
+    isolated function getLatestSubgraphs() returns map<datasource:Subgraph>|datasource:Error {
         string? version = check self.getLatestSupergraphVersion();
         return version !is () ? check self.getSubgraphsOfSupergraphAsMap(version) : {};
     }
 
-    function getSupergraph(string version) returns datasource:Supergraph|datasource:Error {
+    isolated function getSupergraph(string version) returns datasource:Supergraph|datasource:Error {
         return check self.datasource->/supergraphs/[version];
     }
 
-    function getLatestSupergraphVersion() returns string?|datasource:Error {
+    isolated function getLatestSupergraphVersion() returns string?|datasource:Error {
         string[] versions = check self.getVersions();
         if versions.length() <= 0 {
             return ();
@@ -135,15 +137,15 @@ public class Registry {
         return sortedVersions[sortedVersions.length() - 1];
     }
 
-    function getVersions() returns string[]|datasource:Error {
+    isolated function getVersions() returns string[]|datasource:Error {
         return check self.datasource->/versions;
     }
 
-    function createInitialVersion() returns string {
+    isolated function createInitialVersion() returns string {
         return "0.0.0";
     }
 
-    function incrementVersion(string version, VersionIncrementOrder 'order = DANGEROUS) returns string|RegistryError|error {
+    isolated function incrementVersion(string version, VersionIncrementOrder 'order = DANGEROUS) returns string|RegistryError|error {
         int[] numbers = regex:split(re `\.`, version).'map(v => check int:fromString(v));
         if numbers.length() != 3 {
             return error RegistryError(string `Invalid version number '${version}'`);
@@ -176,19 +178,19 @@ public class Registry {
         }
     }
 
-    function createVersion(int breaking, int dangerous, int safe) returns string {
+    isolated function createVersion(int breaking, int dangerous, int safe) returns string {
         return string `${breaking}.${dangerous}.${safe}`;
     }
 
-    function mergeSubgraphs(merger:Subgraph[] subgraphs) returns merger:SupergraphMergeResult|error {
+    isolated function mergeSubgraphs(merger:Subgraph[] subgraphs) returns merger:SupergraphMergeResult|error {
         return (check (check new merger:Merger(subgraphs)).merge());
     }
 
-    function exportSchema(parser:__Schema schema) returns string|exporter:ExportError {
+    isolated function exportSchema(parser:__Schema schema) returns string|exporter:ExportError {
         return check (new exporter:Exporter(schema)).export();
     }
 
-    function parseSubgraph(string name, string url, string schema) returns merger:Subgraph|error {
+    isolated function parseSubgraph(string name, string url, string schema) returns merger:Subgraph|error {
         parser:__Schema parsedSchema = check (new parser:Parser(schema, parser:SUBGRAPH_SCHEMA)).parse();
         return {
             name: name,

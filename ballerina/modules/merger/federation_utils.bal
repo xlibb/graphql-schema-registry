@@ -50,41 +50,17 @@ const string FEDERATION_SPEC_URL = "https://specs.apollo.dev/federation/v2.0";
 const string LINK_SPEC_URL = "https://specs.apollo.dev/link/v1.0";
 const string JOIN_SPEC_URL = "https://specs.apollo.dev/join/v0.3";
 
-string[] FEDERATION_SUBGRAPH_IGNORE_TYPES = [
-    LINK_IMPORT_TYPE,
-    LINK_PURPOSE_TYPE,
-    JOIN_FIELDSET_TYPE,
-    JOIN_GRAPH_TYPE,
-    FIELDSET_TYPE
-];
+type FEDERATION_SUBGRAPH_IGNORE_TYPES LINK_IMPORT_TYPE | LINK_PURPOSE_TYPE | JOIN_FIELDSET_TYPE | JOIN_GRAPH_TYPE | FIELDSET_TYPE;
 
-string[] FEDERATION_SUBGRAPH_IGNORE_DIRECTIVES = [
-    LINK_DIR
-];
+type FEDERATION_SUBGRAPH_IGNORE_DIRECTIVES LINK_DIR;
 
-string[] FEDERATION_FIELD_TYPES = [
-    _SERVICE_FIELD_TYPE
-];
+type FEDERATION_FIELD_TYPES _SERVICE_FIELD_TYPE;
 
-string[] FEDERATION_SUPERGRAPH_DIRECTIVES = [
-    LINK_DIR,
-    JOIN_ENUMVALUE_DIR,
-    JOIN_FIELD_DIR,
-    JOIN_GRAPH_DIR,
-    JOIN_IMPLEMENTS_DIR,
-    JOIN_TYPE_DIR,
-    JOIN_UNION_MEMBER_DIR
-];
+type FEDERATION_SUPERGRAPH_DIRECTIVES LINK_DIR | JOIN_ENUMVALUE_DIR | JOIN_FIELD_DIR | JOIN_GRAPH_DIR | JOIN_IMPLEMENTS_DIR | JOIN_TYPE_DIR | JOIN_UNION_MEMBER_DIR;
 
-string[] FEDERATION_SUPERGRAPH_TYPES = [
-    parser:_SERVICE_TYPE,
-    LINK_IMPORT_TYPE,
-    JOIN_FIELDSET_TYPE,
-    LINK_PURPOSE_TYPE,
-    JOIN_GRAPH_TYPE
-];
+type FEDERATION_SUPERGRAPH_TYPES parser:_SERVICE_TYPE | LINK_IMPORT_TYPE | JOIN_FIELDSET_TYPE | LINK_PURPOSE_TYPE | JOIN_GRAPH_TYPE;
 
-function getFederationTypes(map<parser:__Type> types) returns map<parser:__Type>|InternalError {
+isolated function getFederationTypes(map<parser:__Type> types) returns map<parser:__Type>|InternalError {
     
     parser:__Type _Service = {
         name: parser:_SERVICE_TYPE,
@@ -122,7 +98,7 @@ function getFederationTypes(map<parser:__Type> types) returns map<parser:__Type>
     };
 }
 
-function getFederationDirectives(map<parser:__Type> types) returns map<parser:__Directive> {
+isolated function getFederationDirectives(map<parser:__Type> types) returns map<parser:__Directive> {
     parser:__Directive link = createDirective(
         LINK_DIR,
         (),
@@ -214,27 +190,27 @@ function getFederationDirectives(map<parser:__Type> types) returns map<parser:__
     };
 }
 
-function isSubgraphFederationType(string typeName) returns boolean {
-    return FEDERATION_SUBGRAPH_IGNORE_TYPES.indexOf(typeName) !is ();
+isolated function isSubgraphFederationType(string typeName) returns boolean {
+    return typeName is FEDERATION_SUBGRAPH_IGNORE_TYPES;
 }
 
-function isSubgraphFederationDirective(string directiveName) returns boolean {
-    return FEDERATION_SUBGRAPH_IGNORE_DIRECTIVES.indexOf(directiveName) !is ();
+isolated function isSubgraphFederationDirective(string directiveName) returns boolean {
+    return directiveName is FEDERATION_SUBGRAPH_IGNORE_DIRECTIVES;
 }
 
-function isSupergraphFederationDirective(string directiveName) returns boolean {
-    return FEDERATION_SUPERGRAPH_DIRECTIVES.indexOf(directiveName) !is ();
+isolated function isSupergraphFederationDirective(string directiveName) returns boolean {
+    return directiveName is FEDERATION_SUPERGRAPH_DIRECTIVES;
 }
 
-function isSupergraphFederationType(string typeName) returns boolean {
-    return FEDERATION_SUPERGRAPH_TYPES.indexOf(typeName) !is ();
+isolated function isSupergraphFederationType(string typeName) returns boolean {
+    return typeName is FEDERATION_SUPERGRAPH_TYPES;
 }
 
-function isFederationFieldType(string name) returns boolean {
-    return FEDERATION_FIELD_TYPES.indexOf(name) !is ();
+isolated function isFederationFieldType(string name) returns boolean {
+    return name is FEDERATION_FIELD_TYPES;
 }
 
-function isFederation2Subgraph(Subgraph subgraph) returns InternalError|boolean {
+isolated function isFederation2Subgraph(Subgraph subgraph) returns InternalError|boolean {
     parser:__AppliedDirective[] linkDirs = getAppliedDirectives(LINK_DIR, subgraph.schema.appliedDirectives);
     boolean isFederation2Subgraph = false;
     foreach parser:__AppliedDirective linkDir in linkDirs {
@@ -247,7 +223,7 @@ function isFederation2Subgraph(Subgraph subgraph) returns InternalError|boolean 
     return isFederation2Subgraph;
 }
 
-public function getApiSchema(parser:__Schema supergraph) returns parser:__Schema {
+public isolated function getApiSchema(parser:__Schema supergraph) returns parser:__Schema {
     parser:__Schema apiSchema = supergraph.clone();
     apiSchema.appliedDirectives = removeFederationAppliedDirectives(apiSchema.appliedDirectives);
     foreach string name in apiSchema.directives.keys() {
@@ -256,7 +232,7 @@ public function getApiSchema(parser:__Schema supergraph) returns parser:__Schema
         }
     }
     foreach [string, parser:__Type] [name, 'type] in apiSchema.types.entries() {
-        if isSupergraphFederationType(name) {
+        if isSupergraphFederationType(name) || parser:isBuiltInType(name) {
             _ = apiSchema.types.remove(name);
             continue;
         }
@@ -268,25 +244,25 @@ public function getApiSchema(parser:__Schema supergraph) returns parser:__Schema
     return apiSchema;
 }
 
-function removeEnumValuesFederationAppliedDirectives(parser:__EnumValue[] values) {
+isolated function removeEnumValuesFederationAppliedDirectives(parser:__EnumValue[] values) {
     foreach parser:__EnumValue value in values {
         value.appliedDirectives = removeFederationAppliedDirectives(value.appliedDirectives);
     }
 }
 
-function removeFieldMapFederationAppliedDirectives(map<parser:__Field> fieldMap) {
+isolated function removeFieldMapFederationAppliedDirectives(map<parser:__Field> fieldMap) {
     foreach parser:__Field 'field in fieldMap {
         'field.appliedDirectives = removeFederationAppliedDirectives('field.appliedDirectives);
         removeArgMapFederationAppliedDirectives('field.args);
     }
 }
 
-function removeArgMapFederationAppliedDirectives(map<parser:__InputValue> argMap) {
+isolated function removeArgMapFederationAppliedDirectives(map<parser:__InputValue> argMap) {
     foreach parser:__InputValue arg in argMap {
         arg.appliedDirectives = removeFederationAppliedDirectives(arg.appliedDirectives);
     }
 }
 
-function removeFederationAppliedDirectives(parser:__AppliedDirective[] directives) returns parser:__AppliedDirective[] {
+isolated function removeFederationAppliedDirectives(parser:__AppliedDirective[] directives) returns parser:__AppliedDirective[] {
     return directives.filter(d => !isSupergraphFederationDirective(d.definition.name));
 }
