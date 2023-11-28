@@ -49,7 +49,13 @@ public class Merger {
             mergeHints.push(...interfaceMergeHints);
         }
 
-        Hint[] inputTypeMergeHints = check self.mergeInputTypes() ?: [];
+        Hint[]|MergeError[] inputTypeMergeHints = check self.mergeInputTypes();
+        if inputTypeMergeHints is MergeError[] {
+            return transformErrorMessages(inputTypeMergeHints);
+        }
+        if inputTypeMergeHints is Hint[] {
+            mergeHints.push(...inputTypeMergeHints);
+        }
         Hint[] enumTypeMergeHints = check self.mergeEnumTypes() ?: [];
         Hint[] scalarTypeMergeHints = check self.mergeScalarTypes() ?: [];
         check self.applyJoinTypeDirectives();
@@ -58,8 +64,8 @@ public class Merger {
         Hint[] hints = [ ...unionMergeHints,
                         //  ...objectMergeHints,
                         //  ...interfaceMergeHints,
+                        //  ...inputTypeMergeHints,
                          ...mergeHints,
-                         ...inputTypeMergeHints,
                          ...enumTypeMergeHints,
                          ...scalarTypeMergeHints ];
         return {
@@ -349,9 +355,10 @@ public class Merger {
         return errors.length() > 0 ? errors : hints;
     }
 
-    isolated function mergeInputTypes() returns Hint[]|MergeError|InternalError? {
+    isolated function mergeInputTypes() returns Hint[]|MergeError|MergeError[]|InternalError {
         map<parser:__Type> supergraphInputTypes = self.getSupergraphTypesOfKind(parser:INPUT_OBJECT);
         Hint[] hints = [];
+        MergeError[] errors = [];
 
         foreach [string, parser:__Type] [inputTypeName, 'type] in supergraphInputTypes.entries() {
             Subgraph[] subgraphs = self.getDefiningSubgraphs(inputTypeName);
@@ -377,13 +384,17 @@ public class Merger {
                     inputFieldSources.push([ subgraph, subgraphFields ]);
                 }
             }
-            MergedResult mergedArgResult = check self.mergeInputValues(inputFieldSources, true); // Handle INPUT_FIELD_TYPE_MISMATCH
+            MergedResult|MergeError[] mergedArgResult = check self.mergeInputValues(inputFieldSources, true); // Handle INPUT_FIELD_TYPE_MISMATCH
+            if mergedArgResult is MergeError[] {
+                check appendErrors(errors, mergedArgResult, inputTypeName);
+                continue;
+            }
             map<parser:__InputValue> mergedFields = <map<parser:__InputValue>>mergedArgResult.result;
             'type.inputFields = mergedFields;
             appendHints(hints, mergedArgResult.hints, inputTypeName);
 
         }
-        return hints;
+        return errors.length() > 0 ? errors : hints;
     }
 
     isolated function mergeEnumTypes() returns Hint[]|InternalError? {
@@ -652,7 +663,11 @@ public class Merger {
                 ]);
             }
 
-            MergedResult mergedArgResult = check self.mergeInputValues(inputFieldSources); // Handle FIELD_ARGUMENT_TYPE_MISMATCH
+            MergedResult|MergeError[] mergedArgResult = check self.mergeInputValues(inputFieldSources); // Handle FIELD_ARGUMENT_TYPE_MISMATCH
+            if mergedArgResult is MergeError[] {
+                check appendErrors(errors, mergedArgResult, fieldName);
+                continue;
+            }
             appendHints(hints, mergedArgResult.hints, fieldName);
             map<parser:__InputValue> mergedArgs = <map<parser:__InputValue>>mergedArgResult.result;
 
@@ -757,7 +772,7 @@ public class Merger {
         };
     }
 
-    isolated function mergeInputValues(InputFieldMapSource[] sources, boolean isTypeInputType = false) returns MergedResult|MergeError|InternalError {
+    isolated function mergeInputValues(InputFieldMapSource[] sources, boolean isTypeInputType = false) returns MergedResult|MergeError|MergeError[]|InternalError {
         map<InputSource[]> unionedInputs = {};
         foreach InputFieldMapSource [subgraph, arguments] in sources {
             foreach parser:__InputValue arg in arguments {
@@ -770,6 +785,7 @@ public class Merger {
         }
 
         Hint[] hints = [];
+        MergeError[] errors = [];
         map<parser:__InputValue> mergedArguments = {};
         foreach [string, InputSource[]] [argName, argDefs] in unionedInputs.entries() {
             if argDefs.length() == sources.length() { // Arguments that are defined in all subgraphs
@@ -791,10 +807,14 @@ public class Merger {
                     ]);
                 }
 
-                TypeReferenceMergeResult|MergeError inputTypeMergeResult = check self.mergeTypeReferenceSet(typeReferenceSources, INPUT);
+                TypeReferenceMergeResult|MergeError|InternalError inputTypeMergeResult = self.mergeTypeReferenceSet(typeReferenceSources, INPUT);
                 if inputTypeMergeResult is MergeError {
                     // Handle errors
+                    check appendErrors(errors, [inputTypeMergeResult], argName);
                     continue;
+                }
+                if inputTypeMergeResult is InternalError {
+                    return inputTypeMergeResult;
                 }
                 parser:__Type mergedTypeReference = <parser:__Type>inputTypeMergeResult.result;
                 appendHints(hints, inputTypeMergeResult.hints, argName);
@@ -851,10 +871,7 @@ public class Merger {
             }
         }
 
-        return {
-            result: mergedArguments,
-            hints: hints
-        };
+        return errors.length() > 0 ? errors : { result: mergedArguments, hints: hints };
     }
 
     isolated function mergeDefaultValues(DefaultValueSource[] sources) returns MergedResult|MergeError {

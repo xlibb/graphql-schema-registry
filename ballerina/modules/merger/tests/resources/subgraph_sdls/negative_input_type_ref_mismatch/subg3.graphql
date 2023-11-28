@@ -1,0 +1,9 @@
+type Query {
+    name: String
+}
+
+input Foo {
+    name: ID
+    age: Int
+    foo: Float
+}

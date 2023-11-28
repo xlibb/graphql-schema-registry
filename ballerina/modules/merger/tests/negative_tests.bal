@@ -18,7 +18,9 @@ function testNegative(string testname) returns error? {
 function dataProviderNegativeTest() returns [string][] {
     return [
         ["negative_type_mismatch"],
-        ["negative_output_type_ref_mismatch"]
+        ["negative_output_type_ref_mismatch"],
+        ["negative_input_type_ref_mismatch"],
+        ["negative_arg_type_ref_mismatch"]
         // ["negative_invalid_field_sharing"
     ];
 }
