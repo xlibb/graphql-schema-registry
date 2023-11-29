@@ -1,0 +1,16 @@
+type Query {
+    name: String
+}
+
+type Foo {
+    name: String
+}
+
+interface Bar {
+    name: String
+}
+
+enum Bux {
+    FAILED
+    COMPLETED
+}

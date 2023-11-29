@@ -1,0 +1,20 @@
+[
+    {
+        "severity": "SAFE",
+        "action": "ADDED",
+        "subject": "TYPE",
+        "location": [],
+        "value": "Bar",
+        "fromValue": null,
+        "toValue": null
+    },
+    {
+        "severity": "BREAKING",
+        "action": "REMOVED",
+        "subject": "TYPE",
+        "location": [],
+        "value": "Waldo",
+        "fromValue": null,
+        "toValue": null
+    }
+]
