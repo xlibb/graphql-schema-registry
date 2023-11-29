@@ -8,15 +8,10 @@ public type SchemaDiff record {|
     DiffSeverity severity;
     DiffAction action;
     DiffSubject subject;
-    DiffLocation[] location;
+    string[] location;
     string? value;
     string? fromValue;
     string? toValue;
-|};
-
-public type DiffLocation record {|
-    string name;
-    TypeKind kind;
 |};
 
 public enum TypeKind {
@@ -48,6 +43,7 @@ public enum DiffSubject {
     DIRECTIVE,
     TYPE,
     TYPE_KIND,
+    TYPE_DESCRIPTION,
     FIELD,
     FIELD_DEPRECATION,
     FIELD_TYPE,

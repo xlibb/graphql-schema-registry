@@ -1,0 +1,34 @@
+type Query {
+    name: String
+}
+
+type Bar {
+    name: String
+}
+
+interface Wux {
+    name: String
+}
+
+union Bux = UnionFux | UnionFan
+
+enum Waldo {
+    FAILED
+    COMPLETED
+}
+
+"This is due to prevent contaminating TYPE_KIND_MISMATCH test with description mismatch"
+input Fun {
+    name: String
+}
+
+"This is due to prevent contaminating TYPE_KIND_MISMATCH test with description mismatch"
+scalar Foo
+
+type UnionFux {
+    name: String
+}
+
+type UnionFan {
+    name: String
+}

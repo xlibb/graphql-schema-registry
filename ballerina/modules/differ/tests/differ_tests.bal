@@ -15,6 +15,7 @@ function testDiffer(string testName) returns error? {
 function dataProviderTestDiffer() returns [string][] {
     return [
         ["type_removals_additions"],
-        ["directive_removals_additions"]
+        ["directive_removals_additions"],
+        ["type_kind_changes"]
     ];
 }
