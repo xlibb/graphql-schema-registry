@@ -12,7 +12,6 @@ interface Wux {
     name: String
 }
 
-"Bux second description"
 union Bux = UnionFux | UnionFan
 
 "Waldo second description"

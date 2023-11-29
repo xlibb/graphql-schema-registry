@@ -10,12 +10,12 @@
     },
     {
         "severity": "SAFE",
-        "action": "CHANGED",
+        "action": "REMOVED",
         "subject": "TYPE_DESCRIPTION",
         "location": ["Bux"],
-        "value": null,
-        "fromValue": "Bux first description",
-        "toValue": "Bux second description"
+        "toValue": null,
+        "fromValue": null,
+        "value": "Bux first description"
     },
     {
         "severity": "SAFE",
@@ -37,12 +37,12 @@
     },
     {
         "severity": "SAFE",
-        "action": "CHANGED",
+        "action": "ADDED",
         "subject": "TYPE_DESCRIPTION",
         "location": ["Wux"],
-        "value": null,
-        "fromValue": "Wux first description",
-        "toValue": "Wux second description"
+        "fromValue": null,
+        "toValue": null,
+        "value": "Wux second description"
     },
     {
         "severity": "SAFE",

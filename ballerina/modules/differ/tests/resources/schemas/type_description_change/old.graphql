@@ -7,7 +7,6 @@ type Bar {
     name: String
 }
 
-"Wux first description"
 interface Wux {
     name: String
 }
