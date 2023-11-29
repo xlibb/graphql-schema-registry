@@ -1,0 +1,38 @@
+type Query {
+    name: String
+}
+
+"Bar second description"
+type Bar {
+    name: String
+}
+
+"Wux second description"
+interface Wux {
+    name: String
+}
+
+"Bux second description"
+union Bux = UnionFux | UnionFan
+
+"Waldo second description"
+enum Waldo {
+    FAILED
+    COMPLETED
+}
+
+"Fun second description"
+input Fun {
+    name: String
+}
+
+"Foo second description"
+scalar Foo
+
+type UnionFux {
+    name: String
+}
+
+type UnionFan {
+    name: String
+}

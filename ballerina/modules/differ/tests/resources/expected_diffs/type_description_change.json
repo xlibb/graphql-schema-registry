@@ -1,0 +1,56 @@
+[
+    {
+        "severity": "SAFE",
+        "action": "CHANGED",
+        "subject": "TYPE_DESCRIPTION",
+        "location": ["Bar"],
+        "value": null,
+        "fromValue": "Bar first description",
+        "toValue": "Bar second description"
+    },
+    {
+        "severity": "SAFE",
+        "action": "CHANGED",
+        "subject": "TYPE_DESCRIPTION",
+        "location": ["Bux"],
+        "value": null,
+        "fromValue": "Bux first description",
+        "toValue": "Bux second description"
+    },
+    {
+        "severity": "SAFE",
+        "action": "CHANGED",
+        "subject": "TYPE_DESCRIPTION",
+        "location": ["Foo"],
+        "value": null,
+        "fromValue": "Foo first description",
+        "toValue": "Foo second description"
+    },
+    {
+        "severity": "SAFE",
+        "action": "CHANGED",
+        "subject": "TYPE_DESCRIPTION",
+        "location": ["Waldo"],
+        "value": null,
+        "fromValue": "Waldo first description",
+        "toValue": "Waldo second description"
+    },
+    {
+        "severity": "SAFE",
+        "action": "CHANGED",
+        "subject": "TYPE_DESCRIPTION",
+        "location": ["Wux"],
+        "value": null,
+        "fromValue": "Wux first description",
+        "toValue": "Wux second description"
+    },
+    {
+        "severity": "SAFE",
+        "action": "CHANGED",
+        "subject": "TYPE_DESCRIPTION",
+        "location": ["Fun"],
+        "value": null,
+        "fromValue": "Fun first description",
+        "toValue": "Fun second description"
+    }
+]
