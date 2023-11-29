@@ -1,12 +1,15 @@
-isolated function appendErrors(MergeError[] newErrors, MergeError[] errors, string location) returns InternalError? {
-    MergeError[] updatedErrors = [];
-    foreach MergeError mergeError in errors {
-        Hint|error hint = mergeError.detail().hint.cloneWithType(Hint);
-        if hint is error {
-            return error InternalError("MergeError hint is null");
+isolated function appendErrors(MergeError[] newErrors, MergeError[] errors, string? location = ()) returns InternalError? {
+    MergeError[] updatedErrors = errors;
+    if location is string {
+        updatedErrors = [];
+        foreach MergeError mergeError in errors {
+            Hint|error hint = mergeError.detail().hint.cloneWithType(Hint);
+            if hint is error {
+                return error InternalError("MergeError hint is null");
+            }
+            addHintLocation(hint, location);
+            updatedErrors.push(error MergeError(mergeError.message(), hint = hint));
         }
-        addHintLocation(hint, location);
-        updatedErrors.push(error MergeError(mergeError.message(), hint = hint));
     }
     newErrors.push(...updatedErrors);
 }

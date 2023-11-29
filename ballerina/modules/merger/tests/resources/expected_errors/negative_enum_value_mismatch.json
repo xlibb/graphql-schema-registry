@@ -1,0 +1,4 @@
+[
+    "ENUM_VALUE_MISMATCH: Status, Found 'FAILED' in subg1, subg3, subg4, but not in subg2",
+    "ENUM_VALUE_MISMATCH: Status, Found 'ADDITIONAL' in subg1, but not in subg2, subg3, subg4"
+]

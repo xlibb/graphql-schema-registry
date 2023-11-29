@@ -26,6 +26,7 @@ function dataProviderNegativeTest() returns [string][] {
         ["negative_missing_required_arg_type"],
         ["negative_missing_required_input_type_field"],
         ["negative_default_value_mismatch"],
-        ["negative_invalid_field_sharing"]
+        ["negative_invalid_field_sharing"],
+        ["negative_enum_value_mismatch"]
     ];
 }
