@@ -40,13 +40,39 @@ isolated function getTypesDiff(string[] commonTypes, map<parser:__Type> newTypeM
 
 isolated function getObjectTypeDiff(parser:__Type newObjectType, parser:__Type oldObjectType) returns SchemaDiff[]|Error {
     SchemaDiff[] diffs = [];
+
     map<parser:__Field>? newFieldMap = newObjectType.fields;
     map<parser:__Field>? oldFieldMap = oldObjectType.fields;
-
     if newFieldMap is map<parser:__Field> && oldFieldMap is map<parser:__Field> {
         appendDiffs(diffs, check getFieldMapDiff(newFieldMap, oldFieldMap));
     } else {
         return error Error("Object type field map cannot be empty");
+    }
+
+    parser:__Type[]? newInterfaces = newObjectType.interfaces;
+    parser:__Type[]? oldInterfaces = oldObjectType.interfaces;
+    if newInterfaces is parser:__Type[] && oldInterfaces is parser:__Type[] {
+        appendDiffs(diffs, check getInterfacesDiff(newInterfaces, oldInterfaces));
+    } else {
+        return error Error("Object type intefaces cannot be null");
+    }
+
+    return diffs;
+}
+
+isolated function getInterfacesDiff(parser:__Type[] newInterfaces, parser:__Type[] oldInterfaces) returns SchemaDiff[]|Error {
+    SchemaDiff[] diffs = [];
+
+    string[] newInterfaceNames = newInterfaces.map(i => check getTypeReferenceAsString(i));
+    string[] oldInterfaceNames = oldInterfaces.map(i => check getTypeReferenceAsString(i));
+    ComparisionResult interfacesComparison = getComparision(newInterfaceNames, oldInterfaceNames);
+    foreach string interface in interfacesComparison.added {
+        SchemaDiff interfaceDiff = createDiff(ADDED, INTERFACE_IMPLEMENTATION, DANGEROUS, value = interface);
+        appendDiffs(diffs, [ interfaceDiff ]);
+    }
+    foreach string interface in interfacesComparison.removed {
+        SchemaDiff interfaceDiff = createDiff(REMOVED, INTERFACE_IMPLEMENTATION, BREAKING, value = interface);
+        appendDiffs(diffs, [ interfaceDiff ]);
     }
 
     return diffs;
