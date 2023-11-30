@@ -27,6 +27,7 @@ function dataProviderTestDiffer() returns [string][] {
         ["field_arguments_removals_additions"],
         ["field_arguments_descriptions"],
         ["field_arguments_default_values"],
-        ["enum_values"]
+        ["enum_values"],
+        ["union_possible_types"]
     ];
 }

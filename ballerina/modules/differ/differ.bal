@@ -35,10 +35,38 @@ isolated function getTypesDiff(string[] commonTypes, map<parser:__Type> newTypeM
                 parser:ENUM => {
                     appendDiffs(typeDiffs, check getEnumTypeDiff(newType, oldType), location = typeName);
                 }
+                parser:UNION => {
+                    appendDiffs(typeDiffs, check getUnionTypeDiff(newType, oldType), location = typeName);
+                }
             }
         }
     }
     return typeDiffs;
+}
+
+isolated function getUnionTypeDiff(parser:__Type newType, parser:__Type oldType) returns SchemaDiff[]|Error {
+    SchemaDiff[] diffs = [];
+
+    parser:__Type[]? newPossibleValues = newType.possibleTypes;
+    parser:__Type[]? oldPossibleValues = oldType.possibleTypes;
+    if newPossibleValues !is parser:__Type[] || oldPossibleValues !is parser:__Type[] {
+        return error Error("Possible values cannot be null");
+    }
+
+    string[] newPossibleTypeNames = newPossibleValues.map(t => check getTypeReferenceAsString(t));
+    string[] oldPossibleTypeNames = oldPossibleValues.map(t => check getTypeReferenceAsString(t));
+    ComparisonResult typeComparison = getComparision(newPossibleTypeNames, oldPossibleTypeNames);
+
+    foreach string value in typeComparison.added {
+        SchemaDiff possibleTypeDiff = createDiff(ADDED, UNION_MEMBER, DANGEROUS, value = value);
+        appendDiffs(diffs, [ possibleTypeDiff ]);
+    }
+    foreach string value in typeComparison.removed {
+        SchemaDiff possibleTypeDiff = createDiff(REMOVED, UNION_MEMBER, BREAKING, value = value);
+        appendDiffs(diffs, [ possibleTypeDiff ]);
+    }
+
+    return diffs;
 }
 
 isolated function getEnumTypeDiff(parser:__Type newEnumType, parser:__Type oldEnumType) returns SchemaDiff[]|Error {
