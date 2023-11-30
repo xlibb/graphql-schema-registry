@@ -22,6 +22,10 @@ function dataProviderTestDiffer() returns [string][] {
         ["field_descriptions"],
         ["field_deprecations"],
         ["field_types"],
-        ["interface_implements"]
+        ["interface_implements"],
+        ["field_arguments_types"],
+        ["field_arguments_removals_additions"],
+        ["field_arguments_descriptions"],
+        ["field_arguments_default_values"]
     ];
 }

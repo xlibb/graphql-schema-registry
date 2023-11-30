@@ -2,8 +2,8 @@ import graphql_schema_registry.parser;
 
 public isolated function getDiff(parser:__Schema newSchema, parser:__Schema oldSchema) returns SchemaDiff[]|Error {
 
-    ComparisionResult typeComparison = getComparision(newSchema.types.keys(), oldSchema.types.keys());
-    ComparisionResult dirComparison = getComparision(newSchema.directives.keys(), oldSchema.directives.keys());
+    ComparisonResult typeComparison = getComparision(newSchema.types.keys(), oldSchema.types.keys());
+    ComparisonResult dirComparison = getComparision(newSchema.directives.keys(), oldSchema.directives.keys());
 
     SchemaDiff[] diffs = [];
 
@@ -65,7 +65,7 @@ isolated function getInterfacesDiff(parser:__Type[] newInterfaces, parser:__Type
 
     string[] newInterfaceNames = newInterfaces.map(i => check getTypeReferenceAsString(i));
     string[] oldInterfaceNames = oldInterfaces.map(i => check getTypeReferenceAsString(i));
-    ComparisionResult interfacesComparison = getComparision(newInterfaceNames, oldInterfaceNames);
+    ComparisonResult interfacesComparison = getComparision(newInterfaceNames, oldInterfaceNames);
     foreach string interface in interfacesComparison.added {
         SchemaDiff interfaceDiff = createDiff(ADDED, INTERFACE_IMPLEMENTATION, DANGEROUS, value = interface);
         appendDiffs(diffs, [ interfaceDiff ]);
@@ -81,7 +81,7 @@ isolated function getInterfacesDiff(parser:__Type[] newInterfaces, parser:__Type
 isolated function getFieldMapDiff(map<parser:__Field> newFieldMap, map<parser:__Field> oldFieldMap) returns SchemaDiff[]|Error {
     SchemaDiff[] diffs = [];
 
-    ComparisionResult fieldComparison = getComparision(newFieldMap.keys(), oldFieldMap.keys());
+    ComparisonResult fieldComparison = getComparision(newFieldMap.keys(), oldFieldMap.keys());
     appendDiffs(diffs, getMapDiffs(FIELD, fieldComparison.added, fieldComparison.removed));
 
     foreach string fieldName in fieldComparison.common {
@@ -109,7 +109,7 @@ isolated function getFieldDiff(parser:__Field newField, parser:__Field oldField)
         appendDiffs(diffs, [deprecationDiff]);
     }
 
-    appendDiffs(diffs, check getInputValueMapDiff(ARGUMENT_TYPE, newField.args, oldField.args));
+    appendDiffs(diffs, check getInputValueMapDiff(ARGUMENT, newField.args, oldField.args));
 
     return diffs;
 }
@@ -131,33 +131,50 @@ isolated function getDeprecationDiff(ENUM_DEPRECATION | FIELD_DEPRECATION subjec
     return ();
 }
 
-isolated function getInputValueMapDiff(INPUT_FIELD_TYPE | ARGUMENT_TYPE subject, map<parser:__InputValue> newArgs, map<parser:__InputValue> oldArgs) returns SchemaDiff[]|Error {
+isolated function getInputValueMapDiff(InputType 'type, map<parser:__InputValue> newArgs, map<parser:__InputValue> oldArgs) returns SchemaDiff[]|Error {
     SchemaDiff[] diffs = [];
 
-    ComparisionResult argsComparison = getComparision(newArgs.keys(), oldArgs.keys());
-    appendDiffs(diffs, getMapDiffs(subject, argsComparison.added, argsComparison.removed));
+    ComparisonResult argsComparison = getComparision(newArgs.keys(), oldArgs.keys());
+    appendDiffs(diffs, getInputMapDiffs('type, newArgs, argsComparison));
 
     foreach string argName in argsComparison.common {
-        appendDiffs(diffs, check getInputValueDiff(subject, newArgs.get(argName), oldArgs.get(argName)), argName);
+        appendDiffs(diffs, check getInputValueDiff('type, newArgs.get(argName), oldArgs.get(argName)), argName);
     }
 
     return diffs;
 }
 
-isolated function getInputValueDiff(INPUT_FIELD_TYPE | ARGUMENT_TYPE subject, parser:__InputValue newArg, parser:__InputValue oldArg) returns SchemaDiff[]|Error {
+isolated function getInputValueDiff(InputType 'type, parser:__InputValue newArg, parser:__InputValue oldArg) returns SchemaDiff[]|Error {
     SchemaDiff[] diffs = [];
 
-    SchemaDiff? descriptionDiff = getDescriptionDiff(ARGUMENT_DESCRIPTION, newArg.description, oldArg.description);
+    SchemaDiff? descriptionDiff = getDescriptionDiff('type is INPUT_FIELD ? INPUT_FIELD_DESCRIPTION : ARGUMENT_DESCRIPTION, newArg.description, oldArg.description);
     if descriptionDiff is SchemaDiff {
         appendDiffs(diffs, [descriptionDiff]);
     }
 
-    SchemaDiff? inputTypeDiff = check getTypeReferenceDiff(subject, newArg.'type, oldArg.'type);
+    SchemaDiff? inputTypeDiff = check getTypeReferenceDiff('type is INPUT_FIELD ? INPUT_FIELD_TYPE : ARGUMENT_TYPE, newArg.'type, oldArg.'type);
     if inputTypeDiff is SchemaDiff {
         appendDiffs(diffs, [inputTypeDiff]);
     }
 
+    SchemaDiff? defaultValueDiff = getDefaultValueDiff('type is INPUT_FIELD ? INPUT_FIELD_DEFAULT : ARGUMENT_DEFAULT, newArg.defaultValue, oldArg.defaultValue);
+    if defaultValueDiff is SchemaDiff {
+        appendDiffs(diffs, [defaultValueDiff]);
+    }
+
     return diffs;
+}
+
+isolated function getDefaultValueDiff(INPUT_FIELD_DEFAULT | ARGUMENT_DEFAULT subject, anydata? newValue, anydata? oldValue) returns SchemaDiff? {
+    if newValue is () && oldValue !is () {
+        return createDiff(REMOVED, subject, DANGEROUS, value = oldValue.toString());
+    } else if newValue !is () && oldValue is () {
+        return createDiff(ADDED, subject, DANGEROUS, value = newValue.toString());
+    } else if newValue !is () && oldValue !is () && newValue != oldValue {
+        return createDiff(CHANGED, subject, DANGEROUS, fromValue = oldValue.toString(), toValue = newValue.toString());
+    } else {
+        return ();
+    }
 }
 
 // TODO: Check if better algorithm exists
@@ -216,6 +233,18 @@ isolated function getMapDiffs(DiffSubject subject, string[] added, string[] remo
     return typeDiffs;
 }
 
+isolated function getInputMapDiffs(DiffSubject subject, map<parser:__InputValue> newArgs, ComparisonResult argsComparison) returns SchemaDiff[] {
+    SchemaDiff[] typeDiffs = [];
+    foreach string 'type in argsComparison.added {
+        boolean isNewTypeNonNullable = newArgs.get('type).'type.kind is parser:NON_NULL;
+        typeDiffs.push(createDiff(ADDED, subject, isNewTypeNonNullable ? BREAKING : DANGEROUS, value = 'type));
+    }
+    foreach string 'type in argsComparison.removed {
+        typeDiffs.push(createDiff(REMOVED, subject, BREAKING, value = 'type));
+    }
+    return typeDiffs;
+}
+
 isolated function getDescriptionDiff(DiffSubject subject, string? newDescription, string? oldDescription) returns SchemaDiff? {
     if newDescription is string && oldDescription is () {
         return createDiff(ADDED, subject, SAFE, value = newDescription);
@@ -228,8 +257,8 @@ isolated function getDescriptionDiff(DiffSubject subject, string? newDescription
     }
 }
 
-isolated function getComparision(string[] newList, string[] oldList) returns ComparisionResult {
-    ComparisionResult result = {
+isolated function getComparision(string[] newList, string[] oldList) returns ComparisonResult {
+    ComparisonResult result = {
         added: [],
         removed: [],
         common: []

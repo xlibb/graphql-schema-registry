@@ -1,0 +1,11 @@
+type Query {
+    name: String
+}
+
+type Bar {
+    name(
+        foo: String
+        bux: String
+        bun: String!
+    ): String
+}

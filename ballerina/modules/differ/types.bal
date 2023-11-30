@@ -1,4 +1,4 @@
-type ComparisionResult record {|
+type ComparisonResult record {|
     string[] added;
     string[] removed;
     string[] common;
@@ -55,7 +55,10 @@ public enum DiffSubject {
     INPUT_FIELD,
     INPUT_FIELD_DEFAULT,
     INPUT_FIELD_TYPE,
+    INPUT_FIELD_DESCRIPTION,
     ENUM,
     ENUM_DEPRECATION,
     INTERFACE_IMPLEMENTATION
 }
+
+type InputType INPUT_FIELD | ARGUMENT;

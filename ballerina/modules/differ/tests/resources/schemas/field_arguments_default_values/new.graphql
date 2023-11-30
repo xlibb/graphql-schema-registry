@@ -1,0 +1,12 @@
+type Query {
+    name: String
+}
+
+type Bar {
+    name(
+        foo: String = "Default String"
+        bar: Int = 10
+        bux: Float
+        bun: Boolean = false
+    ): String
+}
