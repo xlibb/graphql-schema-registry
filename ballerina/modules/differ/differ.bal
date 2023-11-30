@@ -29,8 +29,8 @@ isolated function getTypesDiff(string[] commonTypes, map<parser:__Type> newTypeM
 
         if !typeDefinitionDiffs.some(t => t.subject === TYPE_KIND && t.action === CHANGED)  {
             match newType.kind {
-                parser:OBJECT => {
-                    appendDiffs(typeDiffs, check getObjectTypeDiff(newType, oldType), location = typeName);
+                parser:OBJECT | parser:INTERFACE => {
+                    appendDiffs(typeDiffs, check getObjectAndInterfaceTypeDiff(newType, oldType), location = typeName);
                 }
             }
         }
@@ -38,7 +38,7 @@ isolated function getTypesDiff(string[] commonTypes, map<parser:__Type> newTypeM
     return typeDiffs;
 }
 
-isolated function getObjectTypeDiff(parser:__Type newObjectType, parser:__Type oldObjectType) returns SchemaDiff[]|Error {
+isolated function getObjectAndInterfaceTypeDiff(parser:__Type newObjectType, parser:__Type oldObjectType) returns SchemaDiff[]|Error {
     SchemaDiff[] diffs = [];
 
     map<parser:__Field>? newFieldMap = newObjectType.fields;
@@ -46,7 +46,7 @@ isolated function getObjectTypeDiff(parser:__Type newObjectType, parser:__Type o
     if newFieldMap is map<parser:__Field> && oldFieldMap is map<parser:__Field> {
         appendDiffs(diffs, check getFieldMapDiff(newFieldMap, oldFieldMap));
     } else {
-        return error Error("Object type field map cannot be empty");
+        return error Error("Field map cannot be empty");
     }
 
     parser:__Type[]? newInterfaces = newObjectType.interfaces;
@@ -54,7 +54,7 @@ isolated function getObjectTypeDiff(parser:__Type newObjectType, parser:__Type o
     if newInterfaces is parser:__Type[] && oldInterfaces is parser:__Type[] {
         appendDiffs(diffs, check getInterfacesDiff(newInterfaces, oldInterfaces));
     } else {
-        return error Error("Object type intefaces cannot be null");
+        return error Error("Intefaces cannot be null");
     }
 
     return diffs;
