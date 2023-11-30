@@ -1,0 +1,92 @@
+[
+    {
+        "severity": "DANGEROUS",
+        "action": "ADDED",
+        "subject": "ENUM",
+        "location": ["Status"],
+        "value": "BUX",
+        "fromValue": null,
+        "toValue": null
+    },
+    {
+        "severity": "BREAKING",
+        "action": "REMOVED",
+        "subject": "ENUM",
+        "location": ["Status"],
+        "value": "BAR",
+        "fromValue": null,
+        "toValue": null
+    },
+    {
+        "severity": "SAFE",
+        "action": "ADDED",
+        "subject": "ENUM_DESCRIPTION",
+        "location": ["Status", "BUN"],
+        "value": "Description added",
+        "fromValue": null,
+        "toValue": null
+    },
+    {
+        "severity": "SAFE",
+        "action": "REMOVED",
+        "subject": "ENUM_DESCRIPTION",
+        "location": ["Status", "WALDO"],
+        "value": "Description removed",
+        "fromValue": null,
+        "toValue": null
+    },
+    {
+        "severity": "SAFE",
+        "action": "CHANGED",
+        "subject": "ENUM_DESCRIPTION",
+        "location": ["Status", "WOLF"],
+        "value": null,
+        "fromValue": "Description changed 1",
+        "toValue": "Description changed 2"
+    },
+    {
+        "severity": "SAFE",
+        "action": "ADDED",
+        "subject": "ENUM_DEPRECATION",
+        "location": ["Status", "DOG"],
+        "value": null,
+        "fromValue": null,
+        "toValue": null
+    },
+    {
+        "severity": "DANGEROUS",
+        "action": "REMOVED",
+        "subject": "ENUM_DEPRECATION",
+        "location": ["Status", "CAT"],
+        "value": null,
+        "fromValue": null,
+        "toValue": null
+    },
+    {
+        "severity": "SAFE",
+        "action": "CHANGED",
+        "subject": "ENUM_DEPRECATION",
+        "location": ["Status", "ZEBRA"],
+        "value": null,
+        "fromValue": "Original reason",
+        "toValue": "No longer supported"
+    },
+    {
+        "severity": "SAFE",
+        "action": "CHANGED",
+        "subject": "ENUM_DEPRECATION",
+        "location": ["Status", "LION"],
+        "value": null,
+        "fromValue": "No longer supported",
+        "toValue": "New reason"
+    },
+    {
+        "severity": "SAFE",
+        "action": "CHANGED",
+        "subject": "ENUM_DEPRECATION",
+        "location": ["Status", "HORSE"],
+        "value": null,
+        "fromValue": "Original reason",
+        "toValue": "Reason changed"
+    }
+]

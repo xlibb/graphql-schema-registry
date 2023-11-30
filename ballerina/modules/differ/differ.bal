@@ -32,10 +32,63 @@ isolated function getTypesDiff(string[] commonTypes, map<parser:__Type> newTypeM
                 parser:OBJECT | parser:INTERFACE => {
                     appendDiffs(typeDiffs, check getObjectAndInterfaceTypeDiff(newType, oldType), location = typeName);
                 }
+                parser:ENUM => {
+                    appendDiffs(typeDiffs, check getEnumTypeDiff(newType, oldType), location = typeName);
+                }
             }
         }
     }
     return typeDiffs;
+}
+
+isolated function getEnumTypeDiff(parser:__Type newEnumType, parser:__Type oldEnumType) returns SchemaDiff[]|Error {
+    SchemaDiff[] diffs = [];
+
+    parser:__EnumValue[]? newEnumValues = newEnumType.enumValues;
+    parser:__EnumValue[]? oldEnumValues = oldEnumType.enumValues;
+    if newEnumValues !is parser:__EnumValue[] || oldEnumValues !is parser:__EnumValue[] {
+        return error Error("Enum values cannot be null");
+    }
+
+    map<parser:__EnumValue> newEnumValueMap = {};
+    map<parser:__EnumValue> oldEnumValueMap = {};
+    foreach parser:__EnumValue value in newEnumValues {
+        newEnumValueMap[value.name] = value;
+    }
+    foreach parser:__EnumValue value in oldEnumValues {
+        oldEnumValueMap[value.name] = value;
+    }
+    ComparisonResult enumValuesComparison = getComparision(newEnumValueMap.keys(), oldEnumValueMap.keys());
+
+    foreach string value in enumValuesComparison.added {
+        SchemaDiff enumAddDiff = createDiff(ADDED, ENUM, DANGEROUS, value = value);
+        appendDiffs(diffs, [ enumAddDiff ]);
+    }
+    foreach string value in enumValuesComparison.removed {
+        SchemaDiff enumRemoveDiff = createDiff(REMOVED, ENUM, BREAKING, value = value);
+        appendDiffs(diffs, [ enumRemoveDiff ]);
+    }
+    foreach string value in enumValuesComparison.common {
+        appendDiffs(diffs, getEnumValueDiff(newEnumValueMap.get(value), oldEnumValueMap.get(value)), location = value);
+    }
+
+    return diffs;
+}
+
+isolated function getEnumValueDiff(parser:__EnumValue newValue, parser:__EnumValue oldValue) returns SchemaDiff[] {
+    SchemaDiff[] diffs = [];
+    
+    SchemaDiff? descriptionDiff = getDescriptionDiff(ENUM_DESCRIPTION, newValue.description, oldValue.description);
+    if descriptionDiff is SchemaDiff {
+        appendDiffs(diffs, [descriptionDiff]);
+    }
+
+    SchemaDiff? deprecationDiff = getDeprecationDiff(ENUM_DEPRECATION, [newValue.isDeprecated, newValue.deprecationReason], [oldValue.isDeprecated, oldValue.deprecationReason]);
+    if deprecationDiff is SchemaDiff {
+        appendDiffs(diffs, [deprecationDiff]);
+    }
+
+    return diffs;
 }
 
 isolated function getObjectAndInterfaceTypeDiff(parser:__Type newObjectType, parser:__Type oldObjectType) returns SchemaDiff[]|Error {
@@ -43,19 +96,17 @@ isolated function getObjectAndInterfaceTypeDiff(parser:__Type newObjectType, par
 
     map<parser:__Field>? newFieldMap = newObjectType.fields;
     map<parser:__Field>? oldFieldMap = oldObjectType.fields;
-    if newFieldMap is map<parser:__Field> && oldFieldMap is map<parser:__Field> {
-        appendDiffs(diffs, check getFieldMapDiff(newFieldMap, oldFieldMap));
-    } else {
+    if newFieldMap !is map<parser:__Field> || oldFieldMap !is map<parser:__Field> {
         return error Error("Field map cannot be empty");
     }
+    appendDiffs(diffs, check getFieldMapDiff(newFieldMap, oldFieldMap));
 
     parser:__Type[]? newInterfaces = newObjectType.interfaces;
     parser:__Type[]? oldInterfaces = oldObjectType.interfaces;
-    if newInterfaces is parser:__Type[] && oldInterfaces is parser:__Type[] {
-        appendDiffs(diffs, check getInterfacesDiff(newInterfaces, oldInterfaces));
-    } else {
+    if newInterfaces !is parser:__Type[] || oldInterfaces !is parser:__Type[] {
         return error Error("Intefaces cannot be null");
     }
+    appendDiffs(diffs, check getInterfacesDiff(newInterfaces, oldInterfaces));
 
     return diffs;
 }
