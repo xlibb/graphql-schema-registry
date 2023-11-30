@@ -1,0 +1,20 @@
+[
+    {
+        "severity": "SAFE",
+        "action": "ADDED",
+        "subject": "FIELD",
+        "location": ["Bar"],
+        "value": "bux",
+        "fromValue": null,
+        "toValue": null
+    },
+    {
+        "severity": "BREAKING",
+        "action": "REMOVED",
+        "subject": "FIELD",
+        "location": ["Bar"],
+        "value": "bar",
+        "fromValue": null,
+        "toValue": null
+    }
+]
