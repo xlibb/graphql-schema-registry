@@ -549,6 +549,16 @@ public class Parser {
                     DESCRIPTION_FIELD,
                     StringUtils.fromString(fieldDefinition.getDescription())
                                 );
+            addValueToRecordField(
+                    fieldRecord,
+                    IS_DEPRECATED_FIELD,
+                    fieldDefinition.isDeprecated()
+                                 );
+            addValueToRecordField(
+                    fieldRecord,
+                    DEPRECATION_REASON_FIELD,
+                    StringUtils.fromString(fieldDefinition.getDeprecationReason())
+                                 );
             fieldsBMap.put(StringUtils.fromString(fieldDefinition.getName()), fieldRecord);
         }
         return fieldsBMap;
