@@ -15,7 +15,7 @@ public class Merger {
         }
         self.joinGraphMap = {};
         self.supergraph = {
-            schema: createSchema(),
+            schema: parser:createSchema(),
             subgraphs: self.subgraphs.toArray()
         };
     }

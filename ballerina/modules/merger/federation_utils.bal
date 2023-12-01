@@ -99,7 +99,7 @@ isolated function getFederationTypes(map<parser:__Type> types) returns map<parse
 }
 
 isolated function getFederationDirectives(map<parser:__Type> types) returns map<parser:__Directive> {
-    parser:__Directive link = createDirective(
+    parser:__Directive link = parser:createDirective(
         LINK_DIR,
         (),
         [ parser:SCHEMA ],
@@ -111,7 +111,7 @@ isolated function getFederationDirectives(map<parser:__Type> types) returns map<
         },
         true
     );
-    parser:__Directive join__enumValue = createDirective(
+    parser:__Directive join__enumValue = parser:createDirective(
         JOIN_ENUMVALUE_DIR,
         (),
         [ parser:ENUM_VALUE ],
@@ -120,7 +120,7 @@ isolated function getFederationDirectives(map<parser:__Type> types) returns map<
         },
         true
     );
-    parser:__Directive join__field = createDirective(
+    parser:__Directive join__field = parser:createDirective(
         JOIN_FIELD_DIR,
         (),
         [ parser:FIELD_DEFINITION, parser:INPUT_FIELD_DEFINITION ],
@@ -135,7 +135,7 @@ isolated function getFederationDirectives(map<parser:__Type> types) returns map<
         },
         true
     );
-    parser:__Directive join__graph = createDirective( 
+    parser:__Directive join__graph = parser:createDirective( 
         JOIN_GRAPH_DIR,
         (),
         [ parser:ENUM_VALUE ],
@@ -145,7 +145,7 @@ isolated function getFederationDirectives(map<parser:__Type> types) returns map<
         },
         false
     );
-    parser:__Directive join__implements = createDirective( 
+    parser:__Directive join__implements = parser:createDirective( 
         JOIN_IMPLEMENTS_DIR,
         (),
         [ parser:OBJECT, parser:INTERFACE ],
@@ -155,7 +155,7 @@ isolated function getFederationDirectives(map<parser:__Type> types) returns map<
         },
         true
     );
-    parser:__Directive join__type = createDirective( 
+    parser:__Directive join__type = parser:createDirective( 
         JOIN_TYPE_DIR,
         (),
         [parser:OBJECT, parser:INTERFACE, parser:UNION, parser:ENUM, parser:INPUT_OBJECT, parser:SCALAR],
@@ -168,7 +168,7 @@ isolated function getFederationDirectives(map<parser:__Type> types) returns map<
         },
         true
     );
-    parser:__Directive join__unionMember = createDirective( 
+    parser:__Directive join__unionMember = parser:createDirective( 
         JOIN_UNION_MEMBER_DIR,
         (),
         [ parser:UNION ],
