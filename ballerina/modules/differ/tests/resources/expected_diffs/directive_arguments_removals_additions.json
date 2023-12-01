@@ -1,0 +1,29 @@
+[
+    {
+        "severity": "DANGEROUS",
+        "action": "ADDED",
+        "subject": "ARGUMENT",
+        "location": ["@bux"],
+        "value": "bux",
+        "fromValue": null,
+        "toValue": null
+    },
+    {
+        "severity": "BREAKING",
+        "action": "ADDED",
+        "subject": "ARGUMENT",
+        "location": ["@bux"],
+        "value": "bun",
+        "fromValue": null,
+        "toValue": null
+    },
+    {
+        "severity": "BREAKING",
+        "action": "REMOVED",
+        "subject": "ARGUMENT",
+        "location": ["@bux"],
+        "value": "bar",
+        "fromValue": null,
+        "toValue": null
+    }
+]

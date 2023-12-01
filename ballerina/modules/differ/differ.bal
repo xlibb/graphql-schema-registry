@@ -15,6 +15,34 @@ public isolated function getDiff(parser:__Schema newSchema, parser:__Schema oldS
     SchemaDiff[] typeDiffs = check getTypesDiff(typeComparison.common, newSchema.types, oldSchema.types);
     appendDiffs(diffs, typeDiffs);
 
+    SchemaDiff[] directiveDiffs = check getDirectivesDiff(dirComparison.common, newSchema.directives, oldSchema.directives);
+    appendDiffs(diffs, directiveDiffs);
+
+    return diffs;
+}
+
+isolated function getDirectivesDiff(string[] commonDirectives, map<parser:__Directive> newDirectiveMap, map<parser:__Directive> oldDirectiveMap) returns SchemaDiff[]|Error {
+    SchemaDiff[] diffs = [];
+    foreach string directiveName in commonDirectives {
+        parser:__Directive newType = newDirectiveMap.get(directiveName);
+        parser:__Directive oldType = oldDirectiveMap.get(directiveName);
+
+        SchemaDiff[] directiveDiffs = check getDirectiveDiff(newType, oldType);
+        appendDiffs(diffs, directiveDiffs, location = string `@${directiveName}`);
+    }
+    return diffs;
+}
+
+isolated function getDirectiveDiff(parser:__Directive newDirective, parser:__Directive oldDirective) returns SchemaDiff[]|Error {
+    SchemaDiff[] diffs = [];
+
+    SchemaDiff? descriptionDiff = getDescriptionDiff(DIRECTIVE_DESCRIPTION, newDirective.description, oldDirective.description);
+    if descriptionDiff is SchemaDiff {
+        appendDiffs(diffs, [descriptionDiff]);
+    }
+
+    appendDiffs(diffs, check getInputValueMapDiff(ARGUMENT, newDirective.args, oldDirective.args));
+
     return diffs;
 }
 

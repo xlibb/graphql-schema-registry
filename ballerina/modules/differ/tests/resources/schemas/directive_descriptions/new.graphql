@@ -1,0 +1,12 @@
+"Added description"
+directive @foo on OBJECT
+
+directive @bar on OBJECT
+
+"Change description 2"
+directive @bux on OBJECT
+
+type Query {
+    name: String
+}
+

@@ -41,6 +41,7 @@ public enum DiffAction {
 
 public enum DiffSubject {
     DIRECTIVE,
+    DIRECTIVE_DESCRIPTION,
     TYPE,
     TYPE_KIND,
     TYPE_DESCRIPTION,

@@ -1,0 +1,11 @@
+directive @foo on OBJECT
+
+"Remove description"
+directive @bar on OBJECT
+
+"Change description 1"
+directive @bux on OBJECT
+
+type Query {
+    name: String
+}
