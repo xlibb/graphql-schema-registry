@@ -7,7 +7,7 @@ import ballerina/test;
 function testDiffer(string testName) returns error? {
     var [newSchema, oldSchema] = check getSchemas(testName);
     SchemaDiff[] expectedDiffs = check getExpectedDiffs(testName);
-    SchemaDiff[] actualDiffs = check getDiff(newSchema, oldSchema);
+    SchemaDiff[] actualDiffs = check diff(newSchema, oldSchema);
 
     test:assertEquals(actualDiffs, expectedDiffs);
 }

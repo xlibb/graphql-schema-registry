@@ -1,9 +1,18 @@
 import graphql_schema_registry.parser;
 
-public isolated function getDiff(parser:__Schema newSchema, parser:__Schema oldSchema) returns SchemaDiff[]|Error {
+public isolated function diff(parser:__Schema newSchema, parser:__Schema? oldSchema) returns SchemaDiff[]|Error {
+    return check getDiff(newSchema, oldSchema ?: parser:createSchema());
+}
 
-    ComparisonResult typeComparison = getComparision(newSchema.types.keys(), oldSchema.types.keys());
-    ComparisonResult dirComparison = getComparision(newSchema.directives.keys(), oldSchema.directives.keys());
+isolated function getDiff(parser:__Schema newSchema, parser:__Schema oldSchema) returns SchemaDiff[]|Error {
+
+    string[] newSchemaTypes = newSchema.types.keys().filter(k => !parser:isBuiltInType(k));
+    string[] oldSchemaTypes = oldSchema.types.keys().filter(k => !parser:isBuiltInType(k));
+    string[] newSchemaDirs = newSchema.directives.keys().filter(k => !parser:isBuiltInDirective(k));
+    string[] oldSchemaDirs = oldSchema.directives.keys().filter(k => !parser:isBuiltInDirective(k));
+
+    ComparisonResult typeComparison = getComparision(newSchemaTypes, oldSchemaTypes);
+    ComparisonResult dirComparison = getComparision(newSchemaDirs, oldSchemaDirs);
 
     SchemaDiff[] diffs = [];
 
