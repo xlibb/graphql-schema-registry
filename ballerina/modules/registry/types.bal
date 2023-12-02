@@ -1,8 +1,24 @@
+import graphql_schema_registry.parser;
+import graphql_schema_registry.differ;
+
 public type Supergraph record {|
-    string schema;
-    string apiSchema;
+    string schemaSdl;
+    string apiSchemaSdl;
     string version;
     Subgraph[] subgraphs;
+|};
+
+public type CompositionResult record {|
+    *Supergraph;
+    string[] hints;
+    differ:SchemaDiff[] diffs;
+|};
+
+public type ComposedSupergraphSchemas record {|
+    parser:__Schema schema;
+    parser:__Schema apiSchema;
+    string schemaSdl;
+    string apiSchemaSdl;
     string[] hints;
 |};
 
@@ -11,15 +27,3 @@ public type Subgraph record {|
     string url;
     string schema;
 |};
-
-public type ComposedSupergraphSchemas record {|
-    string schema;
-    string apiSchema;
-    string[] hints;
-|};
-
-public enum VersionIncrementOrder {
-    BREAKING,
-    DANGEROUS,
-    SAFE
-}

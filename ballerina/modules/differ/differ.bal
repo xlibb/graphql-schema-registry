@@ -4,6 +4,23 @@ public isolated function diff(parser:__Schema newSchema, parser:__Schema? oldSch
     return check getDiff(newSchema, oldSchema ?: parser:createSchema());
 }
 
+public isolated function getMajorSeverity(DiffSeverity[] diffs) returns DiffSeverity? {
+    if diffs.length() == 0 {
+        return ();
+    }
+    DiffSeverity majorSeverity = SAFE;
+    foreach DiffSeverity diff in diffs {
+        if diff is BREAKING {
+            majorSeverity = BREAKING;
+            break;
+        }
+        if diff is DANGEROUS {
+            majorSeverity = DANGEROUS;
+        }
+    }
+    return majorSeverity;
+}
+
 isolated function getDiff(parser:__Schema newSchema, parser:__Schema oldSchema) returns SchemaDiff[]|Error {
 
     string[] newSchemaTypes = newSchema.types.keys().filter(k => !parser:isBuiltInType(k));

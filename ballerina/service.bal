@@ -8,8 +8,8 @@ isolated service / on new graphql:Listener(9090) {
     
 
     public function init() returns error? {
-        datasource:Datasource datasource = check new FileDatasource("datasource");
-        // datasource:Datasource datasource = new InMemoryDatasource();
+        // datasource:Datasource datasource = check new FileDatasource("datasource");
+        datasource:Datasource datasource = new InMemoryDatasource();
         self.registry = new(datasource);
     }
 
@@ -17,15 +17,15 @@ isolated service / on new graphql:Listener(9090) {
         return new Supergraph(check self.registry.getLatestSupergraph());
     }
 
-    isolated resource function get dryRun(SubgraphInput schema) returns Supergraph|error {
-        return new Supergraph(check self.registry.dryRun(schema));
+    isolated resource function get dryRun(SubgraphInput schema) returns CompositionResult|error {
+        return new CompositionResult(check self.registry.dryRun(schema));
     }
 
     isolated resource function get subgraph(string name) returns Subgraph|error {
         return new Subgraph(check self.registry.getSubgraphByName(name));
     }
 
-    isolated remote function publishSubgraph(SubgraphInput schema) returns Supergraph|error {
-        return new Supergraph(check self.registry.publishSubgraph(schema));
+    isolated remote function publishSubgraph(SubgraphInput schema) returns CompositionResult|error {
+        return new CompositionResult(check self.registry.publishSubgraph(schema));
     }
 }

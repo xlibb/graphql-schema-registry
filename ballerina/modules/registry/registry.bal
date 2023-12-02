@@ -3,6 +3,7 @@ import graphql_schema_registry.exporter;
 import graphql_schema_registry.parser;
 import graphql_schema_registry.datasource;
 import ballerina/lang.regexp as regex;
+import graphql_schema_registry.differ;
 
 public isolated class Registry {
 
@@ -12,9 +13,9 @@ public isolated class Registry {
         self.datasource = datasource;
     }
 
-    public isolated function publishSubgraph(Subgraph input) returns Supergraph|error {
+    public isolated function publishSubgraph(Subgraph input) returns CompositionResult|error {
         map<datasource:Subgraph> subgraphs = check self.getLatestSubgraphs();
-        Supergraph generatedSupergraph = check self.generateSupergraph(input, subgraphs);
+        CompositionResult generatedSupergraph = check self.generateSupergraph(input, subgraphs);
 
         subgraphs[input.name] = check self.registerSubgraph(input);
         check self.registerSupergraph(generatedSupergraph.cloneReadOnly(), subgraphs.toArray());
@@ -22,7 +23,7 @@ public isolated class Registry {
         return generatedSupergraph;
     }
 
-    public isolated function dryRun(Subgraph input) returns Supergraph|error {
+    public isolated function dryRun(Subgraph input) returns CompositionResult|error {
         map<datasource:Subgraph> subgraphs = check self.getLatestSubgraphs();
         return check self.generateSupergraph(input, subgraphs);
     }
@@ -31,11 +32,10 @@ public isolated class Registry {
         datasource:Supergraph supergraph = check self.getLatestSupergraphRecord();
         map<datasource:Subgraph> subgraphs = check self.getLatestSubgraphs();
         return {
-            schema: supergraph.schema,
-            apiSchema: supergraph.apiSchema,
+            schemaSdl: supergraph.schema,
+            apiSchemaSdl: supergraph.apiSchema,
             version: supergraph.version,
-            subgraphs: subgraphs.map(s => { name: s.name, url: s.url, schema: s.schema }).toArray(),
-            hints: []
+            subgraphs: subgraphs.map(s => { name: s.name, url: s.url, schema: s.schema }).toArray()
         };
     }
 
@@ -65,20 +65,42 @@ public isolated class Registry {
         return check self.getSupergraph(latestVersion);
     }
 
-    isolated function generateSupergraph(Subgraph input, map<datasource:Subgraph> existingSubgraphs) returns Supergraph|datasource:Error|RegistryError|error {
+    isolated function generateSupergraph(Subgraph input, map<datasource:Subgraph> existingSubgraphs) returns CompositionResult|datasource:Error|RegistryError|error {
         map<Subgraph> mergingSubgraphs = existingSubgraphs.map(s => { name: s.name, url: s.url, schema: s.schema });
         mergingSubgraphs[input.name] = { name: input.name, url: input.url, schema: input.schema };
         Subgraph[] mergingSubgraphList = mergingSubgraphs.toArray();
         ComposedSupergraphSchemas composeResult = check self.composeSupergraph(mergingSubgraphList);
-        string nextVersion = check self.incrementVersion(
-                                    check self.getLatestSupergraphVersion() ?: self.createInitialVersion());
-        // Handle Operation Checks
+
+        datasource:Supergraph|datasource:Error|RegistryError latestSupergraph = self.getLatestSupergraphRecord();
+        if latestSupergraph is datasource:Error {
+            return latestSupergraph;
+        }
+        
+        string latestVersion;
+        differ:SchemaDiff[] diffs = [];
+        differ:DiffSeverity incrementOrder;
+        if latestSupergraph !is RegistryError {
+            latestVersion = latestSupergraph.version;
+            diffs = check differ:diff(composeResult.apiSchema, check self.parseSupergraph(latestSupergraph.apiSchema));
+            differ:DiffSeverity? majorSeverity = differ:getMajorSeverity(diffs.map(d => d.severity));
+            if majorSeverity is () {
+                return error RegistryError("No supergraph changes");
+            }
+            incrementOrder = majorSeverity;
+        } else {
+            diffs = check differ:diff(composeResult.apiSchema, ());
+            latestVersion = self.createInitialVersion();
+            incrementOrder = differ:DANGEROUS;
+        }
+        string nextVersion = check self.incrementVersion(latestVersion, incrementOrder);
+
         return {
-            schema: composeResult.schema,
-            apiSchema: composeResult.apiSchema,
+            schemaSdl: composeResult.schemaSdl,
+            apiSchemaSdl: composeResult.apiSchemaSdl,
             subgraphs: mergingSubgraphList,
             version: nextVersion,
-            hints: composeResult.hints
+            hints: composeResult.hints,
+            diffs: diffs
         };
         
     }
@@ -88,11 +110,15 @@ public isolated class Registry {
         merger:SupergraphMergeResult composedSupergraph = check self.mergeSubgraphs(mergingSubgraphs);
 
         string supergraphSdl = check self.exportSchema(composedSupergraph.result.schema);
-        string apiSchemaSdl = check self.exportSchema(merger:getApiSchema(composedSupergraph.result.schema));
+
+        parser:__Schema apiSchema = merger:getApiSchema(composedSupergraph.result.schema);
+        string apiSchemaSdl = check self.exportSchema(apiSchema);
 
         return {
-            schema: supergraphSdl,
-            apiSchema: apiSchemaSdl,
+            schema: composedSupergraph.result.schema,
+            apiSchema: apiSchema,
+            schemaSdl: supergraphSdl,
+            apiSchemaSdl: apiSchemaSdl,
             hints: composedSupergraph.hints
         };
     }
@@ -107,11 +133,11 @@ public isolated class Registry {
         };
     }
 
-    isolated function registerSupergraph(Supergraph & readonly input, datasource:Subgraph[] inputSubgraphs) returns datasource:Error? {
+    isolated function registerSupergraph(CompositionResult & readonly input, datasource:Subgraph[] inputSubgraphs) returns datasource:Error? {
         check self.datasource->/supergraphs.post({
             version: input.version,
-            schema: input.schema,
-            apiSchema: input.apiSchema
+            schema: input.schemaSdl,
+            apiSchema: input.apiSchemaSdl
         });
         _ = check self.datasource->/supergraphsubgraphs.post(
             inputSubgraphs.map(isolated function (datasource:Subgraph s) returns datasource:SupergraphSubgraphInsert {
@@ -163,27 +189,27 @@ public isolated class Registry {
         return "0.0.0";
     }
 
-    isolated function incrementVersion(string version, VersionIncrementOrder 'order = DANGEROUS) returns string|RegistryError|error {
+    isolated function incrementVersion(string version, differ:DiffSeverity 'order = differ:DANGEROUS) returns string|RegistryError|error {
         int[] numbers = regex:split(re `\.`, version).'map(v => check int:fromString(v));
         if numbers.length() != 3 {
             return error RegistryError(string `Invalid version number '${version}'`);
         }
         match 'order {
-            BREAKING => {
+            differ:BREAKING => {
                 return self.createVersion(
                     breaking = numbers[0] + 1,
                     dangerous = 0,
                     safe = 0
                 );
             }
-            DANGEROUS => {
+            differ:DANGEROUS => {
                 return self.createVersion(
                     breaking = numbers[0],
                     dangerous = numbers[1] + 1,
                     safe = 0
                 );
             }
-            SAFE => {
+            differ:SAFE => {
                 return self.createVersion(
                     breaking = numbers[0],
                     dangerous = numbers[1],
@@ -220,5 +246,10 @@ public isolated class Registry {
             url: url,
             schema: parsedSchema
         };
+    }
+
+    isolated function parseSupergraph(string schema) returns parser:__Schema|error {
+        parser:__Schema parsedSchema = check (check new parser:Parser(schema, parser:SUPERGRAPH_SCHEMA)).parse();
+        return parsedSchema;
     }
 }
