@@ -13,7 +13,7 @@
                     "schema": "extend schema \n    @link(url: \"https://specs.apollo.dev/federation/v2.0\", import: [\"@shareable\"])\n    \ntype Query {\n    \"This is the name description in subgraph-2\"\n    name(age: Int = 10): String @shareable\n    age: Int @shareable\n    value: Boolean\n}\n\ntype Waldo {\n    name: String\n}\n\ntype Bux {\n    name: String\n}\n\nunion UnionFoo = Waldo | Bux"
                 }
             ],
-            "version": "0.2.0",
+            "version": "1.0.0",
             "hints": [
                 "INCONSISTENT_UNION_MEMBER: UnionFoo, Found 'Foo' in subg1, but not in subg2",
                 "INCONSISTENT_UNION_MEMBER: UnionFoo, Found 'Bar' in subg1, but not in subg2",

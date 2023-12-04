@@ -25,6 +25,7 @@ mutation PublishSubgraph {
             union UnionFoo = Waldo | Bux
             """
         }
+        isForced: true
     ) {
         schema
         apiSchema

@@ -29,8 +29,9 @@ function dataProviderSchemaRegistryService() returns [string][]|error {
         ["2_first_dry_run"],
         ["3_first_subgraph"],
         ["4_second_dry_run"],
-        ["5_second_subgraph"],
-        ["6_third_dry_run"],
-        ["7_subgraph_by_name"]
+        ["5_second_subgraph_operation_check_fail"],
+        ["6_second_subgraph"],
+        ["7_third_dry_run"],
+        ["8_subgraph_by_name"]
     ];
 }
