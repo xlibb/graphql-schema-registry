@@ -6,8 +6,7 @@ import ballerina/test;
 }
 function testCustomScalarTypes(string filename, __Type expectedScalarType) returns error? {
     string sdl = check getGraphqlSdlFromFile(filename);
-    Parser parser = new(sdl, SCHEMA);
-    __Schema parsedSchema = check parser.parse();
+    __Schema parsedSchema = check parseSdl(sdl);
 
     string? typeName = expectedScalarType.name;
     if (typeName != ()) {

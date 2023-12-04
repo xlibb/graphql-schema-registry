@@ -13,9 +13,12 @@ public isolated class Registry {
         self.datasource = datasource;
     }
 
-    public isolated function publishSubgraph(Subgraph input) returns CompositionResult|error {
+    public isolated function publishSubgraph(Subgraph input) returns CompositionResult|parser:SchemaError[]|error {
         map<datasource:Subgraph> subgraphs = check self.getLatestSubgraphs();
-        CompositionResult generatedSupergraph = check self.generateSupergraph(input, subgraphs);
+        CompositionResult|parser:SchemaError[] generatedSupergraph = check self.generateSupergraph(input, subgraphs);
+        if generatedSupergraph is parser:SchemaError[] {
+            return generatedSupergraph;
+        }
 
         subgraphs[input.name] = check self.registerSubgraph(input);
         check self.registerSupergraph(generatedSupergraph.cloneReadOnly(), subgraphs.toArray());
@@ -23,7 +26,7 @@ public isolated class Registry {
         return generatedSupergraph;
     }
 
-    public isolated function dryRun(Subgraph input) returns CompositionResult|error {
+    public isolated function dryRun(Subgraph input) returns CompositionResult|parser:SchemaError[]|error {
         map<datasource:Subgraph> subgraphs = check self.getLatestSubgraphs();
         return check self.generateSupergraph(input, subgraphs);
     }
@@ -65,11 +68,14 @@ public isolated class Registry {
         return check self.getSupergraph(latestVersion);
     }
 
-    isolated function generateSupergraph(Subgraph input, map<datasource:Subgraph> existingSubgraphs) returns CompositionResult|datasource:Error|RegistryError|error {
+    isolated function generateSupergraph(Subgraph input, map<datasource:Subgraph> existingSubgraphs) returns CompositionResult|datasource:Error|RegistryError|parser:SchemaError[]|error {
         map<Subgraph> mergingSubgraphs = existingSubgraphs.map(s => { name: s.name, url: s.url, schema: s.schema });
         mergingSubgraphs[input.name] = { name: input.name, url: input.url, schema: input.schema };
         Subgraph[] mergingSubgraphList = mergingSubgraphs.toArray();
-        ComposedSupergraphSchemas composeResult = check self.composeSupergraph(mergingSubgraphList);
+        ComposedSupergraphSchemas|parser:SchemaError[] composeResult = check self.composeSupergraph(mergingSubgraphList);
+        if composeResult is parser:SchemaError[] {
+            return composeResult;
+        }
 
         datasource:Supergraph|datasource:Error|RegistryError latestSupergraph = self.getLatestSupergraphRecord();
         if latestSupergraph is datasource:Error {
@@ -81,7 +87,11 @@ public isolated class Registry {
         differ:DiffSeverity incrementOrder;
         if latestSupergraph !is RegistryError {
             latestVersion = latestSupergraph.version;
-            diffs = check differ:diff(composeResult.apiSchema, check self.parseSupergraph(latestSupergraph.apiSchema));
+            parser:__Schema|parser:SchemaError[] parsedSupergraph = self.parseSupergraph(latestSupergraph.apiSchema);
+            if parsedSupergraph is parser:SchemaError[] {
+                return parsedSupergraph;
+            }
+            diffs = check differ:diff(composeResult.apiSchema, parsedSupergraph);
             differ:DiffSeverity? majorSeverity = differ:getMajorSeverity(diffs.map(d => d.severity));
             if majorSeverity is () {
                 return error RegistryError("No supergraph changes");
@@ -105,9 +115,20 @@ public isolated class Registry {
         
     }
 
-    isolated function composeSupergraph(Subgraph[] subgraphs) returns ComposedSupergraphSchemas|datasource:Error|RegistryError|error {
-        merger:Subgraph[] mergingSubgraphs = subgraphs.map(s => check self.parseSubgraph(s.name, s.url, s.schema));
+    isolated function composeSupergraph(Subgraph[] subgraphs) returns ComposedSupergraphSchemas|parser:SchemaError[]|error {
+        // merger:Subgraph[] mergingSubgraphs = subgraphs.map(s => check self.parseSubgraph(s.name, s.url, s.schema));
+        merger:Subgraph[] mergingSubgraphs = [];
+        foreach Subgraph subgraph in subgraphs {
+            merger:Subgraph|parser:SchemaError[] parsedSubgraph = self.parseSubgraph(subgraph.name, subgraph.url, subgraph.schema);
+            if parsedSubgraph is parser:SchemaError[] {
+                return parsedSubgraph;
+            }
+            mergingSubgraphs.push(parsedSubgraph);
+        }
         merger:SupergraphMergeResult composedSupergraph = check self.mergeSubgraphs(mergingSubgraphs);
+        // if composedSupergraph is merger:MergeError[] {
+        //     return composedSupergraph;
+        // }
 
         string supergraphSdl = check self.exportSchema(composedSupergraph.result.schema);
 
@@ -230,6 +251,8 @@ public isolated class Registry {
         merger:SupergraphMergeResult|merger:MergeError[]|merger:InternalError|error merged = (check new merger:Merger(subgraphs)).merge();
         if merged is merger:SupergraphMergeResult {
             return merged;
+        // } else if merged is merger:MergeError[] {
+        //     return merged;
         } else {
             return error("Supergraph merge failure");
         }
@@ -239,8 +262,12 @@ public isolated class Registry {
         return check (new exporter:Exporter(schema)).export();
     }
 
-    isolated function parseSubgraph(string name, string url, string schema) returns merger:Subgraph|error {
-        parser:__Schema parsedSchema = check (new parser:Parser(schema, parser:SUBGRAPH_SCHEMA)).parse();
+    isolated function parseSubgraph(string name, string url, string schema) returns merger:Subgraph|parser:SchemaError[] {
+        parser:Parser parser = new(schema, parser:SUBGRAPH_SCHEMA);
+        parser:__Schema|parser:SchemaError[] parsedSchema = parser.parse();
+        if parsedSchema is parser:SchemaError[] {
+            return parsedSchema;
+        }
         return {
             name: name,
             url: url,
@@ -248,8 +275,12 @@ public isolated class Registry {
         };
     }
 
-    isolated function parseSupergraph(string schema) returns parser:__Schema|error {
-        parser:__Schema parsedSchema = check (check new parser:Parser(schema, parser:SUPERGRAPH_SCHEMA)).parse();
+    isolated function parseSupergraph(string schema) returns parser:__Schema|parser:SchemaError[] {
+        parser:Parser parser = new(schema, parser:SUPERGRAPH_SCHEMA);
+        parser:__Schema|parser:SchemaError[] parsedSchema = parser.parse();
+        if parsedSchema is parser:SchemaError[] {
+            return parsedSchema;
+        }
         return parsedSchema;
     }
 }

@@ -30,8 +30,7 @@ function testRootOperationTypes() returns error? {
         interfaces: []
     };
 
-    Parser parser = new(sdl, SCHEMA);
-    __Schema parsedSchema = check parser.parse();
+    __Schema parsedSchema = check parseSdl(sdl);
     test:assertEquals(parsedSchema.types["Query"], queryType);
     test:assertEquals(parsedSchema.queryType, queryType);
     test:assertEquals(parsedSchema.types["Mutation"], mutationType);

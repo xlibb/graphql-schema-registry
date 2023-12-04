@@ -15,8 +15,7 @@ function testCustomInterfaceTypes() returns error? {
         possibleTypes: []
     };
 
-    Parser parser = new(sdl, SCHEMA);
-    __Schema parsedSchema = check parser.parse();
+    __Schema parsedSchema = check parseSdl(sdl);
     test:assertEquals(parsedSchema.types["Person"], personInterface);
  }
 
@@ -36,8 +35,7 @@ function testCustomInterfaceTypesDescription() returns error? {
         possibleTypes: []
     };
 
-    Parser parser = new(sdl, SCHEMA);
-    __Schema parsedSchema = check parser.parse();
+    __Schema parsedSchema = check parseSdl(sdl);
     test:assertEquals(parsedSchema.types["Person"], personInterface);
  }
 
@@ -75,8 +73,7 @@ function testCustomInterfaceTypesInterfaceImplementations() returns error? {
         possibleTypes: []
     };
 
-    Parser parser = new(sdl, SCHEMA);
-    __Schema parsedSchema = check parser.parse();
+    __Schema parsedSchema = check parseSdl(sdl);
     test:assertEquals(parsedSchema.types["Worker"], workerInterface);
  }
 
@@ -107,7 +104,6 @@ function testCustomInterfaceTypeAppliedDirective() returns error? {
         ]
     };
 
-    Parser parser = new(sdl, SCHEMA);
-    __Schema parsedSchema = check parser.parse();
+    __Schema parsedSchema = check parseSdl(sdl);
     test:assertEquals(parsedSchema.types["Person"], personInterface);
  }

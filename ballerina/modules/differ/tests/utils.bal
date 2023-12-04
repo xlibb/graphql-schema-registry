@@ -19,8 +19,14 @@ function getSchemas(string fileName) returns [parser:__Schema, parser:__Schema]|
     string newSchemaSdl = check io:fileReadString(newSchemaSdlPath);
     string oldSchemaSdl = check io:fileReadString(oldSchemaSdlPath);
 
-    parser:__Schema newSchema = check (new parser:Parser(newSchemaSdl, parser:SCHEMA)).parse();
-    parser:__Schema oldSchema = check (new parser:Parser(oldSchemaSdl, parser:SCHEMA)).parse();
+    parser:__Schema|parser:SchemaError[] newSchema = new parser:Parser(newSchemaSdl, parser:SCHEMA).parse();
+    if newSchema is parser:SchemaError[] {
+        return parser:getSchemaErrorsAsError(newSchema);
+    }
+    parser:__Schema|parser:SchemaError[] oldSchema = new parser:Parser(oldSchemaSdl, parser:SCHEMA).parse();
+    if oldSchema is parser:SchemaError[] {
+        return parser:getSchemaErrorsAsError(oldSchema);
+    }
 
     return [newSchema, oldSchema];
 }

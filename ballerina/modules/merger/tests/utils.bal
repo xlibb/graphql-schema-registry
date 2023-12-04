@@ -20,7 +20,10 @@ function getSubgraphsFromFileName(string folderName, string subgraph_prefix) ret
         if !data.dir && data.absPath.endsWith(".graphql") {
             string sdl = check io:fileReadString(data.absPath);
             parser:Parser parser = new(sdl, parser:SUBGRAPH_SCHEMA);
-            parser:__Schema parsedSchema = check parser.parse();
+            parser:__Schema|parser:SchemaError[] parsedSchema = parser.parse();
+            if parsedSchema is parser:SchemaError[] {
+                return parser:getSchemaErrorsAsError(parsedSchema);
+            }
 
             subgraphs.push(
                 {
@@ -52,7 +55,11 @@ function getSupergraphSdlFromFileName(string fileName) returns string|error {
 function getSupergraphFromFileName(string fileName) returns parser:__Schema|error {
     string sdl = check getSupergraphSdlFromFileName(fileName);
     parser:Parser parser = new(sdl, parser:SCHEMA);
-    return check parser.parse();
+    parser:__Schema|parser:SchemaError[] parsedSchema = parser.parse();
+    if parsedSchema is parser:SchemaError[] {
+        return parser:getSchemaErrorsAsError(parsedSchema);
+    }
+    return parsedSchema;
 }
 
 function getSchemas(string fileName, string subgraph_prefix = "subg") returns [parser:__Schema, Subgraph[]]|error {

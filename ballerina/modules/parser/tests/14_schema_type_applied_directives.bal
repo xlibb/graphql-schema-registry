@@ -5,8 +5,7 @@ import ballerina/test;
 }
 function testSchemaTypeAppliedDirectives() returns error? {
     string sdl = check getGraphqlSdlFromFile("schema_type_applied_directives");
-    Parser parser = new(sdl, SUBGRAPH_SCHEMA);
-    __Schema parsedSchema = check parser.parse();
+    __Schema parsedSchema = check parseSdl(sdl, SUBGRAPH_SCHEMA);
 
     __Directive fooDirective = {
         name: "foo",

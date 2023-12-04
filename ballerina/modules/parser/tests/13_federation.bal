@@ -21,8 +21,7 @@ __Type federation_Scope_scalar = {
 }
 function testFederationBuiltin() returns error? {
     string sdl = check getGraphqlSdlFromFile("federation_builtin");
-    Parser parser = new(sdl, SUBGRAPH_SCHEMA);
-    __Schema parsedSchema = check parser.parse();
+    __Schema parsedSchema = check parseSdl(sdl, SUBGRAPH_SCHEMA);
 
     __Type link__Import_scalar = {
         kind: SCALAR,
@@ -80,8 +79,7 @@ function testFederationBuiltin() returns error? {
 }
 function testFederationImports(__Directive expectedDirective) returns error? {
     string sdl = check getGraphqlSdlFromFile("federation_imports");
-    Parser parser = new(sdl, SUBGRAPH_SCHEMA);
-    __Schema parsedSchema = check parser.parse();
+    __Schema parsedSchema = check parseSdl(sdl, SUBGRAPH_SCHEMA);
     test:assertEquals(parsedSchema.directives.get(expectedDirective.name), expectedDirective);
 }
 

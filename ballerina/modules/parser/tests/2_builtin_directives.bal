@@ -6,8 +6,7 @@ import ballerina/test;
 }
 function testBuiltInDirectives(__Directive expectedDirective) returns error? {
     string sdl = check getGraphqlSdlFromFile("builtin_scalars");
-    Parser parser = new(sdl, SCHEMA);
-    __Schema parsedSchema = check parser.parse();
+    __Schema parsedSchema = check parseSdl(sdl);
     test:assertEquals(parsedSchema.directives.get(expectedDirective.name), expectedDirective);
 }
 

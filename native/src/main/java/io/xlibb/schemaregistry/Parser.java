@@ -1,5 +1,6 @@
 package io.xlibb.schemaregistry;
 
+import graphql.GraphQLError;
 import graphql.language.ArrayValue;
 import graphql.language.BooleanValue;
 import graphql.language.DirectiveDefinition;
@@ -34,11 +35,15 @@ import graphql.schema.idl.RuntimeWiring;
 import graphql.schema.idl.SchemaGenerator;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
+import graphql.schema.idl.errors.SchemaProblem;
+import io.ballerina.runtime.api.PredefinedTypes;
+import io.ballerina.runtime.api.creators.ErrorCreator;
 import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
+import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BIterator;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
@@ -98,38 +103,27 @@ import static io.xlibb.schemaregistry.utils.ParserUtils.getTypeKindFromType;
 
 public class Parser {
 
-    private final GraphQLSchema schema;
-    private final Map<String, GraphQLNamedType> filteredTypeMap;
-    private final Map<String, BMap<BString, Object>> types;
-    private final Map<String, BMap<BString, Object>> directives;
+    private GraphQLSchema schema;
+    private Map<String, GraphQLNamedType> filteredTypeMap;
+    private Map<String, BMap<BString, Object>> types;
+    private Map<String, BMap<BString, Object>> directives;
+    private final String schemaSdl;
+    private final String parsingMode;
 
     public Parser(BString schemaSdl, BString modeStr) {
 
         types = new HashMap<>();
         directives = new HashMap<>();
-        SchemaParser parser = new SchemaParser();
-
-        TypeDefinitionRegistry schemaDefinitions = parser.parse(schemaSdl.getValue());
-        switch (ParsingMode.valueOf(modeStr.getValue())) {
-            case SUBGRAPH_SCHEMA -> {
-                TypeDefinitionRegistry federationDefinitions = FederationUtils.getFederationTypes(schemaDefinitions);
-                schemaDefinitions = schemaDefinitions.merge(federationDefinitions);
-            }
-            case SUPERGRAPH_SCHEMA -> {
-            }
-            case SCHEMA -> {
-            }
-        }
-
-        RuntimeWiring wiring = RuntimeWiring.newRuntimeWiring().wiringFactory(new ParserWiringFactory()).build();
-        schema = (new SchemaGenerator()).makeExecutableSchema(schemaDefinitions, wiring);
-        filteredTypeMap = schema.getTypeMap().entrySet().stream()
-                                                .filter(e -> !isIntrospectionType(e.getValue()))
-                                                .collect(Collectors.toMap(e->e.getKey(), e->e.getValue()));
+        this.schemaSdl = schemaSdl.getValue(); 
+        this.parsingMode = modeStr.getValue();
     }
 
-    public BMap<BString, Object> parse() {
+    public Object parse() {
 
+        BArray errors = init();
+        if (errors.getLength() > 0) {
+            return errors;
+        }
         addTypesShallow();
         addEnumsDeepWithoutAppliedDirectives();
         addDirectivesShallow();
@@ -137,6 +131,38 @@ public class Parser {
         addEnumsDeepWithAppliedDirectives();
         addTypesDeep();
         return generateSchemaRecord();
+    }
+
+    private BArray init() {
+        SchemaParser parser = new SchemaParser();
+        ArrayType recordType = TypeCreator.createArrayType(PredefinedTypes.TYPE_ERROR);
+        BArray bArray = ValueCreator.createArrayValue(recordType);
+        try {
+            TypeDefinitionRegistry schemaDefinitions = parser.parse(this.schemaSdl);
+            switch (ParsingMode.valueOf(this.parsingMode)) {
+                case SUBGRAPH_SCHEMA -> {
+                    TypeDefinitionRegistry federationDefinitions = FederationUtils
+                                                                                .getFederationTypes(schemaDefinitions);
+                    schemaDefinitions = schemaDefinitions.merge(federationDefinitions);
+                }
+                case SUPERGRAPH_SCHEMA -> {
+                }
+                case SCHEMA -> {
+                }
+            }
+
+            RuntimeWiring wiring = RuntimeWiring.newRuntimeWiring().wiringFactory(new ParserWiringFactory()).build();
+            this.schema = (new SchemaGenerator()).makeExecutableSchema(schemaDefinitions, wiring);
+            this.filteredTypeMap = schema.getTypeMap().entrySet().stream()
+                                                    .filter(e -> !isIntrospectionType(e.getValue()))
+                                                    .collect(Collectors.toMap(e->e.getKey(), e->e.getValue()));
+        } catch (SchemaProblem problem) {
+            for (GraphQLError error : problem.getErrors()) {
+                BError bError = ErrorCreator.createError(StringUtils.fromString(error.getMessage()));
+                bArray.append(bError);
+            }
+        }
+        return bArray;
     }
 
     private void addTypesShallow() {

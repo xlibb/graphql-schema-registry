@@ -171,3 +171,7 @@ isolated function getBuiltInDirectives(map<__Type> types) returns map<__Directiv
 
     return directives;
 }
+
+public isolated function getSchemaErrorsAsError(SchemaError[] errors) returns error {
+    return error(string `Schema Errors. ${errors.map(e => e.message()).toString()}`);
+}

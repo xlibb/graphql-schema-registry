@@ -7,8 +7,7 @@ import ballerina/test;
 function testEnumValues(string fileName, string typeName, __EnumValue[] expectedEnumValues) returns error? { 
     string sdl = check getGraphqlSdlFromFile(fileName);
 
-    Parser parser = new(sdl, SCHEMA);
-    __Schema parsedSchema = check parser.parse();
+    __Schema parsedSchema = check parseSdl(sdl);
     test:assertEquals(parsedSchema.types.get(typeName).enumValues, expectedEnumValues);
  }
 

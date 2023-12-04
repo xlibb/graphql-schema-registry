@@ -7,7 +7,11 @@ import graphql_schema_registry.parser;
 }
 function testConflictCompatibleInputTypes(string fileName) returns error? {
     string expectedSdl = check getSchemaSdl(fileName);
-    string actualSdl = check (new Exporter(check new parser:Parser(expectedSdl, parser:SCHEMA).parse())).export();
+    parser:__Schema|parser:SchemaError[] parsedResult = new parser:Parser(expectedSdl, parser:SCHEMA).parse();
+    if parsedResult is parser:SchemaError[] {
+        return parser:getSchemaErrorsAsError(parsedResult);
+    }
+    string actualSdl = check (new Exporter(parsedResult)).export();
     if expectedSdl != actualSdl {
         check writeSchemaSdl(fileName + "_new", actualSdl);
     }

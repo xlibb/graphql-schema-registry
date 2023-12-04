@@ -23,8 +23,7 @@ function testCustomObjectTypes() returns error? {
         interfaces: []
     };
 
-    Parser parser = new(sdl, SCHEMA);
-    __Schema parsedSchema = check parser.parse();
+    __Schema parsedSchema = check parseSdl(sdl);
     test:assertEquals(parsedSchema.types["Address"], addressType);
     test:assertEquals(parsedSchema.types["Person"], personType);
  }
@@ -45,8 +44,7 @@ function testCustomObjectTypesDescription() returns error? {
         description: "This represents a Person"
     };
 
-    Parser parser = new(sdl, SCHEMA);
-    __Schema parsedSchema = check parser.parse();
+    __Schema parsedSchema = check parseSdl(sdl);
     test:assertEquals(parsedSchema.types["Person"], personType);
  }
 
@@ -91,8 +89,7 @@ function testCustomObjectTypeInterfaceImplementations() returns error? {
         interfaces: [ personInterface, workerInterface ]
     };
 
-    Parser parser = new(sdl, SCHEMA);
-    __Schema parsedSchema = check parser.parse();
+    __Schema parsedSchema = check parseSdl(sdl);
     test:assertEquals(parsedSchema.types["Student"], studentType);
     test:assertEquals(parsedSchema.types["Teacher"], teacherType);
  }
@@ -123,7 +120,6 @@ function testCustomObjectTypeAppliedDirective() returns error? {
         ]
     };
 
-    Parser parser = new(sdl, SCHEMA);
-    __Schema parsedSchema = check parser.parse();
+    __Schema parsedSchema = check parseSdl(sdl);
     test:assertEquals(parsedSchema.types["Person"], personType);
  }

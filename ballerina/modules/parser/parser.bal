@@ -8,8 +8,12 @@ public isolated class Parser {
         self.jObj = newParser(schema, mode);
     }
 
-    public isolated function parse() returns __Schema|error {
-        return <__Schema>parse(self.jObj);
+    public isolated function parse() returns __Schema|SchemaError[] {
+        __Schema|error[] parseResult = parse(self.jObj);
+        if parseResult is error[] {
+            return parseResult.map(e => error SchemaError(e.message()));
+        }
+        return parseResult;
     }
 
 }
@@ -24,6 +28,6 @@ isolated function newParser(string schema, string modeStr) returns handle = @jav
     'class: "io.xlibb.schemaregistry.Parser"
 } external;
 
-isolated function parse(handle jObj) returns any = @java:Method {
+isolated function parse(handle jObj) returns __Schema|error[] = @java:Method {
     'class: "io.xlibb.schemaregistry.Parser"
 } external;

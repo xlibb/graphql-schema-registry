@@ -7,8 +7,7 @@ import ballerina/test;
 function testAppliedDirective(string fileName, string fieldName, __AppliedDirective[] expectedAppliedDirectives) returns error? { 
     string sdl = check getGraphqlSdlFromFile(fileName);
 
-    Parser parser = new(sdl, SCHEMA);
-    __Schema parsedSchema = check parser.parse();
+    __Schema parsedSchema = check parseSdl(sdl);
     map<__Field>? fields = parsedSchema.queryType.fields;
     if (fields != ()) {
         __AppliedDirective[] appliedDirectives = fields.get(fieldName).appliedDirectives;
@@ -56,8 +55,7 @@ function testAppliedDirective(string fileName, string fieldName, __AppliedDirect
 function testAppliedDirectiveInputValue(string argName, __AppliedDirectiveInputValue expected_value) returns error? {
     string sdl = check getGraphqlSdlFromFile("applied_directive_input_value");
 
-    Parser parser = new(sdl, SCHEMA);
-    __Schema parsedSchema = check parser.parse();
+    __Schema parsedSchema = check parseSdl(sdl);
     __AppliedDirective[] appliedDirectives = parsedSchema.types.get("Student").appliedDirectives;
     __AppliedDirective testDirective = appliedDirectives.filter(d => d.definition.name == "testDirective")[0];
     map<__AppliedDirectiveInputValue> input_values = testDirective.args;
@@ -150,8 +148,7 @@ function testAppliedDirectiveEnumValueCyclic() returns error? {
         }
     );
 
-    Parser parser = new(sdl, SCHEMA);
-    __Schema parsedSchema = check parser.parse();
+    __Schema parsedSchema = check parseSdl(sdl);
     __EnumValue[]? firstEnumValues = parsedSchema.types.get("FirstEnum").enumValues;
     __EnumValue[]? secondEnumValues = parsedSchema.types.get("SecondEnum").enumValues;
     if firstEnumValues !is () && secondEnumValues !is () {
@@ -195,8 +192,7 @@ function testAppliedDirectiveOnDirectiveDefinition() returns error? {
         definition: bar
     };
 
-    Parser parser = new(sdl, SCHEMA);
-    __Schema parsedSchema = check parser.parse();
+    __Schema parsedSchema = check parseSdl(sdl);
     test:assertEquals(parsedSchema.directives.get("bar"), bar);
     test:assertEquals(parsedSchema.queryType.appliedDirectives, [applied_bar]);
  }
@@ -252,8 +248,7 @@ function testAppliedDirectiveOnDirectiveDefinitionDependsOnEnum() returns error?
         definition: bar
     };
 
-    Parser parser = new(sdl, SCHEMA);
-    __Schema parsedSchema = check parser.parse();
+    __Schema parsedSchema = check parseSdl(sdl);
     test:assertEquals(parsedSchema.directives.get("bar"), bar);
     test:assertEquals(parsedSchema.queryType.appliedDirectives, [applied_bar]);
  }

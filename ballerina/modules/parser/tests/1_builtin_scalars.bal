@@ -6,8 +6,7 @@ import ballerina/test;
 }
 function testBuiltInScalars(string scalarName, __Type expectedScalar) returns error? {
     string sdl = check getGraphqlSdlFromFile("builtin_scalars");
-    Parser parser = new(sdl, SCHEMA);
-    __Schema parsedSchema = check parser.parse();
+    __Schema parsedSchema = check parseSdl(sdl);
     test:assertEquals(parsedSchema.types.get(scalarName), expectedScalar);
 }
 

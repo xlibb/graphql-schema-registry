@@ -23,8 +23,7 @@ __Type catType = {
 }
 function testCustomUnionTypes(string fileName, __Type expectedUnionType) returns error? { 
     string sdl = check getGraphqlSdlFromFile(fileName);
-    Parser parser = new(sdl, SCHEMA);
-    __Schema parsedSchema = check parser.parse();
+    __Schema parsedSchema = check parseSdl(sdl);
     string? unionTypeName = expectedUnionType.name;
     if (unionTypeName != ()) {
         test:assertEquals(parsedSchema.types.get(unionTypeName), expectedUnionType);

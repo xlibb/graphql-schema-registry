@@ -7,8 +7,7 @@ import ballerina/test;
 function testBuiltInWrappingTypes(string fileName, string fieldName, __Type expectedWrappingType) returns error? {
     string sdl = check getGraphqlSdlFromFile(fileName);
 
-    Parser parser = new(sdl, SCHEMA);
-    __Schema parsedSchema = check parser.parse();
+    __Schema parsedSchema = check parseSdl(sdl);
     map<__Field>? fields = parsedSchema.queryType.fields;
     if (fields != ()) {
         test:assertEquals(fields.get(fieldName).'type, expectedWrappingType);
