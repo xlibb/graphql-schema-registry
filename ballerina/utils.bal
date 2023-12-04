@@ -1,11 +1,33 @@
 import ballerina/graphql;
-isolated function returnErrors(graphql:Context ctx, graphql:Field 'field, string message, error[] errors) {
+import graphql_schema_registry.merger;
+import graphql_schema_registry.parser;
+
+type ErrorDetail record {|
+    string message;
+    anydata details;
+|};
+
+isolated function returnErrors(graphql:Context ctx, graphql:Field 'field, merger:MergeError[]|parser:SchemaError[] errors) returns error? {
+    ErrorDetail[] errorDetails = errors.map(e => { 
+        message: e.message(),
+        details: check e.detail().ensureType(anydata)
+    });
+
+    string message;
+    if errors is merger:MergeError[] { 
+        message = "Supergraph composition error";
+    } else if errors is parser:SchemaError[] { 
+        message = "Invalid GraphQL";
+    } else {
+        message = "Error";
+    }
+
     graphql:ErrorDetail errorDetail = {
         message: message,
         locations: ['field.getLocation()],
         path: 'field.getPath(),
         extensions: {
-            errors: errors.map(e => e.message())
+            errors: errorDetails
         }
     };
     graphql:__addError(ctx, errorDetail);

@@ -13,10 +13,10 @@ public isolated class Registry {
         self.datasource = datasource;
     }
 
-    public isolated function publishSubgraph(Subgraph input) returns CompositionResult|parser:SchemaError[]|error {
+    public isolated function publishSubgraph(Subgraph input) returns CompositionResult|parser:SchemaError[]|merger:MergeError[]|error {
         map<datasource:Subgraph> subgraphs = check self.getLatestSubgraphs();
-        CompositionResult|parser:SchemaError[] generatedSupergraph = check self.generateSupergraph(input, subgraphs);
-        if generatedSupergraph is parser:SchemaError[] {
+        CompositionResult|parser:SchemaError[]|merger:MergeError[] generatedSupergraph = check self.generateSupergraph(input, subgraphs);
+        if generatedSupergraph is parser:SchemaError[]|merger:MergeError[] {
             return generatedSupergraph;
         }
 
@@ -26,7 +26,7 @@ public isolated class Registry {
         return generatedSupergraph;
     }
 
-    public isolated function dryRun(Subgraph input) returns CompositionResult|parser:SchemaError[]|error {
+    public isolated function dryRun(Subgraph input) returns CompositionResult|parser:SchemaError[]|merger:MergeError[]|error {
         map<datasource:Subgraph> subgraphs = check self.getLatestSubgraphs();
         return check self.generateSupergraph(input, subgraphs);
     }
@@ -68,12 +68,12 @@ public isolated class Registry {
         return check self.getSupergraph(latestVersion);
     }
 
-    isolated function generateSupergraph(Subgraph input, map<datasource:Subgraph> existingSubgraphs) returns CompositionResult|datasource:Error|RegistryError|parser:SchemaError[]|error {
+    isolated function generateSupergraph(Subgraph input, map<datasource:Subgraph> existingSubgraphs) returns CompositionResult|merger:MergeError[]|parser:SchemaError[]|error {
         map<Subgraph> mergingSubgraphs = existingSubgraphs.map(s => { name: s.name, url: s.url, schema: s.schema });
         mergingSubgraphs[input.name] = { name: input.name, url: input.url, schema: input.schema };
         Subgraph[] mergingSubgraphList = mergingSubgraphs.toArray();
-        ComposedSupergraphSchemas|parser:SchemaError[] composeResult = check self.composeSupergraph(mergingSubgraphList);
-        if composeResult is parser:SchemaError[] {
+        ComposedSupergraphSchemas|parser:SchemaError[]|merger:MergeError[] composeResult = check self.composeSupergraph(mergingSubgraphList);
+        if composeResult is parser:SchemaError[]|merger:MergeError[] {
             return composeResult;
         }
 
@@ -115,7 +115,7 @@ public isolated class Registry {
         
     }
 
-    isolated function composeSupergraph(Subgraph[] subgraphs) returns ComposedSupergraphSchemas|parser:SchemaError[]|error {
+    isolated function composeSupergraph(Subgraph[] subgraphs) returns ComposedSupergraphSchemas|parser:SchemaError[]|merger:MergeError[]|error {
         // merger:Subgraph[] mergingSubgraphs = subgraphs.map(s => check self.parseSubgraph(s.name, s.url, s.schema));
         merger:Subgraph[] mergingSubgraphs = [];
         foreach Subgraph subgraph in subgraphs {
@@ -125,10 +125,10 @@ public isolated class Registry {
             }
             mergingSubgraphs.push(parsedSubgraph);
         }
-        merger:SupergraphMergeResult composedSupergraph = check self.mergeSubgraphs(mergingSubgraphs);
-        // if composedSupergraph is merger:MergeError[] {
-        //     return composedSupergraph;
-        // }
+        merger:SupergraphMergeResult|merger:MergeError[] composedSupergraph = check self.mergeSubgraphs(mergingSubgraphs);
+        if composedSupergraph is merger:MergeError[] {
+            return composedSupergraph;
+        }
 
         string supergraphSdl = check self.exportSchema(composedSupergraph.result.schema);
 
@@ -247,15 +247,8 @@ public isolated class Registry {
         return string `${breaking}.${dangerous}.${safe}`;
     }
 
-    isolated function mergeSubgraphs(merger:Subgraph[] subgraphs) returns merger:SupergraphMergeResult|error {
-        merger:SupergraphMergeResult|merger:MergeError[]|merger:InternalError|error merged = (check new merger:Merger(subgraphs)).merge();
-        if merged is merger:SupergraphMergeResult {
-            return merged;
-        // } else if merged is merger:MergeError[] {
-        //     return merged;
-        } else {
-            return error("Supergraph merge failure");
-        }
+    isolated function mergeSubgraphs(merger:Subgraph[] subgraphs) returns merger:SupergraphMergeResult|merger:MergeError[]|error {
+        return check (check new merger:Merger(subgraphs)).merge();
     }
 
     isolated function exportSchema(parser:__Schema schema) returns string|exporter:ExportError {

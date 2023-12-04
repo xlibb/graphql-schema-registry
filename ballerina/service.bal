@@ -2,6 +2,7 @@ import ballerina/graphql;
 import graphql_schema_registry.registry;
 import graphql_schema_registry.parser;
 import graphql_schema_registry.datasource;
+import graphql_schema_registry.merger;
 
 isolated service / on new graphql:Listener(9090) {
 
@@ -19,12 +20,13 @@ isolated service / on new graphql:Listener(9090) {
     }
 
     isolated resource function get dryRun(graphql:Context context, graphql:Field 'field, SubgraphInput schema) returns CompositionResult|error? {
-        registry:CompositionResult|parser:SchemaError[] result = check self.registry.dryRun(schema);
-        if result is parser:SchemaError[] {
-            returnErrors(context, 'field, "Schema Errors", result);
+        registry:CompositionResult|parser:SchemaError[]|merger:MergeError[] result = check self.registry.dryRun(schema);
+        if result is registry:CompositionResult {
+            return new CompositionResult(result);
+        } else {
+            check returnErrors(context, 'field, result);
             return;
         }
-        return new CompositionResult(result);
     }
 
     isolated resource function get subgraph(string name) returns Subgraph|error {
@@ -32,11 +34,12 @@ isolated service / on new graphql:Listener(9090) {
     }
 
     isolated remote function publishSubgraph(graphql:Context context, graphql:Field 'field, SubgraphInput schema) returns CompositionResult|error? {
-        registry:CompositionResult|parser:SchemaError[] publishSubgraphResult = check self.registry.publishSubgraph(schema);
-        if publishSubgraphResult is parser:SchemaError[] {
-            returnErrors(context, 'field, "Schema Errors", publishSubgraphResult);
+        registry:CompositionResult|parser:SchemaError[]|merger:MergeError[] result = check self.registry.publishSubgraph(schema);
+        if result is registry:CompositionResult {
+            return new CompositionResult(result);
+        } else {
+            check returnErrors(context, 'field, result);
             return;
         }
-        return new CompositionResult(publishSubgraphResult);
     }
 }
