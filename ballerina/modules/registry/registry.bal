@@ -13,10 +13,10 @@ public isolated class Registry {
         self.datasource = datasource;
     }
 
-    public isolated function publishSubgraph(Subgraph input) returns CompositionResult|parser:SchemaError[]|merger:MergeError[]|error {
+    public isolated function publishSubgraph(Subgraph input, boolean isForced) returns CompositionResult|parser:SchemaError[]|merger:MergeError[]|OperationCheckError[]|error {
         map<datasource:Subgraph> subgraphs = check self.getLatestSubgraphs();
-        CompositionResult|parser:SchemaError[]|merger:MergeError[] generatedSupergraph = check self.generateSupergraph(input, subgraphs);
-        if generatedSupergraph is parser:SchemaError[]|merger:MergeError[] {
+        CompositionResult|parser:SchemaError[]|merger:MergeError[]|OperationCheckError[] generatedSupergraph = check self.generateSupergraph(input, subgraphs, isForced);
+        if generatedSupergraph is parser:SchemaError[]|merger:MergeError[]|OperationCheckError[] {
             return generatedSupergraph;
         }
 
@@ -26,9 +26,9 @@ public isolated class Registry {
         return generatedSupergraph;
     }
 
-    public isolated function dryRun(Subgraph input) returns CompositionResult|parser:SchemaError[]|merger:MergeError[]|error {
+    public isolated function dryRun(Subgraph input) returns CompositionResult|parser:SchemaError[]|merger:MergeError[]|OperationCheckError[]|error {
         map<datasource:Subgraph> subgraphs = check self.getLatestSubgraphs();
-        return check self.generateSupergraph(input, subgraphs);
+        return check self.generateSupergraph(input, subgraphs, true);
     }
 
     public isolated function getLatestSupergraph() returns Supergraph|datasource:Error|RegistryError {
@@ -68,7 +68,7 @@ public isolated class Registry {
         return check self.getSupergraph(latestVersion);
     }
 
-    isolated function generateSupergraph(Subgraph input, map<datasource:Subgraph> existingSubgraphs) returns CompositionResult|merger:MergeError[]|parser:SchemaError[]|error {
+    isolated function generateSupergraph(Subgraph input, map<datasource:Subgraph> existingSubgraphs, boolean isForced) returns CompositionResult|merger:MergeError[]|parser:SchemaError[]|OperationCheckError[]|error {
         map<Subgraph> mergingSubgraphs = existingSubgraphs.map(s => { name: s.name, url: s.url, schema: s.schema });
         mergingSubgraphs[input.name] = { name: input.name, url: input.url, schema: input.schema };
         Subgraph[] mergingSubgraphList = mergingSubgraphs.toArray();
@@ -95,6 +95,9 @@ public isolated class Registry {
             differ:DiffSeverity? majorSeverity = differ:getMajorSeverity(diffs.map(d => d.severity));
             if majorSeverity is () {
                 return error RegistryError("No supergraph changes");
+            }
+            if majorSeverity is differ:BREAKING && !isForced {
+                return diffs.filter(e => e.severity is differ:BREAKING).map(e => error OperationCheckError(differ:getDiffMessage(e), diff = e));
             }
             incrementOrder = majorSeverity;
         } else {

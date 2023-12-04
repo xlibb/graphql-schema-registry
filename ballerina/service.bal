@@ -20,7 +20,7 @@ isolated service / on new graphql:Listener(9090) {
     }
 
     isolated resource function get dryRun(graphql:Context context, graphql:Field 'field, SubgraphInput schema) returns CompositionResult|error? {
-        registry:CompositionResult|parser:SchemaError[]|merger:MergeError[] result = check self.registry.dryRun(schema);
+        registry:CompositionResult|parser:SchemaError[]|merger:MergeError[]|registry:OperationCheckError[] result = check self.registry.dryRun(schema);
         if result is registry:CompositionResult {
             return new CompositionResult(result);
         } else {
@@ -33,8 +33,8 @@ isolated service / on new graphql:Listener(9090) {
         return new Subgraph(check self.registry.getSubgraphByName(name));
     }
 
-    isolated remote function publishSubgraph(graphql:Context context, graphql:Field 'field, SubgraphInput schema) returns CompositionResult|error? {
-        registry:CompositionResult|parser:SchemaError[]|merger:MergeError[] result = check self.registry.publishSubgraph(schema);
+    isolated remote function publishSubgraph(graphql:Context context, graphql:Field 'field, SubgraphInput schema, boolean isForced = false) returns CompositionResult|error? {
+        registry:CompositionResult|parser:SchemaError[]|merger:MergeError[]|registry:OperationCheckError[] result = check self.registry.publishSubgraph(schema, isForced);
         if result is registry:CompositionResult {
             return new CompositionResult(result);
         } else {

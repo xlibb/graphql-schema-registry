@@ -1,13 +1,14 @@
 import ballerina/graphql;
 import graphql_schema_registry.merger;
 import graphql_schema_registry.parser;
+import graphql_schema_registry.registry;
 
 type ErrorDetail record {|
     string message;
     anydata details;
 |};
 
-isolated function returnErrors(graphql:Context ctx, graphql:Field 'field, merger:MergeError[]|parser:SchemaError[] errors) returns error? {
+isolated function returnErrors(graphql:Context ctx, graphql:Field 'field, error[] errors) returns error? {
     ErrorDetail[] errorDetails = errors.map(e => { 
         message: e.message(),
         details: check e.detail().ensureType(anydata)
@@ -18,6 +19,8 @@ isolated function returnErrors(graphql:Context ctx, graphql:Field 'field, merger
         message = "Supergraph composition error";
     } else if errors is parser:SchemaError[] { 
         message = "Invalid GraphQL";
+    } else if errors is registry:OperationCheckError[] { 
+        message = "Operation causes breaking changes";
     } else {
         message = "Error";
     }

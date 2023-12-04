@@ -48,3 +48,17 @@ isolated function getTypeReferenceAsString(parser:__Type 'type) returns string|E
         return error Error("Invalid type reference");
     }
 }
+
+public isolated function getDiffMessage(SchemaDiff diff) returns string {
+    return string `${diff.severity}: ${getDiffActionAsString(diff) ?: ""}`;
+}
+
+isolated function getDiffActionAsString(SchemaDiff diff) returns string? {
+    string location = string:'join(".", ...diff.location);
+    match diff.action {
+        ADDED => { return string `Added '${diff.value.toString()}' to ${location.toString()}.`; }
+        REMOVED => { return string `Removed '${diff.value.toString()}' from ${location.toString()}.`; }
+        CHANGED => { return string `Changed value of '${location}' from '${diff.fromValue.toString()}' to '${diff.toValue.toString()}'.`; }
+        _ => { return (); }
+    }
+}
