@@ -38,48 +38,48 @@ public type EntityStatus record {|
     string? fields;
 |};
 
-type DescriptionSource [Subgraph, string?];
-type PossibleTypesSource [Subgraph, parser:__Type[]];
-type FieldMapSource [Subgraph, map<parser:__Field>, boolean];
-type InputFieldMapSource [Subgraph, map<parser:__InputValue>];
-type EnumValueSetSource [Subgraph, parser:__EnumValue[]];
-type TypeReferenceSource [Subgraph, parser:__Type];
-type DefaultValueSource [Subgraph, anydata?];
-type DeprecationSource [Subgraph, [boolean, string?]];
+type DescriptionSource [string, string?];
+type PossibleTypesSource [string, parser:__Type[]];
+type FieldMapSource [string, map<parser:__Field>, boolean];
+type InputFieldMapSource [string, map<parser:__InputValue>];
+type EnumValueSetSource [string, parser:__EnumValue[]];
+type TypeReferenceSource [string, parser:__Type];
+type DefaultValueSource [string, anydata?];
+type DeprecationSource [string, [boolean, string?]];
 
-type EnumValueSource [Subgraph, parser:__EnumValue];
-type FieldSource [Subgraph, parser:__Field, boolean];
-type InputSource [Subgraph, parser:__InputValue];
+type EnumValueSource [string, parser:__EnumValue];
+type FieldSource [string, parser:__Field, boolean];
+type InputSource [string, parser:__InputValue];
 
 type TypeKindSources record {|
     parser:__TypeKind data;
-    Subgraph[] subgraphs;
+    string[] subgraphs;
 |};
 
 type DescriptionSources record {|
     string? data;
-    Subgraph[] subgraphs;
+    string[] subgraphs;
 |};
 
 type DefaultValueSources record {|
     anydata data;
-    Subgraph[] subgraphs;
+    string[] subgraphs;
 |};
 
 type TypeReferenceSources record {|
     parser:__Type data;
-    Subgraph[] subgraphs;
+    string[] subgraphs;
 |};
 
 type ConsistentInconsistenceSubgraphs record {|
-    Subgraph[] consistent;
-    Subgraph[] inconsistent;
+    string[] consistent;
+    string[] inconsistent;
 |};
 
 public type HintDetail record {|
     anydata value;
-    Subgraph[] consistentSubgraphs;
-    Subgraph[] inconsistentSubgraphs;
+    string[] consistentSubgraphs;
+    string[] inconsistentSubgraphs;
 |};
 
 public type Hint record {|

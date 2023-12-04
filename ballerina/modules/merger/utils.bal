@@ -44,18 +44,18 @@ isolated function printHint(Hint hint) returns string {
 }
 
 isolated function printHintDetail(HintDetail hintDetail) returns string {
-    string hintDetailStr = string `Found '${hintDetail.value.toString()}' in ${string:'join(", ", ...(hintDetail.consistentSubgraphs.'map(s => s.name)))}`;
+    string hintDetailStr = string `Found '${hintDetail.value.toString()}' in ${string:'join(", ", ...(hintDetail.consistentSubgraphs))}`;
     if hintDetail.inconsistentSubgraphs.length() > 0 {
         hintDetailStr += ", but not in ";
-        hintDetailStr += string:'join(", ", ...(hintDetail.inconsistentSubgraphs.'map(s => s.name)));
+        hintDetailStr += string:'join(", ", ...(hintDetail.inconsistentSubgraphs));
     }
     return hintDetailStr;
 }
 
-isolated function transformErrorMessages(MergeError[] errors) returns InternalError|MergeError[] {
+isolated function addMergeErrorMessages(MergeError[] errors) returns InternalError|MergeError[] {
     MergeError[] transformedErrors = [];
     foreach MergeError inputError in errors {
-        MergeError|InternalError transformedError = transformErrorMessage(inputError);
+        MergeError|InternalError transformedError = addMergeErrorMessage(inputError);
         if transformedError is MergeError {
             transformedErrors.push(transformedError);
         } else {
@@ -65,10 +65,10 @@ isolated function transformErrorMessages(MergeError[] errors) returns InternalEr
     return transformedErrors;
 }
 
-isolated function transformErrorMessage(MergeError 'error) returns InternalError|MergeError {
+isolated function addMergeErrorMessage(MergeError 'error) returns InternalError|MergeError {
     Hint? hint = 'error.detail().hint;
     if hint is Hint {
-        return error MergeError(printHint(hint), hint = ());
+        return error MergeError(printHint(hint), hint = hint);
     } else {
         return error InternalError("Hints not found for MergeError");
     }
