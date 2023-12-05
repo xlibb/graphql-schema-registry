@@ -10,7 +10,36 @@
                     "schema": "extend schema \n    @link(url: \"https://specs.apollo.dev/federation/v2.0\", import: [\"@shareable\"])\n\ntype Query {\n    name: String @shareable\n    age: Int @shareable\n    value: Boolean\n}"
                 }
             ],
-            "hints": []
+            "hints": [],
+            "diffs": [
+                {
+                    "severity": "SAFE",
+                    "action": "ADDED",
+                    "subject": "FIELD",
+                    "location": ["Query"],
+                    "value": "name",
+                    "fromValue": null,
+                    "toValue": null
+                },
+                {
+                    "severity": "SAFE",
+                    "action": "ADDED",
+                    "subject": "FIELD",
+                    "location": ["Query"],
+                    "value": "age",
+                    "fromValue": null,
+                    "toValue": null
+                },
+                {
+                    "severity": "SAFE",
+                    "action": "ADDED",
+                    "subject": "FIELD",
+                    "location": ["Query"],
+                    "value": "value",
+                    "fromValue": null,
+                    "toValue": null
+                }
+            ]
         }
     }
 }

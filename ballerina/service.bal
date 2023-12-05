@@ -20,8 +20,8 @@ isolated service / on new graphql:Listener(9090) {
         return new Supergraph(check self.registry.getLatestSupergraph());
     }
 
-    isolated resource function get dryRun(graphql:Context context, graphql:Field 'field, SubgraphInput schema) returns CompositionResult|error? {
-        registry:CompositionResult|parser:SchemaError[]|merger:MergeError[]|registry:OperationCheckError[] result = check self.registry.dryRun(schema);
+    isolated resource function get dryRun(graphql:Context context, graphql:Field 'field, SubgraphInput schema, boolean isForced = false) returns CompositionResult|error? {
+        registry:CompositionResult|parser:SchemaError[]|merger:MergeError[]|registry:OperationCheckError[] result = check self.registry.dryRun(schema, isForced);
         if result is registry:CompositionResult {
             return new CompositionResult(result);
         } else {

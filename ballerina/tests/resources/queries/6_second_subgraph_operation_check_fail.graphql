@@ -1,27 +1,38 @@
-query DryRun {
-    dryRun(
+mutation PublishSubgraph {
+    publishSubgraph(
         schema: {
             name: "subg2"
             url: "http://subg2"
             schema: """
             extend schema 
                 @link(url: "https://specs.apollo.dev/federation/v2.0", import: ["@shareable"])
-            
+                
             type Query {
-                name: String @shareable
+                "This is the name description in subgraph-2"
+                name(age: Int = 10): String @shareable
                 age: Int @shareable
                 value: Boolean
             }
+
+            type Waldo {
+                name: String
+            }
+
+            type Bux {
+                name: String
+            }
+
+            union UnionFoo = Waldo | Bux
             """
         }
     ) {
         schema
         apiSchema
-        version
         subgraphs {
             name
             schema
         }
+        version
         hints
     }
 }

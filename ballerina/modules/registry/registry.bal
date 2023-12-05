@@ -26,9 +26,9 @@ public isolated class Registry {
         return generatedSupergraph;
     }
 
-    public isolated function dryRun(Subgraph input) returns CompositionResult|parser:SchemaError[]|merger:MergeError[]|OperationCheckError[]|error {
+    public isolated function dryRun(Subgraph input, boolean isForced) returns CompositionResult|parser:SchemaError[]|merger:MergeError[]|OperationCheckError[]|error {
         map<datasource:Subgraph> subgraphs = check self.getLatestSubgraphs();
-        return check self.generateSupergraph(input, subgraphs, true);
+        return check self.generateSupergraph(input, subgraphs, isForced);
     }
 
     public isolated function getLatestSupergraph() returns Supergraph|datasource:Error|RegistryError {

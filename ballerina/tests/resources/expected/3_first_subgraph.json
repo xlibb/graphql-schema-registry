@@ -4,7 +4,54 @@
             "schema": "schema\n  @link(url: \"https://specs.apollo.dev/link/v1.0\")\n  @link(url: \"https://specs.apollo.dev/join/v0.3\", for: EXECUTION)\n{\n  query: Query\n}\n\ndirective @join__enumValue(graph: join__Graph!) repeatable on ENUM_VALUE\n\ndirective @join__field(graph: join__Graph, requires: join__FieldSet, provides: join__FieldSet, type: String, external: Boolean, override: String, usedOverridden: Boolean) repeatable on FIELD_DEFINITION | INPUT_FIELD_DEFINITION\n\ndirective @join__graph(name: String!, url: String!) on ENUM_VALUE\n\ndirective @join__implements(graph: join__Graph!, interface: String!) repeatable on OBJECT | INTERFACE\n\ndirective @join__type(graph: join__Graph!, key: join__FieldSet, extension: Boolean! = false, resolvable: Boolean! = true, isInterfaceObject: Boolean! = false) repeatable on OBJECT | INTERFACE | UNION | ENUM | INPUT_OBJECT | SCALAR\n\ndirective @join__unionMember(graph: join__Graph!, member: String!) repeatable on UNION\n\ndirective @link(url: String, as: String, for: link__Purpose, import: [link__Import]) repeatable on SCHEMA\n\ntype Bar\n  @join__type(graph: SUBG1)\n{\n  name: String\n}\n\ntype Foo\n  @join__type(graph: SUBG1)\n{\n  name: String\n}\n\nscalar join__FieldSet\n\nenum join__Graph {\n  SUBG1 @join__graph(name: \"subg1\", url: \"http://subg1\")\n}\n\nscalar link__Import\n\nenum link__Purpose {\n  \"\"\"\n  `SECURITY` features provide metadata necessary to securely resolve fields.\n  \"\"\"\n  SECURITY\n\n  \"\"\"\n  `EXECUTION` features provide metadata necessary for operation execution.\n  \"\"\"\n  EXECUTION\n}\n\ntype Query\n  @join__type(graph: SUBG1)\n{\n  name(age: Int): String\n  age: Int!\n}\n\nunion UnionFoo\n  @join__type(graph: SUBG1)\n  @join__unionMember(graph: SUBG1, member: \"Foo\")\n  @join__unionMember(graph: SUBG1, member: \"Bar\")\n = Foo | Bar",
             "apiSchema": "type Bar {\n  name: String\n}\n\ntype Foo {\n  name: String\n}\n\ntype Query {\n  name(age: Int): String\n  age: Int!\n}\n\nunion UnionFoo = Foo | Bar",
             "version": "0.1.0",
-            "hints": []
+            "hints": [],
+            "diffs": [
+                {
+                    "severity": "SAFE",
+                    "action": "ADDED",
+                    "subject": "TYPE",
+                    "location": [],
+                    "value": "Bar",
+                    "fromValue": null,
+                    "toValue": null
+                },
+                {
+                    "severity": "SAFE",
+                    "action": "ADDED",
+                    "subject": "TYPE",
+                    "location": [],
+                    "value": "Foo",
+                    "fromValue": null,
+                    "toValue": null
+                },
+                {
+                    "severity": "SAFE",
+                    "action": "ADDED",
+                    "subject": "TYPE",
+                    "location": [],
+                    "value": "UnionFoo",
+                    "fromValue": null,
+                    "toValue": null
+                },
+                {
+                    "severity": "SAFE",
+                    "action": "ADDED",
+                    "subject": "FIELD",
+                    "location": ["Query"],
+                    "value": "name",
+                    "fromValue": null,
+                    "toValue": null
+                },
+                {
+                    "severity": "SAFE",
+                    "action": "ADDED",
+                    "subject": "FIELD",
+                    "location": ["Query"],
+                    "value": "age",
+                    "fromValue": null,
+                    "toValue": null
+                }
+            ]
         }
     }
 }

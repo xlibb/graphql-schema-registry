@@ -1,4 +1,5 @@
 import graphql_schema_registry.registry;
+import graphql_schema_registry.differ;
 
 public type SubgraphInput record {|
     *registry:Subgraph;
@@ -70,5 +71,9 @@ public distinct service isolated class CompositionResult {
 
     isolated resource function get hints() returns string[] {
         return self.schemaRecord.hints;
+    }
+
+    isolated resource function get diffs() returns differ:SchemaDiff[] {
+        return self.schemaRecord.diffs;
     }
 }

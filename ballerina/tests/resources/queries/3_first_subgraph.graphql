@@ -25,5 +25,14 @@ mutation PublishSubgraph {
         apiSchema
         version
         hints
+        diffs {
+            severity
+            action
+            subject
+            location
+            value
+            fromValue
+            toValue
+        }
     }
 }
