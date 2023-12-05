@@ -60,6 +60,22 @@ public isolated class Registry {
         }
     }
 
+    public isolated function getDiff(string newVersion, string oldVersion) returns differ:SchemaDiff[]|error {
+        datasource:Supergraph newSupergraph = check self.getSupergraph(newVersion);
+        datasource:Supergraph oldSupergraph = check self.getSupergraph(oldVersion);
+
+        parser:__Schema|parser:SchemaError[] newSupergraphSchema = self.parseSupergraph(newSupergraph.apiSchema);
+        if newSupergraphSchema is parser:SchemaError[] {
+            return error RegistryError(string `Corrupted supergraph schema v${newVersion}`);
+        }
+        parser:__Schema|parser:SchemaError[] oldSupergraphSchema = self.parseSupergraph(oldSupergraph.apiSchema);
+        if oldSupergraphSchema is parser:SchemaError[] {
+            return error RegistryError(string `Corrupted supergraph schema v${newVersion}`);
+        }
+
+        return check differ:diff(newSupergraphSchema, oldSupergraphSchema);
+    }
+
     isolated function getLatestSupergraphRecord() returns datasource:Supergraph|datasource:Error|RegistryError {
         string? latestVersion = check self.getLatestSupergraphVersion();
         if latestVersion is () {
