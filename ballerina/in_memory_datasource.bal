@@ -108,6 +108,19 @@ public isolated client class InMemoryDatasource {
     // isolated resource function delete subgraphs/[int id]/[string name]() returns datasource:Subgraph|datasource:Error {
     // }
 
+    isolated resource function get supergraphsubgraphs/[int subgraphId]/[string subgraphName]/[string supergraphVersion]() returns datasource:SupergraphSubgraph|datasource:Error {
+        lock {
+            table<datasource:SupergraphSubgraph> tableResult =  from var 'record in self.supergraphSubgraphTable
+                                                                where 'record.supergraphVersion === supergraphVersion && 'record.subgraphId === subgraphId && 'record.subgraphName == subgraphName
+                                                                select 'record;
+            if tableResult.length() > 0 {
+                return tableResult.toArray()[0].cloneReadOnly();
+            } else {
+                return error datasource:Error(string `Cannot find SupergraphSubgraph with given parameters 'Subgraph ID=${subgraphId}', 'Subgraph name=${subgraphName}', 'Supergraph version=${supergraphVersion}'`);
+            }
+        }
+    }
+
     isolated resource function get supergraphsubgraphs() returns datasource:SupergraphSubgraph[]|datasource:Error {
         lock {
             return self.supergraphSubgraphTable.toArray().clone();
@@ -131,6 +144,21 @@ public isolated client class InMemoryDatasource {
                 keys.push(nextKey);
             }
             return keys.clone();
+        }
+    }
+
+    isolated resource function put supergraphsubgraphs/[int id](datasource:SupergraphSubgraphUpdate data) returns datasource:SupergraphSubgraph|datasource:Error {
+        lock {
+            if !self.supergraphSubgraphTable.hasKey(id) {
+                return error datasource:Error(string `No supergraph subgraph found with the id '${id}'`);
+            }
+
+            datasource:SupergraphSubgraph updatedSupergraphSubgraph= {
+                id: id,
+                ...data.cloneReadOnly()
+            };
+            self.supergraphSubgraphTable.put(updatedSupergraphSubgraph);
+            return updatedSupergraphSubgraph.cloneReadOnly();
         }
     }
 

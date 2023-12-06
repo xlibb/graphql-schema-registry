@@ -59,12 +59,7 @@ isolated client class FileDatasource {
 
     isolated resource function get supergraphs/[string version]/subgraphs() returns datasource:Subgraph[]|datasource:Error {
         lock {
-            string subgraphsLocation = check self.joinPath(self.supergraphs, version, SUBGRAPHS_FILE_NAME);
-            json subgraphsJson = check self.readRecord(subgraphsLocation);
-            datasource:SupergraphSubgraph[]|error supergraphSubgraphs = subgraphsJson.fromJsonWithType();
-            if supergraphSubgraphs is error {
-                return error datasource:Error(string `Unable to convert into SupergraphSubgraph[].`);
-            }
+            datasource:SupergraphSubgraph[] supergraphSubgraphs = check self.getSupergraphSubgraphsFromVersion(version);
 
             datasource:Subgraph[] subgraphs = [];
             foreach datasource:SupergraphSubgraph joinType in supergraphSubgraphs {
@@ -87,6 +82,13 @@ isolated client class FileDatasource {
             check self.writeRecord(check self.joinPath(supergraphLocation, SUPERGRAPH_FILE_NAME), data.clone().toJson());
         }
     }
+
+    // isolated resource function put supergraphsubgraphs/[int id](datasource:SupergraphSubgraphUpdate data) returns datasource:SupergraphSubgraph|datasource:Error {
+    //     lock {
+    //         // datasource:SupergraphSubgraph[] supergraphSubgraphs = check self.getSupergraphSubgraphsFromVersion(version);
+
+    //     }
+    // }
 
     // isolated resource function put supergraphs/[string version](datasource:SupergraphUpdate value) returns datasource:Supergraph|datasource:Error {
     // }
@@ -126,7 +128,11 @@ isolated client class FileDatasource {
     isolated resource function get subgraphs/[string name]() returns datasource:Subgraph[]|datasource:Error {
         lock {
             string subgraphPath = check self.joinPath(self.subgraphs, name);
-            string[] subgraphIds = check self.getFileNames(subgraphPath);
+            string[]|datasource:Error subgraphIds = self.getFileNames(subgraphPath);
+            if subgraphIds is datasource:Error {
+                return [];
+            }
+
             datasource:Subgraph[] subgraphs = [];
             foreach string subgraphId in subgraphIds {
                 int id = check self.subgraphIdFromString(subgraphId);
@@ -172,6 +178,16 @@ isolated client class FileDatasource {
     // isolated resource function get supergraphsubgraphs/[int id]() returns datasource:SupergraphSubgraph|datasource:Error {
     // }
 
+    isolated resource function get supergraphsubgraphs/[int subgraphId]/[string subgraphName]/[string supergraphVersion]() returns datasource:SupergraphSubgraph|datasource:Error {
+        datasource:SupergraphSubgraph[] supergraphSubgraphs = check self.getSupergraphSubgraphsFromVersion(supergraphVersion);
+        datasource:SupergraphSubgraph[] result = supergraphSubgraphs.filter(s => s.subgraphId == subgraphId && s.subgraphName == subgraphName && s.supergraphVersion == supergraphVersion);
+        if result.length() > 0 {
+            return result[0];
+        } else {
+            return error datasource:Error("Cannot find SupergraphSubgraph with given parameters.");
+        }
+    }
+
     isolated resource function post supergraphsubgraphs(datasource:SupergraphSubgraphInsert[] data) returns int[]|datasource:Error {
         map<datasource:SupergraphSubgraphInsert[]> groupedData = {};
         foreach datasource:SupergraphSubgraphInsert insert in data {
@@ -182,7 +198,6 @@ isolated client class FileDatasource {
             }
         }
         lock {
-            int i = 0;
             foreach [string, datasource:SupergraphSubgraphInsert[]] [version, subgraphData] in groupedData.clone().entries() {
                 string[] versions = check self->/versions;
                 if !self.hasVersion(versions, version) {
@@ -191,6 +206,7 @@ isolated client class FileDatasource {
                 string supergraphLocation = check self.joinPath(self.supergraphs, version);
 
                 datasource:SupergraphSubgraph[] records = [];
+                int i = 0;
                 foreach datasource:SupergraphSubgraphInsert insertData in subgraphData {
                     records.push({
                         id: i.cloneReadOnly(),
@@ -198,19 +214,51 @@ isolated client class FileDatasource {
                         subgraphId: insertData.subgraphId,
                         supergraphVersion: insertData.supergraphVersion
                     });
+                    i += 1;
                 }
                 check self.writeRecord(check self.joinPath(supergraphLocation, SUBGRAPHS_FILE_NAME), records.toJson());
-                i += 1;
             }
             return [];
         }
     }
 
-    // isolated resource function put supergraphsubgraphs/[int id]() returns datasource:SupergraphSubgraph|datasource:Error {
-    // }
+    isolated resource function put supergraphsubgraphs/[int id](datasource:SupergraphSubgraphUpdate data) returns datasource:SupergraphSubgraph|datasource:Error {
+        lock {
+            datasource:SupergraphSubgraph? updatedSupergraphSubgraph = ();
+            datasource:SupergraphSubgraph[] supergraphSubgraphs = check self.getSupergraphSubgraphsFromVersion(data.supergraphVersion);
+            datasource:SupergraphSubgraph[]|error updatedSupergraphSubgraphs = supergraphSubgraphs.cloneWithType();
+            if updatedSupergraphSubgraphs is error {
+                return error datasource:Error("Cannot create a mutable copy of SupergraphSubgraphs");
+            }
+            foreach datasource:SupergraphSubgraph supergraphSubgraph in updatedSupergraphSubgraphs {
+                if supergraphSubgraph.id == id {
+                    supergraphSubgraph.subgraphId = data.subgraphId;
+                    updatedSupergraphSubgraph = supergraphSubgraph;
+                }
+            }
+            if updatedSupergraphSubgraph is () {
+                return error datasource:Error(string `No SupergraphSubgraph found with the id '${id}'`);
+            }
+            string supergraphLocation = check self.joinPath(self.supergraphs, data.supergraphVersion);
+            check self.writeRecord(check self.joinPath(supergraphLocation, SUBGRAPHS_FILE_NAME), updatedSupergraphSubgraphs.toJson());
+            return updatedSupergraphSubgraph.cloneReadOnly();
+        }
+    }
 
     // isolated resource function delete supergraphsubgraphs/[int id]() returns datasource:SupergraphSubgraph|datasource:Error {
     // }
+
+    isolated function getSupergraphSubgraphsFromVersion(string version) returns datasource:SupergraphSubgraph[]|datasource:Error {
+        lock {
+            string subgraphsLocation = check self.joinPath(self.supergraphs, version, SUBGRAPHS_FILE_NAME);
+            json subgraphsJson = check self.readRecord(subgraphsLocation);
+            datasource:SupergraphSubgraph[]|error supergraphSubgraphs = subgraphsJson.fromJsonWithType();
+            if supergraphSubgraphs is error {
+                return error datasource:Error(string `Unable to convert into SupergraphSubgraph[].`);
+            }
+            return supergraphSubgraphs.cloneReadOnly();
+        }
+    }
 
     isolated function hasVersion(string[] versions, string version) returns boolean {
         return versions.indexOf(version) !is ();

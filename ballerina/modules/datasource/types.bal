@@ -41,3 +41,5 @@ public type SupergraphSubgraphInsert record {|
     int subgraphId;
     string subgraphName;
 |};
+
+public type SupergraphSubgraphUpdate SupergraphSubgraphInsert;

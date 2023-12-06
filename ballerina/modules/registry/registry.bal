@@ -20,8 +20,7 @@ public isolated class Registry {
             return generatedSupergraph;
         }
 
-        subgraphs[input.name] = check self.registerSubgraph(input);
-        check self.registerSupergraph(generatedSupergraph.cloneReadOnly(), subgraphs.toArray());
+        check self.storeSchemas(subgraphs, input, generatedSupergraph);
     
         return generatedSupergraph;
     }
@@ -31,7 +30,7 @@ public isolated class Registry {
         return check self.generateSupergraph(input, subgraphs, isForced);
     }
 
-    public isolated function getLatestSupergraph() returns Supergraph|datasource:Error|RegistryError {
+    public isolated function getLatestSupergraph() returns Supergraph|error {
         datasource:Supergraph supergraph = check self.getLatestSupergraphRecord();
         map<datasource:Subgraph> subgraphs = check self.getLatestSubgraphs();
         return {
@@ -42,7 +41,7 @@ public isolated class Registry {
         };
     }
 
-    public isolated function getSubgraphByName(string name) returns Subgraph|datasource:Error|RegistryError {
+    public isolated function getSubgraphByName(string name) returns Subgraph|error {
         datasource:Subgraph[] subgraphs = check self.datasource->/subgraphs/[name];
         if subgraphs.length() > 0 {
             datasource:Subgraph latestSubgraph = subgraphs.sort(
@@ -56,7 +55,7 @@ public isolated class Registry {
                 schema: latestSubgraph.schema
             };
         } else {
-            return error RegistryError(string `No subgraph found with the name '${name}'`);
+            return error SubgraphNotFound(string `No subgraph found with the name '${name}'`);
         }
     }
 
@@ -66,26 +65,56 @@ public isolated class Registry {
 
         parser:__Schema|parser:SchemaError[] newSupergraphSchema = self.parseSupergraph(newSupergraph.apiSchema);
         if newSupergraphSchema is parser:SchemaError[] {
-            return error RegistryError(string `Corrupted supergraph schema v${newVersion}`);
+            return error Error(string `Corrupted supergraph schema v${newVersion}`);
         }
         parser:__Schema|parser:SchemaError[] oldSupergraphSchema = self.parseSupergraph(oldSupergraph.apiSchema);
         if oldSupergraphSchema is parser:SchemaError[] {
-            return error RegistryError(string `Corrupted supergraph schema v${newVersion}`);
+            return error Error(string `Corrupted supergraph schema v${newVersion}`);
         }
 
         return check differ:diff(newSupergraphSchema, oldSupergraphSchema);
     }
 
-    isolated function getLatestSupergraphRecord() returns datasource:Supergraph|datasource:Error|RegistryError {
+    isolated function storeSchemas(map<datasource:Subgraph> subgraphs, Subgraph input, CompositionResult generatedSupergraph) returns error? {
+        string? latestSupergraphVersion = check self.getLatestSupergraphVersion();
+        if latestSupergraphVersion is () || latestSupergraphVersion != generatedSupergraph.version {
+            subgraphs[input.name] = check self.registerSubgraph(input);
+            check self.registerSupergraph(generatedSupergraph.cloneReadOnly(), subgraphs.toArray());
+        } else {
+            datasource:Subgraph|datasource:Error|SubgraphNotFound currentSubgraph = self.getLatestSubgraphByName(input.name);
+            if currentSubgraph is datasource:Error {
+                return currentSubgraph;
+            }
+            subgraphs[input.name] = check self.registerSubgraph(input);
+            int updatedSubgraphId = subgraphs.get(input.name).id;
+            
+            if currentSubgraph !is SubgraphNotFound {
+                check self.updateSupergraphSubgraph(input.name, currentSubgraph.id, updatedSubgraphId, latestSupergraphVersion);
+            } else {
+                check self.registerSupergraphSubgraph(
+                        [{
+                            supergraphVersion: latestSupergraphVersion,
+                            subgraphId: updatedSubgraphId,
+                            subgraphName: input.name
+                        }]
+                    );
+            }
+        }
+    }
+
+    isolated function getLatestSupergraphRecord() returns datasource:Supergraph|datasource:Error|SupergraphNotFound {
         string? latestVersion = check self.getLatestSupergraphVersion();
         if latestVersion is () {
-            return error RegistryError("No registered supergraph");
+            return error SupergraphNotFound("No registered supergraph");
         }
         return check self.getSupergraph(latestVersion);
     }
 
     isolated function generateSupergraph(Subgraph input, map<datasource:Subgraph> existingSubgraphs, boolean isForced) returns CompositionResult|merger:MergeError[]|parser:SchemaError[]|OperationCheckError[]|error {
         map<Subgraph> mergingSubgraphs = existingSubgraphs.map(s => { name: s.name, url: s.url, schema: s.schema });
+        if mergingSubgraphs.hasKey(input.name) && mergingSubgraphs.get(input.name).schema == input.schema {
+            return error Error("No subgraph change");
+        }
         mergingSubgraphs[input.name] = { name: input.name, url: input.url, schema: input.schema };
         Subgraph[] mergingSubgraphList = mergingSubgraphs.toArray();
         ComposedSupergraphSchemas|parser:SchemaError[]|merger:MergeError[] composeResult = check self.composeSupergraph(mergingSubgraphList);
@@ -93,43 +122,18 @@ public isolated class Registry {
             return composeResult;
         }
 
-        datasource:Supergraph|datasource:Error|RegistryError latestSupergraph = self.getLatestSupergraphRecord();
-        if latestSupergraph is datasource:Error {
-            return latestSupergraph;
+        DiffResult|OperationCheckError[]|parser:SchemaError[] diffResult = check self.getDiffAndNextVersion(composeResult, isForced);
+        if diffResult !is DiffResult {
+            return diffResult;
         }
-        
-        string latestVersion;
-        differ:SchemaDiff[] diffs = [];
-        differ:DiffSeverity incrementOrder;
-        if latestSupergraph !is RegistryError {
-            latestVersion = latestSupergraph.version;
-            parser:__Schema|parser:SchemaError[] parsedSupergraph = self.parseSupergraph(latestSupergraph.apiSchema);
-            if parsedSupergraph is parser:SchemaError[] {
-                return parsedSupergraph;
-            }
-            diffs = check differ:diff(composeResult.apiSchema, parsedSupergraph);
-            differ:DiffSeverity? majorSeverity = differ:getMajorSeverity(diffs.map(d => d.severity));
-            if majorSeverity is () {
-                return error RegistryError("No supergraph changes");
-            }
-            if majorSeverity is differ:BREAKING && !isForced {
-                return diffs.filter(e => e.severity is differ:BREAKING).map(e => error OperationCheckError(differ:getDiffMessage(e), diff = e));
-            }
-            incrementOrder = majorSeverity;
-        } else {
-            diffs = check differ:diff(composeResult.apiSchema, ());
-            latestVersion = self.createInitialVersion();
-            incrementOrder = differ:DANGEROUS;
-        }
-        string nextVersion = check self.incrementVersion(latestVersion, incrementOrder);
 
         return {
             schemaSdl: composeResult.schemaSdl,
             apiSchemaSdl: composeResult.apiSchemaSdl,
             subgraphs: mergingSubgraphList,
-            version: nextVersion,
+            version: diffResult.version,
             hints: composeResult.hints,
-            diffs: diffs
+            diffs: diffResult.diffs
         };
         
     }
@@ -163,6 +167,40 @@ public isolated class Registry {
         };
     }
 
+    isolated function getDiffAndNextVersion(ComposedSupergraphSchemas composeResult, boolean isForced) returns DiffResult|OperationCheckError[]|parser:SchemaError[]|error {
+        datasource:Supergraph|datasource:Error|SupergraphNotFound latestSupergraph = self.getLatestSupergraphRecord();
+        if latestSupergraph is datasource:Error {
+            return latestSupergraph;
+        }
+        
+        string latestVersion;
+        differ:SchemaDiff[] diffs = [];
+        differ:DiffSeverity? incrementOrder;
+        if latestSupergraph !is SupergraphNotFound {
+            latestVersion = latestSupergraph.version;
+            parser:__Schema|parser:SchemaError[] parsedSupergraph = self.parseSupergraph(latestSupergraph.apiSchema);
+            if parsedSupergraph is parser:SchemaError[] {
+                return parsedSupergraph;
+            }
+            diffs = check differ:diff(composeResult.apiSchema, parsedSupergraph);
+            differ:DiffSeverity? majorSeverity = differ:getMajorSeverity(diffs.map(d => d.severity));
+            if majorSeverity is differ:BREAKING && !isForced {
+                return diffs.filter(e => e.severity is differ:BREAKING)
+                            .map(e => error OperationCheckError(differ:getDiffMessage(e), diff = e));
+            }
+            incrementOrder = majorSeverity;
+        } else {
+            diffs = check differ:diff(composeResult.apiSchema, ());
+            latestVersion = self.createInitialVersion();
+            incrementOrder = differ:DANGEROUS;
+        }
+        string nextVersion = check self.incrementVersion(latestVersion, incrementOrder);
+        return {
+            version: nextVersion,
+            diffs 
+        };
+    }
+
     isolated function registerSubgraph(Subgraph input) returns datasource:Subgraph|datasource:Error {
         [int, string] persistedSubgraph = check self.datasource->/subgraphs.post({ name: input.name, url: input.url, schema: input.schema });
         return {
@@ -179,7 +217,7 @@ public isolated class Registry {
             schema: input.schemaSdl,
             apiSchema: input.apiSchemaSdl
         });
-        _ = check self.datasource->/supergraphsubgraphs.post(
+        check self.registerSupergraphSubgraph(
             inputSubgraphs.map(isolated function (datasource:Subgraph s) returns datasource:SupergraphSubgraphInsert {
                 return {
                     supergraphVersion: input.version,
@@ -188,6 +226,35 @@ public isolated class Registry {
                 };
             })
         );
+    }
+
+    isolated function registerSupergraphSubgraph(datasource:SupergraphSubgraphInsert[] data) returns datasource:Error? {
+        _ = check self.datasource->/supergraphsubgraphs.post(
+                data
+            );
+    }
+
+    isolated function updateSupergraphSubgraph(string subgraphName, int currentSubgraphId, int updatedSubgraphId, string version) returns error? {
+        datasource:SupergraphSubgraph supergraphSubgraph = check self.datasource->/supergraphsubgraphs/[currentSubgraphId]/[subgraphName]/[version]();
+        _ = check self.datasource->/supergraphsubgraphs/[supergraphSubgraph.id].put({
+            supergraphVersion: version,
+            subgraphId: updatedSubgraphId,
+            subgraphName: subgraphName
+        });
+    }
+
+    isolated function getLatestSubgraphByName(string name) returns datasource:Subgraph|datasource:Error|SubgraphNotFound {
+        datasource:Subgraph[] subgraphs = check self.datasource->/subgraphs/[name];
+        if subgraphs.length() > 0 {
+            datasource:Subgraph latestSubgraph = subgraphs.sort(
+                                                    "descending", 
+                                                    key = isolated function (datasource:Subgraph s) returns int {
+                                                        return s.id;
+                                                    })[0];
+            return latestSubgraph;
+        } else {
+            return error SubgraphNotFound(string `No subgraph found with the name '${name}'`);
+        }
     }
 
     isolated function getSubgraph(int id, string name) returns datasource:Subgraph|datasource:Error {
@@ -229,10 +296,10 @@ public isolated class Registry {
         return "0.0.0";
     }
 
-    isolated function incrementVersion(string version, differ:DiffSeverity 'order = differ:DANGEROUS) returns string|RegistryError|error {
+    isolated function incrementVersion(string version, differ:DiffSeverity? 'order = differ:DANGEROUS) returns string|error {
         int[] numbers = regex:split(re `\.`, version).'map(v => check int:fromString(v));
         if numbers.length() != 3 {
-            return error RegistryError(string `Invalid version number '${version}'`);
+            return error Error(string `Invalid version number '${version}'`);
         }
         match 'order {
             differ:BREAKING => {

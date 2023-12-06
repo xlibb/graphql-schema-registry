@@ -2,6 +2,7 @@ import ballerina/test;
 import ballerina/graphql;
 import ballerina/file;
 
+@test:AfterGroups { value:["service"] }
 function clearRegistry() returns file:Error? {
     string datasourcePath = check file:joinPath("datasource");
     if check file:test(datasourcePath, file:IS_DIR) {
@@ -21,7 +22,6 @@ function testSchemaRegistry(string testName) returns error? {
     test:assertEquals(actual, testData[1]);
 }
 
-
 function dataProviderSchemaRegistryService() returns [string][]|error {
 
     return [
@@ -34,6 +34,10 @@ function dataProviderSchemaRegistryService() returns [string][]|error {
         ["7_second_subgraph"],
         ["8_third_dry_run_forced"],
         ["9_subgraph_by_name"],
-        ["10_supergraph_diff"]
+        ["10_supergraph_diff"],
+        ["11_third_subgraph"],
+        ["12_second_subgraph_add_shareable"],
+        ["13_third_subgraph_retry"],
+        ["14_no_subgraph_change"]
     ];
 }

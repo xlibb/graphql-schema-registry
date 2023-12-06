@@ -27,3 +27,8 @@ public type Subgraph record {|
     string url;
     string schema;
 |};
+
+type DiffResult record {|
+    string version;
+    differ:SchemaDiff[] diffs;
+|};
