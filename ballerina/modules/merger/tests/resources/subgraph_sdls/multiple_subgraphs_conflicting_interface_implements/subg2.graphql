@@ -6,7 +6,12 @@ interface Bar {
 	avg: Float
 }
 
-type Foo implements Bar {
+interface Fox {
+    addr: String
+}
+
+type Foo implements Bar & Fox {
     name: String
 	avg: Float
+    addr: String
 }

@@ -6,7 +6,12 @@ interface Bux {
 	id: ID
 }
 
-type Foo implements Bux {
+interface Fox {
+    addr: String
+}
+
+type Foo implements Bux & Fox {
     name: String
 	id: ID
+    addr: String
 }

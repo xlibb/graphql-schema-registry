@@ -31,15 +31,25 @@ interface Bux
   id: ID
 }
 
-type Foo implements Bux & Bar
+type Foo implements Bux & Fox & Bar
   @join__implements(graph: SUBG1, interface: "Bux")
+  @join__implements(graph: SUBG1, interface: "Fox")
   @join__implements(graph: SUBG2, interface: "Bar")
+  @join__implements(graph: SUBG2, interface: "Fox")
   @join__type(graph: SUBG1)
   @join__type(graph: SUBG2)
 {
   name: String
   id: ID @join__field(graph: SUBG1)
+  addr: String
   avg: Float @join__field(graph: SUBG2)
+}
+
+interface Fox
+  @join__type(graph: SUBG1)
+  @join__type(graph: SUBG2)
+{
+  addr: String
 }
 
 scalar join__FieldSet

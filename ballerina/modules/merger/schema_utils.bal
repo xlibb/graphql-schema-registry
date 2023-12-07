@@ -81,6 +81,11 @@ isolated function typeReferenceToString(parser:__Type 'type) returns string|Inte
 isolated function implementInterface(parser:__Type 'type, parser:__Type interface) returns InternalError? {
     parser:__Type[]? interfaces = 'type.interfaces;
     if interfaces is parser:__Type[] {
+        foreach parser:__Type implementedType in interfaces {
+            if implementedType.name == interface.name {
+                return ();
+            }
+        }
         interfaces.push(interface);
     } else {
         return error InternalError("Provided type cannot implement interfaces");
