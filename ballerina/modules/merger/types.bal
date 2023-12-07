@@ -12,21 +12,6 @@ public type Supergraph record {|
     Subgraph[] subgraphs;
 |};
 
-public type Mismatch record {|
-    anydata data;
-    Subgraph[] subgraphs;
-|};
-
-public type MergeResult record {|
-    anydata? result;
-    Mismatch[] hints;
-|};
-
-enum TypeReferenceType {
-    INPUT,
-    OUTPUT
-}
-
 public type EnumTypeUsage record {|
     boolean isUsedInOutputs;
     boolean isUsedInInputs;
@@ -107,5 +92,3 @@ public type SupergraphMergeResult record {|
     Supergraph result;
     Hint[] hints;
 |};
-
-public type MergeErrors MergeError[];

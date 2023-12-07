@@ -441,7 +441,7 @@ public class Merger {
                     return error InternalError("Invalid enum type");
                 }
             }
-            MergeError[]|MergeResult mergedEnumValuesResult = check self.mergeEnumValues(enumValueSources, usage);
+            MergeError[]|MergedResult mergedEnumValuesResult = check self.mergeEnumValues(enumValueSources, usage);
             if mergedEnumValuesResult is MergeError[] {
                 check appendErrors(errors, mergedEnumValuesResult, typeName);
                 continue;
@@ -530,7 +530,7 @@ public class Merger {
         };
     }
 
-    isolated function mergeEnumValues(EnumValueSetSource[] sources, EnumTypeUsage usage) returns MergeResult|MergeError[]|InternalError {
+    isolated function mergeEnumValues(EnumValueSetSource[] sources, EnumTypeUsage usage) returns MergedResult|MergeError[]|InternalError {
         // Map between Enum value's name and Subgraphs which define that enum value along with it's definition of the enum value
         map<EnumValueSource[]> unionedEnumValues = {}; 
         foreach EnumValueSetSource [subgraph, enumValues] in sources {
@@ -717,7 +717,7 @@ public class Merger {
             appendHints(hints, mergeDescriptionResult.hints, fieldName);
             string? mergedDescription = <string?>mergeDescriptionResult.result;
 
-            TypeReferenceMergeResult|MergeError|InternalError typeMergeResult = self.mergeTypeReferenceSet(outputTypes, OUTPUT);
+            TypeReferenceMergeResult|MergeError|InternalError typeMergeResult = self.mergeTypeReferenceSet(outputTypes, "OUTPUT");
             if typeMergeResult is MergeError {
                 check appendErrors(errors, [typeMergeResult], fieldName);
                 continue;
@@ -848,7 +848,7 @@ public class Merger {
                     ]);
                 }
 
-                TypeReferenceMergeResult|MergeError|InternalError inputTypeMergeResult = self.mergeTypeReferenceSet(typeReferenceSources, INPUT);
+                TypeReferenceMergeResult|MergeError|InternalError inputTypeMergeResult = self.mergeTypeReferenceSet(typeReferenceSources, "INPUT");
                 if inputTypeMergeResult is MergeError {
                     check appendErrors(errors, [inputTypeMergeResult], argName);
                     continue;
@@ -992,7 +992,7 @@ public class Merger {
         }
     }
 
-    isolated function mergeTypeReferenceSet(TypeReferenceSource[] sources, TypeReferenceType refType) returns TypeReferenceMergeResult|MergeError|InternalError {
+    isolated function mergeTypeReferenceSet(TypeReferenceSource[] sources, "INPUT"|"OUTPUT" refType) returns TypeReferenceMergeResult|MergeError|InternalError {
         map<TypeReferenceSources> unionedReferences = {};
         foreach TypeReferenceSource [subgraph, typeReference] in sources {
             string key = check typeReferenceToString(typeReference);
@@ -1008,7 +1008,7 @@ public class Merger {
         }
 
         Hint[] hints = [];
-        HintCode code = refType == OUTPUT ? INCONSISTENT_BUT_COMPATIBLE_OUTPUT_TYPE : INCONSISTENT_BUT_COMPATIBLE_INPUT_TYPE;
+        HintCode code = refType == "OUTPUT" ? INCONSISTENT_BUT_COMPATIBLE_OUTPUT_TYPE : INCONSISTENT_BUT_COMPATIBLE_INPUT_TYPE;
         parser:__Type? mergedTypeReference = ();
         foreach TypeReferenceSources ref in unionedReferences {
             parser:__Type typeReference = ref.data;
@@ -1017,7 +1017,7 @@ public class Merger {
             }
             
             if mergedTypeReference !is () {
-                parser:__Type?|MergeError|InternalError result = refType == OUTPUT ? 
+                parser:__Type?|MergeError|InternalError result = refType == "OUTPUT" ? 
                                         self.getMergedOutputTypeReference(mergedTypeReference, typeReference) :
                                         self.getMergedInputTypeReference(mergedTypeReference, typeReference);
                 if result is MergeError {
