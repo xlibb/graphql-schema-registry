@@ -19,3 +19,7 @@ type Waldo @shareable {
     shareable_name: String!
     shareable_age: Int
 }
+
+interface Fox {
+    id: ID
+}

@@ -6,3 +6,9 @@ type Foo {
     shareable_bar: ID!
     shareable_remove: String
 }
+
+interface Fox {
+    id: ID
+    name: String
+    age: Int
+}

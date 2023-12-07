@@ -1509,7 +1509,7 @@ public class Merger {
     }
 
     isolated function isTypeAllowsMergingFields(parser:__Type 'type) returns boolean {
-        return self.isEntity('type).isEntity || self.isShareableOnType('type);
+        return self.isEntity('type).isEntity || self.isShareableOnType('type) || 'type.kind == parser:INTERFACE;
     }
 
     isolated function isShareableOnType(parser:__Type 'type) returns boolean {

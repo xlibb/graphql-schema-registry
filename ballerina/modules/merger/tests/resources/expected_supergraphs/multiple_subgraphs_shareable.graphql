@@ -37,6 +37,16 @@ type Foo
   shareable_remove: String @join__field(graph: SUBG3)
 }
 
+interface Fox
+  @join__type(graph: SUBG1)
+  @join__type(graph: SUBG2)
+  @join__type(graph: SUBG3)
+{
+  id: ID
+  name: String @join__field(graph: SUBG1) @join__field(graph: SUBG3)
+  age: Int @join__field(graph: SUBG3)
+}
+
 scalar join__FieldSet
 
 enum join__Graph {

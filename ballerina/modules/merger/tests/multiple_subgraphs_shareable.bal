@@ -16,6 +16,7 @@ function dataProviderShareableDirective() returns [TestSchemas, string][]|error 
 
     return [
         [schemas, "Foo"],
-        [schemas, "Waldo"]
+        [schemas, "Waldo"],
+        [schemas, "Fox"]
     ];
 }
