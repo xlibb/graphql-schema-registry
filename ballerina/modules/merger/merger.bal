@@ -8,7 +8,8 @@ public class Merger {
 
     public isolated function init(Subgraph[] subgraphs) returns InternalError? {
         self.subgraphs = {};
-        foreach Subgraph subgraph in subgraphs {
+        Subgraph[] sortedSubgraphs = subgraphs.sort("ascending", s => s.name);
+        foreach Subgraph subgraph in sortedSubgraphs {
             Subgraph updatedSubgraph = subgraph.clone();
             updatedSubgraph.isFederation2Subgraph = check isFederation2Subgraph(updatedSubgraph);
             self.subgraphs[subgraph.name] = updatedSubgraph;
