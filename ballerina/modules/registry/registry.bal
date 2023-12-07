@@ -75,6 +75,10 @@ public isolated class Registry {
         return check differ:diff(newSupergraphSchema, oldSupergraphSchema);
     }
 
+    public isolated function getVersions() returns string[]|datasource:Error {
+        return check self.datasource->/versions;
+    }
+
     isolated function storeSchemas(map<datasource:Subgraph> subgraphs, Subgraph input, CompositionResult generatedSupergraph) returns error? {
         string? latestSupergraphVersion = check self.getLatestSupergraphVersion();
         if latestSupergraphVersion is () || latestSupergraphVersion != generatedSupergraph.version {
@@ -289,10 +293,6 @@ public isolated class Registry {
         }
         string[] sortedVersions = versions.sort();
         return sortedVersions[sortedVersions.length() - 1];
-    }
-
-    isolated function getVersions() returns string[]|datasource:Error {
-        return check self.datasource->/versions;
     }
 
     isolated function createInitialVersion() returns string {
