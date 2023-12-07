@@ -1,0 +1,184 @@
+{
+    "errors": [
+        {
+            "message": "Supergraph composition error",
+            "locations": [
+                {
+                    "line": 2,
+                    "column": 5
+                }
+            ],
+            "path": [
+                "publishSubgraph"
+            ],
+            "extensions": {
+                "errors": [
+                    {
+                        "message": "INVALID_FIELD_SHARING: Guest.id, Found 'shareable' in accounts, but not in monolith",
+                        "details": {
+                            "hint": {
+                                "code": "INVALID_FIELD_SHARING",
+                                "location": [
+                                    "Guest",
+                                    "id"
+                                ],
+                                "details": [
+                                    {
+                                        "value": "shareable",
+                                        "consistentSubgraphs": [
+                                            "accounts"
+                                        ],
+                                        "inconsistentSubgraphs": [
+                                            "monolith"
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "message": "INVALID_FIELD_SHARING: Guest.name, Found 'shareable' in accounts, but not in monolith",
+                        "details": {
+                            "hint": {
+                                "code": "INVALID_FIELD_SHARING",
+                                "location": [
+                                    "Guest",
+                                    "name"
+                                ],
+                                "details": [
+                                    {
+                                        "value": "shareable",
+                                        "consistentSubgraphs": [
+                                            "accounts"
+                                        ],
+                                        "inconsistentSubgraphs": [
+                                            "monolith"
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "message": "INVALID_FIELD_SHARING: Guest.profilePicture, Found 'shareable' in accounts, but not in monolith",
+                        "details": {
+                            "hint": {
+                                "code": "INVALID_FIELD_SHARING",
+                                "location": [
+                                    "Guest",
+                                    "profilePicture"
+                                ],
+                                "details": [
+                                    {
+                                        "value": "shareable",
+                                        "consistentSubgraphs": [
+                                            "accounts"
+                                        ],
+                                        "inconsistentSubgraphs": [
+                                            "monolith"
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "message": "INVALID_FIELD_SHARING: Host.id, Found 'shareable' in accounts, but not in monolith",
+                        "details": {
+                            "hint": {
+                                "code": "INVALID_FIELD_SHARING",
+                                "location": [
+                                    "Host",
+                                    "id"
+                                ],
+                                "details": [
+                                    {
+                                        "value": "shareable",
+                                        "consistentSubgraphs": [
+                                            "accounts"
+                                        ],
+                                        "inconsistentSubgraphs": [
+                                            "monolith"
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "message": "INVALID_FIELD_SHARING: Host.name, Found 'shareable' in accounts, but not in monolith",
+                        "details": {
+                            "hint": {
+                                "code": "INVALID_FIELD_SHARING",
+                                "location": [
+                                    "Host",
+                                    "name"
+                                ],
+                                "details": [
+                                    {
+                                        "value": "shareable",
+                                        "consistentSubgraphs": [
+                                            "accounts"
+                                        ],
+                                        "inconsistentSubgraphs": [
+                                            "monolith"
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "message": "INVALID_FIELD_SHARING: Host.profilePicture, Found 'shareable' in accounts, but not in monolith",
+                        "details": {
+                            "hint": {
+                                "code": "INVALID_FIELD_SHARING",
+                                "location": [
+                                    "Host",
+                                    "profilePicture"
+                                ],
+                                "details": [
+                                    {
+                                        "value": "shareable",
+                                        "consistentSubgraphs": [
+                                            "accounts"
+                                        ],
+                                        "inconsistentSubgraphs": [
+                                            "monolith"
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "message": "INVALID_FIELD_SHARING: Host.profileDescription, Found 'shareable' in accounts, but not in monolith",
+                        "details": {
+                            "hint": {
+                                "code": "INVALID_FIELD_SHARING",
+                                "location": [
+                                    "Host",
+                                    "profileDescription"
+                                ],
+                                "details": [
+                                    {
+                                        "value": "shareable",
+                                        "consistentSubgraphs": [
+                                            "accounts"
+                                        ],
+                                        "inconsistentSubgraphs": [
+                                            "monolith"
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    ],
+    "data": {
+        "publishSubgraph": null
+    }
+}
