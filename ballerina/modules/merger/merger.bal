@@ -75,7 +75,7 @@ public class Merger {
 
         return {
             result: self.supergraph,
-            hints: printHints(mergeHints)
+            hints: mergeHints
         };
     }
 

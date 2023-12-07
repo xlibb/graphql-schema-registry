@@ -1,5 +1,6 @@
 import graphql_schema_registry.parser;
 import graphql_schema_registry.differ;
+import graphql_schema_registry.merger;
 
 public type Supergraph record {|
     string schemaSdl;
@@ -19,7 +20,7 @@ public type ComposedSupergraphSchemas record {|
     parser:__Schema apiSchema;
     string schemaSdl;
     string apiSchemaSdl;
-    string[] hints;
+    merger:Hint[] hints;
 |};
 
 public type Subgraph record {|

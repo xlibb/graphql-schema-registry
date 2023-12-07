@@ -19,14 +19,7 @@
             ],
             "version": "1.0.0",
             "hints": [
-                "INCONSISTENT_UNION_MEMBER: UnionFoo, Found 'Foo' in subg1, but not in subg2",
-                "INCONSISTENT_UNION_MEMBER: UnionFoo, Found 'Bar' in subg1, but not in subg2",
-                "INCONSISTENT_UNION_MEMBER: UnionFoo, Found 'Waldo' in subg2, but not in subg1",
-                "INCONSISTENT_UNION_MEMBER: UnionFoo, Found 'Bux' in subg2, but not in subg1",
-                "INCONSISTENT_DEFAULT_VALUE_PRESENCE: Query.name.age, Found '' in subg1, Found '10' in subg2",
-                "INCONSISTENT_DESCRIPTION: Query.name, Found '' in subg1, Found 'This is the name description in subgraph-2' in subg2",
                 "INCONSISTENT_TYPE_FIELD: Query.name, Found 'name' in subg1, subg2, but not in subg3",
-                "INCONSISTENT_BUT_COMPATIBLE_OUTPUT_TYPE: Query.age, Found 'Int!' in subg1, Found 'Int' in subg2",
                 "INCONSISTENT_TYPE_FIELD: Query.age, Found 'age' in subg1, subg2, but not in subg3",
                 "INCONSISTENT_TYPE_FIELD: Query.value, Found 'value' in subg2, subg3, but not in subg1"
             ]

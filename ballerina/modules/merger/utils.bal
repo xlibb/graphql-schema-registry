@@ -31,7 +31,7 @@ isolated function addHintLocation(Hint hint, string location) {
     hint.location.unshift(location);
 }
 
-isolated function printHints(Hint[] hints) returns string[] {
+public isolated function printHints(Hint[] hints) returns string[] {
     string[] hintMessages = [];
     foreach Hint hint in hints {
         hintMessages.push(printHint(hint));
@@ -50,6 +50,27 @@ isolated function printHintDetail(HintDetail hintDetail) returns string {
         hintDetailStr += string:'join(", ", ...(hintDetail.inconsistentSubgraphs));
     }
     return hintDetailStr;
+}
+
+public isolated function filterHints(string[] relevantSubgraphs, Hint[] hints) returns Hint[] {
+    Hint[] filteredHints = [];
+    foreach string subgraph in relevantSubgraphs {
+        foreach Hint hint in hints {
+            if isHintRelevant(hint, subgraph) {
+                filteredHints.push(hint);
+            }
+        }
+    }
+    return filteredHints;
+}
+
+isolated function isHintRelevant(Hint hint, string subgraph) returns boolean {
+    foreach HintDetail detail in hint.details {
+        if detail.consistentSubgraphs.some(s => s == subgraph) || detail.inconsistentSubgraphs.some(s => s == subgraph) {
+            return true;
+        }
+    }
+    return false;
 }
 
 isolated function addMergeErrorMessages(MergeError[] errors) returns InternalError|MergeError[] {

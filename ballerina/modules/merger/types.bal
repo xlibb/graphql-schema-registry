@@ -105,8 +105,7 @@ type TypeReferenceMergeResult record {|
 
 public type SupergraphMergeResult record {|
     Supergraph result;
-    string[] hints;
+    Hint[] hints;
 |};
 
-public type MergeHints Hint[];
 public type MergeErrors MergeError[];

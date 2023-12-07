@@ -127,12 +127,15 @@ public isolated class Registry {
             return diffResult;
         }
 
+        merger:Hint[] filteredHints = merger:filterHints([input.name], composeResult.hints);
+        string[] hintMessages = merger:printHints(filteredHints);
+
         return {
             schemaSdl: composeResult.schemaSdl,
             apiSchemaSdl: composeResult.apiSchemaSdl,
             subgraphs: mergingSubgraphList,
             version: diffResult.version,
-            hints: composeResult.hints,
+            hints: hintMessages,
             diffs: diffResult.diffs
         };
         
