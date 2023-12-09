@@ -40,12 +40,18 @@ public isolated function printHints(Hint[] hints) returns string[] {
 }
 
 isolated function printHint(Hint hint) returns string {
-    return string `${hint.code}: ${string:'join(".", ...hint.location)}, ${string:'join(", ", ...hint.details.'map(h => printHintDetail(h)))}`;
+    return string `${hint.code}: ${string:'join(".", ...hint.location)}, ${string:'join(", ", ...hint.details.'map(h => printHintDetail(h)))}.`;
 }
 
 isolated function printHintDetail(HintDetail hintDetail) returns string {
-    string hintDetailStr = string `Found '${hintDetail.value.toString()}' in ${string:'join(", ", ...(hintDetail.consistentSubgraphs))}`;
-    if hintDetail.inconsistentSubgraphs.length() > 0 {
+    string hintDetailStr = string `Found '${hintDetail.value.toString()}' in `;
+    if hintDetail.consistentSubgraphs.length() == 0 {
+        hintDetailStr += "none of the subgraphs";
+    } else {
+        hintDetailStr += string:'join(", ", ...(hintDetail.consistentSubgraphs));
+    }
+
+    if hintDetail.inconsistentSubgraphs.length() > 0 && hintDetail.consistentSubgraphs.length() != 0 {
         hintDetailStr += ", but not in ";
         hintDetailStr += string:'join(", ", ...(hintDetail.inconsistentSubgraphs));
     }

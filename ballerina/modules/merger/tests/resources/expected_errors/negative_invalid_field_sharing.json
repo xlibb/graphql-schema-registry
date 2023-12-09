@@ -1,4 +1,5 @@
 [
-    "INVALID_FIELD_SHARING: Query.age, Found 'shareable' in subg2, subg3, subg4, but not in subg1",
-    "INVALID_FIELD_SHARING: Query.foo, Found 'shareable' in subg1, subg2, subg4, but not in subg3"
+    "INVALID_FIELD_SHARING: Query.age, Found 'shareable' in subg2, subg3, subg4, but not in subg1.",
+    "INVALID_FIELD_SHARING: Query.foo, Found 'shareable' in subg1, subg2, subg4, but not in subg3.",
+    "INVALID_FIELD_SHARING: Query.fox, Found 'shareable' in none of the subgraphs."
 ]

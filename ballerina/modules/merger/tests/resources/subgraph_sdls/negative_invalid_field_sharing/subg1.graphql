@@ -5,4 +5,5 @@ type Query {
     name: String @shareable
     age: Int 
     foo: Int @shareable
+    fox: Float
 }

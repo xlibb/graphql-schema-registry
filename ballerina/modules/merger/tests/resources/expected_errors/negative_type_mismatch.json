@@ -1,4 +1,4 @@
 [
-    "TYPE_KIND_MISMATCH: Foo, Found 'OBJECT' in subg1, subg2, Found 'SCALAR' in subg3, Found 'UNION' in subg4",
-    "TYPE_KIND_MISMATCH: Fux, Found 'OBJECT' in subg1, Found 'INTERFACE' in subg2, Found 'ENUM' in subg3, Found 'INPUT_OBJECT' in subg4"
+    "TYPE_KIND_MISMATCH: Foo, Found 'OBJECT' in subg1, subg2, Found 'SCALAR' in subg3, Found 'UNION' in subg4.",
+    "TYPE_KIND_MISMATCH: Fux, Found 'OBJECT' in subg1, Found 'INTERFACE' in subg2, Found 'ENUM' in subg3, Found 'INPUT_OBJECT' in subg4."
 ]
