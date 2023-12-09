@@ -20,12 +20,12 @@ public type EnumTypeUsage record {|
 public type EntityStatus record {|
     boolean isEntity;
     boolean isResolvable;
-    string? fields;
+    string[] keyFields;
 |};
 
 type DescriptionSource [string, string?];
 type PossibleTypesSource [string, parser:__Type[]];
-type FieldMapSource [string, map<parser:__Field>, boolean];
+type FieldMapSource [string, map<parser:__Field>, boolean, string[]]; # subgraphName, subgraphFieldMap, isTypeShareable, entityFields
 type InputFieldMapSource [string, map<parser:__InputValue>];
 type EnumValueSetSource [string, parser:__EnumValue[]];
 type TypeReferenceSource [string, parser:__Type];

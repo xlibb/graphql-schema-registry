@@ -4,20 +4,24 @@ import ballerina/test;
     groups: ["merger", "federation"],
     dataProvider: dataProviderIsFederationSubgraph
 }
-function testIsFederationSubgraph(Subgraph subgraph, boolean expected) returns error? {
-    test:assertEquals(subgraph.isFederation2Subgraph, expected);
+function testIsFederationSubgraph(Subgraph subgraph, boolean|error expected) returns error? {
+    error|boolean isFederation2SubgraphResult = isFederation2Subgraph(subgraph);
+    if isFederation2SubgraphResult is boolean && expected is boolean {
+        test:assertEquals(isFederation2SubgraphResult, expected);
+    } else if isFederation2SubgraphResult is error && expected is error {
+        test:assertEquals(isFederation2SubgraphResult.message(), expected.message());
+    } else {
+        test:assertFail("Type mismatch");
+    }
 }
 
-function dataProviderIsFederationSubgraph() returns [Subgraph, boolean][]|error {
+function dataProviderIsFederationSubgraph() returns [Subgraph, boolean|error][]|error {
     Subgraph[] subgraphs = check getSubgraphsFromFileName("is_federation_subgraph", "subg");
-    foreach Subgraph subgraph in subgraphs {
-        subgraph.isFederation2Subgraph = check isFederation2Subgraph(subgraph);
-    }
 
     return [
         [subgraphs[0], true],
         [subgraphs[1], false],
-        [subgraphs[2], false],
+        [subgraphs[2], error InvalidFederationSpec("Unsupported Federation version 'v2.3'")],
         [subgraphs[3], false],
         [subgraphs[4], true]
     ];

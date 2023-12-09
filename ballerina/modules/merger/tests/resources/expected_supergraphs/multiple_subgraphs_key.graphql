@@ -28,11 +28,22 @@ type Bar
 
 type Foo
   @join__type(graph: SUBG1, key: "id")
-  @join__type(graph: SUBG2, key: "he", resolvable: false)
+  @join__type(graph: SUBG2, key: "id", resolvable: false)
 {
   id: ID!
   name: String @join__field(graph: SUBG1)
   he: String @join__field(graph: SUBG2)
+}
+
+type Fox
+  @join__type(graph: SUBG1, key: "id name age")
+  @join__type(graph: SUBG2, key: "id name age")
+{
+  id: ID!
+  name: String
+  age: Int
+  fux: Float @join__field(graph: SUBG1)
+  fox: Float @join__field(graph: SUBG2)
 }
 
 scalar join__FieldSet
@@ -60,5 +71,6 @@ type Query
   @join__type(graph: SUBG1)
   @join__type(graph: SUBG2)
 {
-  name: String
+  name: String @join__field(graph: SUBG1)
+  addr: String @join__field(graph: SUBG2)
 }

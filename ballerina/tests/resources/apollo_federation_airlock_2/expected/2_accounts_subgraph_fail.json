@@ -14,7 +14,7 @@
             "extensions": {
                 "errors": [
                     {
-                        "message": "INVALID_FIELD_SHARING: Guest.id, Found 'shareable' in accounts, but not in monolith",
+                        "message": "INVALID_FIELD_SHARING: Guest.id, Found 'shareable' in accounts, but not in monolith.",
                         "details": {
                             "hint": {
                                 "code": "INVALID_FIELD_SHARING",
@@ -37,7 +37,7 @@
                         }
                     },
                     {
-                        "message": "INVALID_FIELD_SHARING: Guest.name, Found 'shareable' in accounts, but not in monolith",
+                        "message": "INVALID_FIELD_SHARING: Guest.name, Found 'shareable' in none of the subgraphs.",
                         "details": {
                             "hint": {
                                 "code": "INVALID_FIELD_SHARING",
@@ -48,10 +48,9 @@
                                 "details": [
                                     {
                                         "value": "shareable",
-                                        "consistentSubgraphs": [
-                                            "accounts"
-                                        ],
+                                        "consistentSubgraphs": [],
                                         "inconsistentSubgraphs": [
+                                            "accounts",
                                             "monolith"
                                         ]
                                     }
@@ -60,7 +59,7 @@
                         }
                     },
                     {
-                        "message": "INVALID_FIELD_SHARING: Guest.profilePicture, Found 'shareable' in accounts, but not in monolith",
+                        "message": "INVALID_FIELD_SHARING: Guest.profilePicture, Found 'shareable' in none of the subgraphs.",
                         "details": {
                             "hint": {
                                 "code": "INVALID_FIELD_SHARING",
@@ -71,10 +70,9 @@
                                 "details": [
                                     {
                                         "value": "shareable",
-                                        "consistentSubgraphs": [
-                                            "accounts"
-                                        ],
+                                        "consistentSubgraphs": [],
                                         "inconsistentSubgraphs": [
+                                            "accounts",
                                             "monolith"
                                         ]
                                     }
@@ -83,7 +81,7 @@
                         }
                     },
                     {
-                        "message": "INVALID_FIELD_SHARING: Host.id, Found 'shareable' in accounts, but not in monolith",
+                        "message": "INVALID_FIELD_SHARING: Host.id, Found 'shareable' in accounts, but not in monolith.",
                         "details": {
                             "hint": {
                                 "code": "INVALID_FIELD_SHARING",
@@ -106,7 +104,7 @@
                         }
                     },
                     {
-                        "message": "INVALID_FIELD_SHARING: Host.name, Found 'shareable' in accounts, but not in monolith",
+                        "message": "INVALID_FIELD_SHARING: Host.name, Found 'shareable' in none of the subgraphs.",
                         "details": {
                             "hint": {
                                 "code": "INVALID_FIELD_SHARING",
@@ -117,10 +115,9 @@
                                 "details": [
                                     {
                                         "value": "shareable",
-                                        "consistentSubgraphs": [
-                                            "accounts"
-                                        ],
+                                        "consistentSubgraphs": [],
                                         "inconsistentSubgraphs": [
+                                            "accounts",
                                             "monolith"
                                         ]
                                     }
@@ -129,7 +126,7 @@
                         }
                     },
                     {
-                        "message": "INVALID_FIELD_SHARING: Host.profilePicture, Found 'shareable' in accounts, but not in monolith",
+                        "message": "INVALID_FIELD_SHARING: Host.profilePicture, Found 'shareable' in none of the subgraphs.",
                         "details": {
                             "hint": {
                                 "code": "INVALID_FIELD_SHARING",
@@ -140,10 +137,9 @@
                                 "details": [
                                     {
                                         "value": "shareable",
-                                        "consistentSubgraphs": [
-                                            "accounts"
-                                        ],
+                                        "consistentSubgraphs": [],
                                         "inconsistentSubgraphs": [
+                                            "accounts",
                                             "monolith"
                                         ]
                                     }
@@ -152,7 +148,7 @@
                         }
                     },
                     {
-                        "message": "INVALID_FIELD_SHARING: Host.profileDescription, Found 'shareable' in accounts, but not in monolith",
+                        "message": "INVALID_FIELD_SHARING: Host.profileDescription, Found 'shareable' in none of the subgraphs.",
                         "details": {
                             "hint": {
                                 "code": "INVALID_FIELD_SHARING",
@@ -163,10 +159,9 @@
                                 "details": [
                                     {
                                         "value": "shareable",
-                                        "consistentSubgraphs": [
-                                            "accounts"
-                                        ],
+                                        "consistentSubgraphs": [],
                                         "inconsistentSubgraphs": [
+                                            "accounts",
                                             "monolith"
                                         ]
                                     }

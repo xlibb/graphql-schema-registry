@@ -15,9 +15,9 @@
                 }
             ],
             "hints": [
-                "INCONSISTENT_ARGUMENT_PRESENCE: Query.name, Found 'age' in subg1, but not in subg2",
-                "INCONSISTENT_BUT_COMPATIBLE_OUTPUT_TYPE: Query.age, Found 'Int!' in subg1, Found 'Int' in subg2",
-                "INCONSISTENT_TYPE_FIELD: Query.value, Found 'value' in subg2, but not in subg1"
+                "INCONSISTENT_ARGUMENT_PRESENCE: Query.name, Found 'age' in subg1, but not in subg2.",
+                "INCONSISTENT_BUT_COMPATIBLE_OUTPUT_TYPE: Query.age, Found 'Int!' in subg1, Found 'Int' in subg2.",
+                "INCONSISTENT_TYPE_FIELD: Query.value, Found 'value' in subg2, but not in subg1."
             ]
         }
     }

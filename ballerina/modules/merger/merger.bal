@@ -1,3 +1,4 @@
+import ballerina/lang.regexp;
 import graphql_schema_registry.parser;
 
 public class Merger {
@@ -6,7 +7,7 @@ public class Merger {
     private map<Subgraph> subgraphs;
     private map<parser:__EnumValue> joinGraphMap;
 
-    public isolated function init(Subgraph[] subgraphs) returns InternalError? {
+    public isolated function init(Subgraph[] subgraphs) returns error? {
         self.subgraphs = {};
         Subgraph[] sortedSubgraphs = subgraphs.sort("ascending", s => s.name);
         foreach Subgraph subgraph in sortedSubgraphs {
@@ -272,7 +273,7 @@ public class Merger {
         }
     }
 
-    isolated function mergeObjectTypes() returns Hint[]|MergeError[]|InternalError {
+    isolated function mergeObjectTypes() returns Hint[]|MergeError[]|error {
         map<parser:__Type> supergraphObjectTypes = self.getSupergraphTypesOfKind(parser:OBJECT);
         Hint[] hints = [];
         MergeError[] errors = [];
@@ -300,12 +301,14 @@ public class Merger {
             FieldMapSource[] fieldMapSources = [];
             foreach Subgraph subgraph in subgraphs {
                 parser:__Type subgraphType = subgraph.schema.types.get(typeName);
+                EntityStatus entityStatus = check self.isEntity(subgraphType);
                 map<parser:__Field>? subgraphFields = subgraphType.fields;
                 if subgraphFields is map<parser:__Field> {
                     fieldMapSources.push([
                         subgraph.name, 
                         check self.getFilteredFields(typeName, subgraphFields),
-                        !subgraph.isFederation2Subgraph || self.isTypeAllowsMergingFields(subgraphType)
+                        !subgraph.isFederation2Subgraph || self.isTypeAllowsMergingFields(subgraphType),
+                        entityStatus.keyFields
                     ]);
                 }
             }
@@ -644,12 +647,13 @@ public class Merger {
 
         // Get union of all the fields
         map<FieldSource[]> unionedFields = {};
-        foreach FieldMapSource [subgraph, subgraphFields, isTypeShareable] in sources {
+        foreach FieldMapSource [subgraph, subgraphFields, isTypeShareable, entityFields] in sources {
             foreach [string, parser:__Field] [fieldName, fieldValue] in subgraphFields.entries() {
+                boolean isEntityField = entityFields.indexOf(fieldName) !is ();
                 if !unionedFields.hasKey(fieldName) {
-                    unionedFields[fieldName] = [[subgraph, fieldValue, isTypeShareable]];
+                    unionedFields[fieldName] = [[subgraph, fieldValue, isTypeShareable || isEntityField]];
                 } else { 
-                    unionedFields.get(fieldName).push([subgraph, fieldValue, isTypeShareable]);
+                    unionedFields.get(fieldName).push([subgraph, fieldValue, isTypeShareable || isEntityField]);
                 }
             }
         }
@@ -658,8 +662,8 @@ public class Merger {
         foreach [string, FieldSource[]] [fieldName, fieldSources] in unionedFields.entries() {
             string[] shareableSubgraphs = [];
             string[] nonShareableSubgraphs = [];
-            foreach FieldSource [subgraph, 'field, isTypeShareable] in fieldSources {
-                if isTypeShareable || self.isShareableOnField('field) {
+            foreach FieldSource [subgraph, 'field, isAllowedToShare] in fieldSources {
+                if isAllowedToShare || self.isShareableOnField('field) {
                     shareableSubgraphs.push(subgraph);
                 } else {
                     nonShareableSubgraphs.push(subgraph);
@@ -1179,7 +1183,7 @@ public class Merger {
         );
     }
 
-    isolated function applyJoinTypeDirectives() returns InternalError? {
+    isolated function applyJoinTypeDirectives() returns error? {
         foreach [string, parser:__Type] [key, 'type] in self.supergraph.schema.types.entries() {
             if isSubgraphFederationType(key) || parser:isBuiltInType(key) {
                 continue;
@@ -1193,9 +1197,9 @@ public class Merger {
 
                     parser:__Type subgraphType = subgraph.schema.types.get(key);
 
-                    EntityStatus entityStatus = self.isEntity(subgraphType);
+                    EntityStatus entityStatus = check self.isEntity(subgraphType);
                     if entityStatus.isEntity {
-                        argMap[KEY_FIELD] = entityStatus.fields;
+                        argMap[KEY_FIELD] = string:'join(" ", ...entityStatus.keyFields);
                         argMap[RESOLVABLE_FIELD] = entityStatus.isResolvable;
                     }
 
@@ -1437,11 +1441,11 @@ public class Merger {
         return isTypeOnTypeMap(self.supergraph.schema, typeName);
     }
 
-    isolated function isEntity(parser:__Type 'type) returns EntityStatus {
+    isolated function isEntity(parser:__Type 'type) returns EntityStatus|error {
         EntityStatus status = {
             isEntity: false,
             isResolvable: false,
-            fields: ()
+            keyFields: []
         };
         foreach parser:__AppliedDirective appliedDirective in 'type.appliedDirectives {
             if appliedDirective.definition.name == KEY_DIR {
@@ -1451,14 +1455,15 @@ public class Merger {
                 if isResolvable is boolean {
                     status.isResolvable = isResolvable;
                 } else {
-                    // return error InternalError("Invalid resolvable value of @key directive");
+                    return error InternalError("Invalid resolvable value of @key directive");
                 }
 
                 anydata fields = appliedDirective.args.get(FIELDS_FIELD).value;
                 if fields is string {
-                    status.fields = fields;
+                    regexp:RegExp fieldSeperator = re ` `;
+                    status.keyFields = fieldSeperator.split(fields);
                 } else {
-                    // return error InternalError("Invalid field set of @key directive");
+                    return error InternalError("Invalid field set of @key directive");
                 }
             }
         }
@@ -1510,7 +1515,7 @@ public class Merger {
     }
 
     isolated function isTypeAllowsMergingFields(parser:__Type 'type) returns boolean {
-        return self.isEntity('type).isEntity || self.isShareableOnType('type) || 'type.kind == parser:INTERFACE;
+        return self.isShareableOnType('type) || 'type.kind == parser:INTERFACE;
     }
 
     isolated function isShareableOnType(parser:__Type 'type) returns boolean {

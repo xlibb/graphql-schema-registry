@@ -1,4 +1,5 @@
 import graphql_schema_registry.parser;
+import ballerina/lang.regexp;
 
 const string FIELDSET_TYPE = "FieldSet";
 const string JOIN_GRAPH_TYPE = "join__Graph";
@@ -46,9 +47,11 @@ enum LinkPurpose {
     SECURITY
 }
 
-const string FEDERATION_SPEC_URL = "https://specs.apollo.dev/federation/v2.0";
-const string LINK_SPEC_URL = "https://specs.apollo.dev/link/v1.0";
-const string JOIN_SPEC_URL = "https://specs.apollo.dev/join/v0.3";
+const FEDERATION_SPEC_IDENTITY_URL = "https://specs.apollo.dev/federation";
+const FEDERATION_VERSIONS = "v2.0";
+const FEDERATION_SPEC_URL = "https://specs.apollo.dev/federation/v2.0";
+const LINK_SPEC_URL = "https://specs.apollo.dev/link/v1.0";
+const JOIN_SPEC_URL = "https://specs.apollo.dev/join/v0.3";
 
 type FEDERATION_SUBGRAPH_IGNORE_TYPES LINK_IMPORT_TYPE | LINK_PURPOSE_TYPE | JOIN_FIELDSET_TYPE | JOIN_GRAPH_TYPE | FIELDSET_TYPE;
 
@@ -210,15 +213,29 @@ isolated function isFederationFieldType(string name) returns boolean {
     return name is FEDERATION_FIELD_TYPES;
 }
 
-isolated function isFederation2Subgraph(Subgraph subgraph) returns InternalError|boolean {
+isolated function isFederation2Subgraph(Subgraph subgraph) returns error|boolean {
     parser:__AppliedDirective[] linkDirs = getAppliedDirectives(LINK_DIR, subgraph.schema.appliedDirectives);
     boolean isFederation2Subgraph = false;
     foreach parser:__AppliedDirective linkDir in linkDirs {
-        if linkDir.args.hasKey(URL_FIELD) {
-            isFederation2Subgraph = linkDir.args.get(URL_FIELD).value === FEDERATION_SPEC_URL;
-        } else {
+        if !linkDir.args.hasKey(URL_FIELD) {
             return error InternalError(string `'@${LINK_DIR}' must contain '${URL_FIELD}'`);
         }
+
+        anydata specUrl = linkDir.args.get(URL_FIELD).value;
+        if specUrl !is string {
+            return error InternalError(string `Invalid type for '${URL_FIELD}' in @'${LINK_DIR}'`);
+        }
+        if !specUrl.startsWith(FEDERATION_SPEC_IDENTITY_URL) {
+            return error InvalidFederationSpec(string `Invalid federation specification url. Federation specification url must start with '${FEDERATION_SPEC_IDENTITY_URL}'`);
+        }
+        regexp:RegExp pathSeperator = re `/`;
+        string[] paths = pathSeperator.split(specUrl);
+        string version = paths[paths.length() - 1];
+        if version !is FEDERATION_VERSIONS {
+            return error InvalidFederationSpec(string `Unsupported Federation version '${version}'`);
+        }
+
+        isFederation2Subgraph = specUrl === FEDERATION_SPEC_URL;
     }
     return isFederation2Subgraph;
 }

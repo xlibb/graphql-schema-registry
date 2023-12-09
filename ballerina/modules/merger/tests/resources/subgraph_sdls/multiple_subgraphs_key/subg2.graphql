@@ -1,8 +1,8 @@
 extend schema
-  @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key"])
+  @link(url: "https://specs.apollo.dev/federation/v2.0", import: ["@key"])
 
 type Query {
-    name: String
+    addr: String
 }
 
 type Bar {
@@ -10,7 +10,14 @@ type Bar {
     foo: Foo
 }
 
-type Foo @key(fields: "he", resolvable: false) {
+type Foo @key(fields: "id", resolvable: false) {
     id: ID!
     he: String
+}
+
+type Fox @key(fields: "id name age") {
+    id: ID!
+    name: String
+    age: Int
+    fox: Float
 }

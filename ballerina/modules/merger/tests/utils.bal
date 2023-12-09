@@ -76,8 +76,14 @@ function getMergedAndParsedSchemas(string fileName) returns TestSchemas|error {
             parsed: schemas[0],
             merged: merged.result.schema
         };
+    } else if merged is MergeError[] {
+        string[] errorMsgs = [];
+        foreach MergeError err in merged {
+            errorMsgs.push(err.message());
+        }
+        return error(string `Supergraph merge failure. ${string:'join("\n", ...errorMsgs)}`);
     } else {
-        return error("Supergraph merge failure");
+        return merged;
     }
 
 }

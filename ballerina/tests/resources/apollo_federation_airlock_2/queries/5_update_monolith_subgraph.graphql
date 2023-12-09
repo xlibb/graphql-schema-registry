@@ -5,7 +5,7 @@ mutation Monolith {
             url: "http://localhost:4001"
             schema: """
 extend schema
-  @link(url: "https://specs.apollo.dev/federation/v2.5",
+  @link(url: "https://specs.apollo.dev/federation/v2.0",
         import: ["@key"])
 
 type Query {

@@ -7,7 +7,7 @@
             "extensions": {
                 "errors": [
                     {
-                        "message": "INVALID_FIELD_SHARING: Query.value, Found 'shareable' in , but not in subg2, subg3",
+                        "message": "INVALID_FIELD_SHARING: Query.value, Found 'shareable' in none of the subgraphs.",
                         "details": {
                             "hint": {
                                 "code": "INVALID_FIELD_SHARING",
