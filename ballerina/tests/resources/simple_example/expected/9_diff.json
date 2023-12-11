@@ -1,0 +1,26 @@
+{
+    "data": {
+        "diff": [
+            {
+                "severity": "SAFE",
+                "action": "ADDED",
+                "subject": "TYPE",
+                "location": [],
+                "value": "User",
+                "fromValue": null,
+                "toValue": null
+            },
+            {
+                "severity": "SAFE",
+                "action": "ADDED",
+                "subject": "FIELD",
+                "location": [
+                    "Query"
+                ],
+                "value": "users",
+                "fromValue": null,
+                "toValue": null
+            }
+        ]
+    }
+}

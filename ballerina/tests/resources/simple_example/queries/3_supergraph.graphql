@@ -1,0 +1,11 @@
+query Supergraph {
+    supergraph {
+        schema
+        subgraphs {
+            name
+            schema
+        }
+        version
+        apiSchema
+    }
+}            

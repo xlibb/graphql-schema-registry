@@ -37,6 +37,24 @@ function dataProviderSchemaRegistryService() returns map<[string, string[]]>|err
                                         "5_update_monolith_subgraph",
                                         "6_update_accounts_subgraph"
                                     ]
+                                ],
+        "simple_example":       [
+                                    "simple_example",
+                                    [
+                                        "1_supergraph",
+                                        "2_product_subgraph",
+                                        "3_supergraph",
+                                        "4_users_subgraph",
+                                        "5_supergraph",
+                                        "6_users_update",
+                                        "7_supergraph",
+                                        "8_versions",
+                                        "9_diff",
+                                        "10_reviews_error",
+                                        "11_reviews_publish",
+                                        "12_users_breaking_update",
+                                        "13_users_forced_breaking_update"
+                                    ]
                                 ]
      };
 }
