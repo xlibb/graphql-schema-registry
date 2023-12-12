@@ -46,6 +46,12 @@ function getExpectedErrorMessages(string testName) returns string[]|error {
     return check errorsJson.cloneWithType(ErrorMessages);
 }
 
+function getExpectedHintMessages(string testName) returns string[]|error {
+    string path = check file:joinPath(testResourcesPath, "expected_hints", string `${testName}.json`);
+    json errorsJson = check io:fileReadJson(path);
+    return check errorsJson.cloneWithType(ErrorMessages);
+}
+
 function getSupergraphSdlFromFileName(string fileName) returns string|error {
     string gqlFileName = string `${fileName}.graphql`;
     string path = check file:joinPath(testResourcesPath, "expected_supergraphs", gqlFileName);

@@ -75,9 +75,11 @@ public class Merger {
         check self.applyJoinTypeDirectives();
         check self.populateRootTypes();
 
+        Hint[] filteredHints = self.filterRootTypeHintMessages(mergeHints);
+
         return {
             result: self.supergraph,
-            hints: mergeHints
+            hints: filteredHints
         };
     }
 
@@ -1159,6 +1161,18 @@ public class Merger {
         if self.isTypeOnSupergraph(parser:SUBSCRIPTION_TYPE) {
             self.supergraph.schema.mutationType = check self.getTypeFromSupergraph(parser:SUBSCRIPTION_TYPE);
         }
+    }
+
+    isolated function filterRootTypeHintMessages(Hint[] hints) returns Hint[] {
+        Hint[] filteredHints = [];
+        foreach Hint hint in hints {
+            if hint.location.length() > 0 {
+                if !(parser:isRootOperationType(hint.location[0]) && hint.code is INCONSISTENT_TYPE_FIELD | INCONSISTENT_DESCRIPTION) {
+                    filteredHints.push(hint);
+                }
+            }
+        }
+        return filteredHints;
     }
 
     isolated function applyLinkDirective(parser:__Schema schema, string url, LinkPurpose? for = ()) returns InternalError? {

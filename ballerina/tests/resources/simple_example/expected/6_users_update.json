@@ -14,11 +14,7 @@
                     "schema": "extend schema @link(url: \"https://specs.apollo.dev/federation/v2.0\", import: [\"@key\"]) \n\ntype Query {\n  \"Returns the list of users\"\n  users: [User!]!\n}\n\n\"Represents a user in the system\"\ntype User @key(fields: \"id\") {\n  \"The unique identifier for the user\"\n  id: ID!\n  \"The name of the user\"\n  name: String!\n  \"The email of the user\"\n  email: String!\n}"
                 }
             ],
-            "hints": [
-                "INCONSISTENT_TYPE_FIELD: Query.products, Found 'products' in products, but not in users.",
-                "INCONSISTENT_TYPE_FIELD: Query.product, Found 'product' in products, but not in users.",
-                "INCONSISTENT_TYPE_FIELD: Query.users, Found 'users' in users, but not in products."
-            ],
+            "hints": [],
             "diffs": [
                 {
                     "severity": "DANGEROUS",

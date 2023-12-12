@@ -17,6 +17,8 @@ public const string _SERVICE_TYPE = "_Service";
 
 public type BUILT_IN_TYPES _SERVICE_TYPE | BOOLEAN | STRING | FLOAT | INT | ID;
 
+public type ROOT_OPERATION_TYPES QUERY_TYPE | MUTATION_TYPE | SUBSCRIPTION_TYPE;
+
 public type EXECUTABLE_DIRECTIVE_LOCATIONS QUERY | MUTATION | SUBSCRIPTION | FIELD | FRAGMENT_DEFINITION | FRAGMENT_SPREAD | INLINE_FRAGMENT;
 
 public type BUILT_IN_DIRECTIVES INCLUDE_DIR | DEPRECATED_DIR | SKIP_DIR | SPECIFIED_BY_DIR;
@@ -30,6 +32,10 @@ public isolated function wrapType(__Type 'type, WRAPPING_TYPE kind) returns __Ty
 
 public isolated function isBuiltInDirective(string directiveName) returns boolean {
     return directiveName is BUILT_IN_DIRECTIVES;
+}
+
+public isolated function isRootOperationType(string typeName) returns boolean {
+    return typeName is ROOT_OPERATION_TYPES;
 }
 
 public isolated function isExecutableDirective(__Directive directive) returns boolean {

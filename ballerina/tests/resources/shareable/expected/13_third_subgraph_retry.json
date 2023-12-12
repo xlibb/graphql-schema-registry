@@ -18,11 +18,7 @@
                 }
             ],
             "version": "1.0.0",
-            "hints": [
-                "INCONSISTENT_TYPE_FIELD: Query.name, Found 'name' in subg1, subg2, but not in subg3.",
-                "INCONSISTENT_TYPE_FIELD: Query.age, Found 'age' in subg1, subg2, but not in subg3.",
-                "INCONSISTENT_TYPE_FIELD: Query.value, Found 'value' in subg2, subg3, but not in subg1."
-            ]
+            "hints": []
         }
     }
 }
