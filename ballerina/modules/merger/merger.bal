@@ -1162,25 +1162,15 @@ public class Merger {
     }
 
     isolated function filterRootTypeHints(Hint[] hints) returns Hint[] {
-        Hint[] filteredHints = [];
-        foreach Hint hint in hints {
-            if hint.location.length() > 0 {
-                if !(parser:isRootOperationType(hint.location[0]) && hint.code is INCONSISTENT_TYPE_FIELD | INCONSISTENT_DESCRIPTION) {
-                    filteredHints.push(hint);
-                }
-            }
-        }
-        return filteredHints;
+        return hints.filter(isolated function(Hint hint) returns boolean => 
+                                            !(hint.location.length() > 0 && 
+                                              parser:isRootOperationType(hint.location[0]) && 
+                                              hint.code is INCONSISTENT_TYPE_FIELD | INCONSISTENT_DESCRIPTION));
     }
 
     isolated function filterEntityFieldInconsistencyHints(Hint[] hints) returns Hint[] {
-        Hint[] filteredHints = [];
-        foreach Hint hint in hints {
-            if hint.code !is INCONSISTENT_TYPE_FIELD {
-                filteredHints.push(hint);
-            }
-        }
-        return filteredHints;
+        return hints.filter(isolated function(Hint hint) returns boolean => 
+                                            !(hint.code is INCONSISTENT_TYPE_FIELD));
     }
 
     isolated function applyLinkDirective(parser:__Schema schema, string url, LinkPurpose? for = ()) returns InternalError? {
