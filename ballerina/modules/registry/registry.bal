@@ -341,7 +341,7 @@ public isolated class Registry {
     }
 
     isolated function exportSchema(parser:__Schema schema) returns string|exporter:ExportError {
-        return check (new exporter:Exporter(schema)).export();
+        return check exporter:export(schema);
     }
 
     isolated function parseSubgraph(string name, string url, string schema) returns merger:Subgraph|parser:SchemaError[] {

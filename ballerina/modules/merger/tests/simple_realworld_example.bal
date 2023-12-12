@@ -31,6 +31,6 @@ function dataProviderSimpleRealworldExample() returns [TestSchemas, string][]|er
 function testSimpleRealworldExampleExportSDL() returns error? {
     TestSchemas schemas = check getMergedAndParsedSchemas("simple_realworld_example");
 
-    string exportedSdl = check (new exporter:Exporter(schemas.merged)).export();
+    string exportedSdl = check exporter:export(schemas.merged);
     test:assertEquals(exportedSdl, check getSupergraphSdlFromFileName("simple_realworld_example"));
 }

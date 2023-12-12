@@ -11,7 +11,7 @@ function testConflictCompatibleInputTypes(string fileName) returns error? {
     if parsedResult is parser:SchemaError[] {
         return parser:getSchemaErrorsAsError(parsedResult);
     }
-    string actualSdl = check (new Exporter(parsedResult)).export();
+    string actualSdl = check export(parsedResult);
     if expectedSdl != actualSdl {
         check writeSchemaSdl(fileName + "_new", actualSdl);
     }

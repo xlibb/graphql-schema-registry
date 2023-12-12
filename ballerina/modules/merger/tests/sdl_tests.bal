@@ -9,7 +9,7 @@ import ballerina/io;
 function testMergedSdls(string fileName) returns error? {
     TestSchemas schemas = check getMergedAndParsedSchemas(fileName);
 
-    string exportedSdl = check (new exporter:Exporter(schemas.merged)).export();
+    string exportedSdl = check exporter:export(schemas.merged);
     string expectedSdl = check getSupergraphSdlFromFileName(fileName);
     if expectedSdl !== exportedSdl {
         check io:fileWriteString(string `./modules/merger/tests/resources/expected_supergraphs/${fileName}_1.graphql`, exportedSdl);

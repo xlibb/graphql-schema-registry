@@ -8,6 +8,6 @@ import graphql_schema_registry.parser;
 function testApiSchema() returns error? {
     TestSchemas schemas = check getMergedAndParsedSchemas("full_schema");
     parser:__Schema apiSchema = getApiSchema(schemas.merged);
-    string exportedApiSchemaSdl = check (new exporter:Exporter(apiSchema)).export();
+    string exportedApiSchemaSdl = check exporter:export(apiSchema);
     test:assertEquals(exportedApiSchemaSdl, check getSupergraphSdlFromFileName("full_schema_api"));
 }
