@@ -25,7 +25,7 @@ public type EntityStatus record {|
 
 type DescriptionSource [string, string?];
 type PossibleTypesSource [string, parser:__Type[]];
-type FieldMapSource [string, map<parser:__Field>, boolean, string[]]; # subgraphName, subgraphFieldMap, isTypeShareable, entityFields
+type FieldMapSource [string, map<parser:__Field>, boolean, EntityStatus]; # subgraphName, subgraphFieldMap, isTypeShareable, entityFields
 type InputFieldMapSource [string, map<parser:__InputValue>];
 type EnumValueSetSource [string, parser:__EnumValue[]];
 type TypeReferenceSource [string, parser:__Type];

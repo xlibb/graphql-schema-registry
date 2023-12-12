@@ -1,5 +1,4 @@
 import ballerina/test;
-import ballerina/io;
 
 @test:Config {
     groups: ["merger", "hints"],
@@ -12,9 +11,6 @@ function testHints(string testname) returns error? {
         string[] expectedHintMessages = check getExpectedHintMessages(testname);
         string[] actualHintMessages = printHints(merged.hints);
 
-        if actualHintMessages != expectedHintMessages {
-            io:Error? fileWriteJson = io:fileWriteJson(testname + ".json", actualHintMessages);
-        }
         test:assertEquals(actualHintMessages, expectedHintMessages);
     } else {
         test:assertFail("Supergraph composed without errors");

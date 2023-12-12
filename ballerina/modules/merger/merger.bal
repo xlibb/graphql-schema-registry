@@ -75,11 +75,11 @@ public class Merger {
         check self.applyJoinTypeDirectives();
         check self.populateRootTypes();
 
-        Hint[] filteredHints = self.filterRootTypeHintMessages(mergeHints);
+        mergeHints = self.filterRootTypeHints(mergeHints);
 
         return {
             result: self.supergraph,
-            hints: filteredHints
+            hints: mergeHints
         };
     }
 
@@ -310,7 +310,7 @@ public class Merger {
                         subgraph.name, 
                         check self.getFilteredFields(typeName, subgraphFields),
                         !subgraph.isFederation2Subgraph || self.isTypeAllowsMergingFields(subgraphType),
-                        entityStatus.keyFields
+                        entityStatus
                     ]);
                 }
             }
@@ -321,6 +321,12 @@ public class Merger {
             }
             appendHints(hints, mergedFields.hints, typeName);
             'type.fields = <map<parser:__Field>>mergedFields.result;
+
+            boolean isEverySourceEntity = fieldMapSources.map(f => f[3].isEntity)
+                                                         .reduce(isolated function (boolean 'final, boolean next) returns boolean => 'final && next, true);
+            if isEverySourceEntity {
+                hints = self.filterEntityFieldInconsistencyHints(hints);
+            }
         }
         return errors.length() > 0 ? errors : hints;
     }
@@ -354,7 +360,8 @@ public class Merger {
                     fieldMaps.push([ 
                         subgraph.name, 
                         subgraphFields,
-                        !subgraph.isFederation2Subgraph || self.isTypeAllowsMergingFields(subgraphType)
+                        !subgraph.isFederation2Subgraph || self.isTypeAllowsMergingFields(subgraphType),
+                        { isEntity: false, isResolvable: false, keyFields: [] }
                     ]);
                 }
             }
@@ -649,9 +656,9 @@ public class Merger {
 
         // Get union of all the fields
         map<FieldSource[]> unionedFields = {};
-        foreach FieldMapSource [subgraph, subgraphFields, isTypeShareable, entityFields] in sources {
+        foreach FieldMapSource [subgraph, subgraphFields, isTypeShareable, entityStatus] in sources {
             foreach [string, parser:__Field] [fieldName, fieldValue] in subgraphFields.entries() {
-                boolean isEntityField = entityFields.indexOf(fieldName) !is ();
+                boolean isEntityField = entityStatus.keyFields.indexOf(fieldName) !is ();
                 if !unionedFields.hasKey(fieldName) {
                     unionedFields[fieldName] = [[subgraph, fieldValue, isTypeShareable || isEntityField]];
                 } else { 
@@ -1163,13 +1170,23 @@ public class Merger {
         }
     }
 
-    isolated function filterRootTypeHintMessages(Hint[] hints) returns Hint[] {
+    isolated function filterRootTypeHints(Hint[] hints) returns Hint[] {
         Hint[] filteredHints = [];
         foreach Hint hint in hints {
             if hint.location.length() > 0 {
                 if !(parser:isRootOperationType(hint.location[0]) && hint.code is INCONSISTENT_TYPE_FIELD | INCONSISTENT_DESCRIPTION) {
                     filteredHints.push(hint);
                 }
+            }
+        }
+        return filteredHints;
+    }
+
+    isolated function filterEntityFieldInconsistencyHints(Hint[] hints) returns Hint[] {
+        Hint[] filteredHints = [];
+        foreach Hint hint in hints {
+            if hint.code !is INCONSISTENT_TYPE_FIELD {
+                filteredHints.push(hint);
             }
         }
         return filteredHints;

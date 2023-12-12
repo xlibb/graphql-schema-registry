@@ -1,8 +1,4 @@
 [
-    "INCONSISTENT_TYPE_FIELD: Foo.name, Found 'name' in subg1, but not in subg2.",
-    "INCONSISTENT_TYPE_FIELD: Foo.he, Found 'he' in subg2, but not in subg1.",
-    "INCONSISTENT_TYPE_FIELD: Fox.fux, Found 'fux' in subg1, but not in subg2.",
-    "INCONSISTENT_TYPE_FIELD: Fox.fox, Found 'fox' in subg2, but not in subg1.",
     "INCONSISTENT_TYPE_FIELD: Bar.fux, Found 'fux' in subg1, but not in subg2.",
     "INCONSISTENT_TYPE_FIELD: Bar.fox, Found 'fox' in subg2, but not in subg1."
 ]

@@ -64,5 +64,6 @@ input ReviewInput {
         schema
         apiSchema
         version
+        hints
     }
 }
