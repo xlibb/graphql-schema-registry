@@ -492,32 +492,23 @@ public class Merger {
     }
 
     isolated function mergeDescription(DescriptionSource[] sources) returns MergedResult {
-        DescriptionSources[] sourceGroups = []; // Map cannot be used here because descriptions are Nullable
-        foreach int i in 0...sources.length()-1 {
-            string? description = sources[i][1];
-            string definingSubgraph = sources[i][0];
-            int? index = ();
-            foreach int k in 0...sourceGroups.length()-1 {
-                if sourceGroups[k].data === description {
-                    index = k;
-                    break;
-                }
+        map<DescriptionSources> sourceGroups = {};
+        foreach DescriptionSource ['source, description] in sources {
+            if description is () || description == "" {
+                continue;
             }
-            if index !is () {
-                sourceGroups[index].subgraphs.push(definingSubgraph);
+            if !sourceGroups.hasKey(description) {
+                sourceGroups[description] = { data: description, subgraphs: ['source] };
             } else {
-                sourceGroups.push({
-                    data: description,
-                    subgraphs: [ definingSubgraph ]
-                });
+                sourceGroups.get(description).subgraphs.push('source);
             }
         }
 
         Hint[] hints = [];
         string? mergedDescription = ();
-        if sourceGroups.length() === 1 { // Description has inconsistencies
-            mergedDescription = sourceGroups[0].data;
-        } else {
+        if sourceGroups.length() === 1 { 
+            mergedDescription = sourceGroups.get(sourceGroups.keys()[0]).data;
+        } else if sourceGroups.length() > 1 {
             HintDetail[] hintDetails = [];
             foreach DescriptionSources descriptionSource in sourceGroups {
                 if mergedDescription is () && descriptionSource.data !is () {

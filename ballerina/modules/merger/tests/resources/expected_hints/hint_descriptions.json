@@ -1,0 +1,5 @@
+[
+    "INCONSISTENT_DESCRIPTION: Foo, Found 'Foo in Subg1' in subg1, Found 'Foo in Subg2' in subg2.",
+    "INCONSISTENT_DESCRIPTION: Fox, Found 'Fox in Subg1' in subg1, Found 'Fox in Subg2' in subg2.",
+    "INCONSISTENT_DESCRIPTION: Bar.name, Found 'Subg1 Bar name' in subg1, Found 'Subg2 Bar name' in subg2."
+]
