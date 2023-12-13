@@ -1,22 +1,5 @@
 import ballerina/test;
 
-__Type dogType = {
-    kind: OBJECT,
-    name: "Dog",
-    fields: {
-        "name": { name: "name", args: {}, 'type: gql_String }
-    },
-    interfaces: []
-};
-__Type catType = {
-    kind: OBJECT,
-    name: "Cat",
-    fields: {
-        "name": { name: "name", args: {}, 'type: gql_String }
-    },
-    interfaces: []
-};
-
 @test:Config {
     groups: ["custom", "types", "union"],
     dataProvider: dataProviderUnion
@@ -33,6 +16,23 @@ function testCustomUnionTypes(string fileName, __Type expectedUnionType) returns
  }
 
 function dataProviderUnion() returns map<[string, __Type]> {
+    __Type dogType = {
+        kind: OBJECT,
+        name: "Dog",
+        fields: {
+            "name": { name: "name", args: {}, 'type: builtInTypes.get(STRING) }
+        },
+        interfaces: []
+    };
+    __Type catType = {
+        kind: OBJECT,
+        name: "Cat",
+        fields: {
+            "name": { name: "name", args: {}, 'type: builtInTypes.get(STRING) }
+        },
+        interfaces: []
+    };
+
     return {
         "1": [
             "union_types", {

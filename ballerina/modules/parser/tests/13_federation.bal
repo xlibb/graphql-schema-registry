@@ -1,6 +1,6 @@
 import ballerina/test;
 
-__Type field_set_scalar = {
+__Type fieldSetFederationScalar = {
     name: "FieldSet",
     kind: SCALAR,
     description: ""
@@ -10,7 +10,7 @@ __Type _Any_scalar = {
     kind: SCALAR,
     description: ""
 };
-__Type federation_Scope_scalar = {
+__Type federationScopeScalar = {
     name: "federation__Scope",
     kind: SCALAR,
     description: ""
@@ -40,7 +40,7 @@ function testFederationBuiltin() returns error? {
         name: "_Service",
         kind: OBJECT,
         fields: {
-            "sdl": { name: "sdl", args: {}, 'type: wrapType(gql_String, NON_NULL) }
+            "sdl":      { name: "sdl", args: {}, 'type: wrapType(builtInTypes.get(STRING), NON_NULL) }
         },
         interfaces: []
     };
@@ -48,10 +48,10 @@ function testFederationBuiltin() returns error? {
         name: "link",
         locations: [ SCHEMA ],
         args: {
-            "url": { name: "url", 'type: wrapType(gql_String, NON_NULL) },
-            "as": { name: "as", 'type: gql_String },
-            "for": { name: "for", 'type: link__Purpose_enum },
-            "import": { name: "import", 'type: wrapType(link__Import_scalar, LIST) }
+            "url":      { name: "url",      'type: wrapType(builtInTypes.get(STRING), NON_NULL) },
+            "as":       { name: "as",       'type: builtInTypes.get(STRING) },
+            "for":      { name: "for",      'type: link__Purpose_enum },
+            "import":   { name: "import",   'type: wrapType(link__Import_scalar, LIST) }
         },
         isRepeatable: true
     };
@@ -61,9 +61,9 @@ function testFederationBuiltin() returns error? {
         'type: wrapType(_service_type, NON_NULL)
     };
 
-    test:assertEquals(parsedSchema.types.get("link__Import"), link__Import_scalar);
-    test:assertEquals(parsedSchema.types.get("link__Purpose"), link__Purpose_enum);
-    test:assertEquals(parsedSchema.directives.get("link"), link_directive);
+    test:assertEquals(parsedSchema.types.get("link__Import"),   link__Import_scalar);
+    test:assertEquals(parsedSchema.types.get("link__Purpose"),  link__Purpose_enum);
+    test:assertEquals(parsedSchema.directives.get("link"),      link_directive);
 
     map<__Field>? fields = parsedSchema.queryType.fields;
     if (fields != ()) {
@@ -95,7 +95,7 @@ function dataProviderFederationImports() returns __Directive[][] {
             name: "requires",
             locations: [ FIELD_DEFINITION ],
             args: {
-                "fields": { name: "fields", 'type: wrapType(field_set_scalar, NON_NULL) }
+                "fields": { name: "fields", 'type: wrapType(fieldSetFederationScalar, NON_NULL) }
             },
             isRepeatable: false
         }],
@@ -103,7 +103,7 @@ function dataProviderFederationImports() returns __Directive[][] {
             name: "provides",
             locations: [ FIELD_DEFINITION ],
             args: {
-                "fields": { name: "fields", 'type: wrapType(field_set_scalar, NON_NULL) }
+                "fields": { name: "fields", 'type: wrapType(fieldSetFederationScalar, NON_NULL) }
             },
             isRepeatable: false
         }],
@@ -111,8 +111,8 @@ function dataProviderFederationImports() returns __Directive[][] {
             name: "key",
             locations: [ OBJECT, INTERFACE ],
             args: {
-                "fields": { name: "fields", 'type: wrapType(field_set_scalar, NON_NULL) },
-                "resolvable": { name: "resolvable", 'type: gql_Boolean, defaultValue: true }
+                "fields":       { name: "fields",       'type: wrapType(fieldSetFederationScalar, NON_NULL) },
+                "resolvable":   { name: "resolvable",   'type: builtInTypes.get(BOOLEAN),  defaultValue: true }
             },
             isRepeatable: true
         }],
@@ -124,17 +124,17 @@ function dataProviderFederationImports() returns __Directive[][] {
         }],
         [{
             name: "inaccessible",
-            locations: [FIELD_DEFINITION , OBJECT , INTERFACE , UNION , ARGUMENT_DEFINITION , SCALAR 
-                                                    , ENUM , ENUM_VALUE , INPUT_OBJECT , INPUT_FIELD_DEFINITION],
+            locations: [ FIELD_DEFINITION, OBJECT, INTERFACE, UNION, ARGUMENT_DEFINITION, SCALAR, ENUM, 
+                         ENUM_VALUE, INPUT_OBJECT, INPUT_FIELD_DEFINITION ],
             args: {},
             isRepeatable: false
         }],
         [{
             name: "tag",
-            locations: [FIELD_DEFINITION , INTERFACE , OBJECT , UNION , ARGUMENT_DEFINITION
-                                                , SCALAR , ENUM , ENUM_VALUE , INPUT_OBJECT , INPUT_FIELD_DEFINITION],
+            locations: [ FIELD_DEFINITION, INTERFACE, OBJECT, UNION, ARGUMENT_DEFINITION, SCALAR, ENUM, 
+                         ENUM_VALUE, INPUT_OBJECT, INPUT_FIELD_DEFINITION ],
             args: {
-                "name": { name: "name", 'type: wrapType(gql_String, NON_NULL) }
+                "name": { name: "name", 'type: wrapType(builtInTypes.get(STRING), NON_NULL) }
             },
             isRepeatable: true
         }],
@@ -142,7 +142,7 @@ function dataProviderFederationImports() returns __Directive[][] {
             name: "override",
             locations: [ FIELD_DEFINITION ],
             args: {
-                "from": { name: "from", 'type: wrapType(gql_String, NON_NULL) }
+                "from": { name: "from", 'type: wrapType(builtInTypes.get(STRING), NON_NULL) }
             },
             isRepeatable: false
         }],
@@ -150,7 +150,7 @@ function dataProviderFederationImports() returns __Directive[][] {
             name: "composeDirective",
             locations: [ SCHEMA ],
             args: {
-                "name": { name: "name", 'type: wrapType(gql_String, NON_NULL) }
+                "name": { name: "name", 'type: wrapType(builtInTypes.get(STRING), NON_NULL) }
             },
             isRepeatable: true
         }],
@@ -162,20 +162,20 @@ function dataProviderFederationImports() returns __Directive[][] {
         }],
         [{
             name: "authenticated",
-            locations: [FIELD_DEFINITION , OBJECT , INTERFACE , SCALAR , ENUM],
+            locations: [ FIELD_DEFINITION, OBJECT, INTERFACE, SCALAR, ENUM ],
             args: {},
             isRepeatable: false
         }],
         [{
             name: "requiresScopes",
-            locations: [FIELD_DEFINITION , OBJECT , INTERFACE , SCALAR , ENUM],
+            locations: [ FIELD_DEFINITION, OBJECT, INTERFACE, SCALAR, ENUM ],
             args: {
                 "scopes": { name: "scopes", 'type: wrapType(
                                                     wrapType(
                                                         wrapType(
                                                             wrapType(
                                                                 wrapType(
-                                                                    federation_Scope_scalar,
+                                                                    federationScopeScalar,
                                                                     NON_NULL
                                                                 ), LIST
                                                             ), NON_NULL

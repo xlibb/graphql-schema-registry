@@ -21,7 +21,7 @@ function testSchemaTypeAppliedDirectives() returns error? {
         kind: OBJECT,
         name: QUERY_TYPE,
         fields: {
-            "name": { name: "name", args: {}, 'type: gql_String }
+            "name": { name: "name", args: {}, 'type: builtInTypes.get(STRING) }
         },
         interfaces: []
     };
@@ -29,7 +29,7 @@ function testSchemaTypeAppliedDirectives() returns error? {
         kind: OBJECT,
         name: MUTATION_TYPE,
         fields: {
-            "name": { name: "name", args: {}, 'type: gql_String }
+            "name": { name: "name", args: {}, 'type: builtInTypes.get(STRING) }
         },
         interfaces: []
     };

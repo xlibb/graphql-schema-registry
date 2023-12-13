@@ -23,12 +23,12 @@ function testAppliedDirective(string fileName, string fieldName, __AppliedDirect
                 [ 
                     {
                         args: {
-                            "reason": {
+                            [REASON_FIELD]: {
                                 value: "This field is deprecated",
-                                definition: gql_String
+                                definition: builtInTypes.get(STRING)
                             }
                         },
-                        definition: deprecated
+                        definition: builtInDirectives.get(DEPRECATED_DIR)
                     }
                 ]
         ],
@@ -36,12 +36,12 @@ function testAppliedDirective(string fileName, string fieldName, __AppliedDirect
                 [ 
                     {
                         args: {
-                            "reason": {
-                                value: "No longer supported",
-                                definition: gql_String
+                            [REASON_FIELD]: {
+                                value: REASON_FIELD_DEFAULT_VALUE,
+                                definition: builtInTypes.get(STRING)
                             }
                         },
-                        definition: deprecated
+                        definition: builtInDirectives.get(DEPRECATED_DIR)
                     }
                 ]
         ]                                                    
@@ -74,12 +74,12 @@ function dataProviderAppliedDirectiveInputValue() returns [string, __AppliedDire
     };
 
     return [
-        ["name", { definition: wrapType(gql_String, NON_NULL), value: "Hello" }],
-        ["age", { definition: wrapType(gql_Int, NON_NULL), value: 10 }],
-        ["avg", { definition: wrapType(gql_Float, NON_NULL), value: 24.5 }],
-        ["is", { definition: wrapType(gql_Boolean, NON_NULL), value: false }],
-        ["list", { definition: wrapType(wrapType(gql_String, LIST), NON_NULL), value: ["A", "B"] }],
-        ["enum", { definition: wrapType(enum_type, NON_NULL), value: enum_VAL1 }]
+        ["name",    { definition: wrapType(builtInTypes.get(STRING), NON_NULL),                 value: "Hello" }],
+        ["age",     { definition: wrapType(builtInTypes.get(INT), NON_NULL),                    value: 10 }],
+        ["avg",     { definition: wrapType(builtInTypes.get(FLOAT), NON_NULL),                  value: 24.5 }],
+        ["is",      { definition: wrapType(builtInTypes.get(BOOLEAN), NON_NULL),                value: false }],
+        ["list",    { definition: wrapType(wrapType(builtInTypes.get(STRING), LIST), NON_NULL), value: ["A", "B"] }],
+        ["enum",    { definition: wrapType(enum_type, NON_NULL),                                value: enum_VAL1 }]
     ];
 }
 
@@ -179,7 +179,7 @@ function testAppliedDirectiveOnDirectiveDefinition() returns error? {
             "name": { 
                 name: "name", 
                 appliedDirectives: [applied_foo],
-                'type: gql_String
+                'type: builtInTypes.get(STRING)
             }
         }, 
         isRepeatable: false,
@@ -187,7 +187,7 @@ function testAppliedDirectiveOnDirectiveDefinition() returns error? {
     };
     __AppliedDirective applied_bar = {
         args: {
-            "name": { value: (), definition: gql_String }
+            "name": { value: (), definition: builtInTypes.get(STRING) }
         },
         definition: bar
     };
@@ -235,7 +235,7 @@ function testAppliedDirectiveOnDirectiveDefinitionDependsOnEnum() returns error?
             "name": { 
                 name: "name", 
                 appliedDirectives: [applied_foo],
-                'type: gql_String
+                'type: builtInTypes.get(STRING)
             }
         }, 
         isRepeatable: false,
@@ -243,7 +243,7 @@ function testAppliedDirectiveOnDirectiveDefinitionDependsOnEnum() returns error?
     };
     __AppliedDirective applied_bar = {
         args: {
-            "name": { value: (), definition: gql_String }
+            "name": { value: (), definition: builtInTypes.get(STRING) }
         },
         definition: bar
     };

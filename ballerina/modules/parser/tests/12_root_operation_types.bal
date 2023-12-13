@@ -9,7 +9,11 @@ function testRootOperationTypes() returns error? {
         kind: OBJECT,
         name: "Query",
         fields: {
-            "name": { name: "name", args: {}, 'type: gql_String }
+            "name": { 
+                name: "name",
+                args: {}, 
+                'type: builtInTypes.get(STRING) 
+            }
         },
         interfaces: []
     };
@@ -17,7 +21,16 @@ function testRootOperationTypes() returns error? {
         kind: OBJECT,
         name: "Mutation",
         fields: {
-            "number": { name: "number", args: { "page": { name: "page", 'type: gql_Int } }, 'type: gql_Float }
+            "number": { 
+                name: "number",
+                args: { 
+                    "page": { 
+                        name: "page", 
+                        'type: builtInTypes.get(INT) 
+                    }
+                },
+                'type: builtInTypes.get(FLOAT) 
+            }
         },
         interfaces: []
     };
@@ -25,16 +38,20 @@ function testRootOperationTypes() returns error? {
         kind: OBJECT,
         name: "Subscription",
         fields: {
-            "name": { name: "name", args: {}, 'type: gql_String }
+            "name": { 
+                name: "name",
+                args: {}, 
+                'type: builtInTypes.get(STRING) 
+            }
         },
         interfaces: []
     };
 
     __Schema parsedSchema = check parseSdl(sdl);
-    test:assertEquals(parsedSchema.types["Query"], queryType);
-    test:assertEquals(parsedSchema.queryType, queryType);
-    test:assertEquals(parsedSchema.types["Mutation"], mutationType);
-    test:assertEquals(parsedSchema.mutationType, mutationType);
-    test:assertEquals(parsedSchema.types["Subscription"], subscriptionType);
-    test:assertEquals(parsedSchema.subscriptionType, subscriptionType);
+    test:assertEquals(parsedSchema.types["Query"],          queryType);
+    test:assertEquals(parsedSchema.queryType,               queryType);
+    test:assertEquals(parsedSchema.types["Mutation"],       mutationType);
+    test:assertEquals(parsedSchema.mutationType,            mutationType);
+    test:assertEquals(parsedSchema.types["Subscription"],   subscriptionType);
+    test:assertEquals(parsedSchema.subscriptionType,        subscriptionType);
  }

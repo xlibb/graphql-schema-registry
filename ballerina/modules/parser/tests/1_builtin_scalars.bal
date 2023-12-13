@@ -10,12 +10,12 @@ function testBuiltInScalars(string scalarName, __Type expectedScalar) returns er
     test:assertEquals(parsedSchema.types.get(scalarName), expectedScalar);
 }
 
-function dataProviderBuiltInScalars() returns map<[string, __Type]> {
-    return { 
-        "Boolean": ["Boolean", gql_Boolean],
-        "String" : ["String", gql_String],
-        "Float"  : ["Float", gql_Float],
-        "Int"    : ["Int", gql_Int],
-        "ID"     : ["ID", gql_ID]
-    };
+function dataProviderBuiltInScalars() returns [string, __Type][] {
+    return [
+        [BOOLEAN, builtInTypes.get(BOOLEAN) ],
+        [STRING , builtInTypes.get(STRING)  ],
+        [FLOAT  , builtInTypes.get(FLOAT)   ],
+        [INT    , builtInTypes.get(INT)     ],
+        [ID     , builtInTypes.get(ID)      ]
+   ];
 }

@@ -9,7 +9,7 @@ function testCustomInterfaceTypes() returns error? {
         kind: INTERFACE,
         name: "Person",
         fields: {
-            "name": { name: "name", args: {}, 'type: gql_String }
+            "name": { name: "name", args: {}, 'type: builtInTypes.get(STRING) }
         },
         interfaces: [],
         possibleTypes: []
@@ -28,7 +28,7 @@ function testCustomInterfaceTypesDescription() returns error? {
         kind: INTERFACE,
         name: "Person",
         fields: {
-            "name": { name: "name", args: {}, 'type: gql_String }
+            "name": { name: "name", args: {}, 'type: builtInTypes.get(STRING) }
         },
         description: "This is a person interface",
         interfaces: [],
@@ -48,7 +48,7 @@ function testCustomInterfaceTypesInterfaceImplementations() returns error? {
         kind: INTERFACE,
         name: "Person",
         fields: {
-            "name": { name: "name", args: {}, 'type: gql_String }
+            "name": { name: "name", args: {}, 'type: builtInTypes.get(STRING) }
         },
         interfaces: [],
         possibleTypes: []
@@ -57,7 +57,7 @@ function testCustomInterfaceTypesInterfaceImplementations() returns error? {
         kind: INTERFACE,
         name: "Citizen",
         fields: {
-            "id": { name: "id", args: {}, 'type: gql_ID }
+            "id": { name: "id", args: {}, 'type: builtInTypes.get(ID) }
         },
         interfaces: [],
         possibleTypes: []
@@ -66,8 +66,8 @@ function testCustomInterfaceTypesInterfaceImplementations() returns error? {
         kind: INTERFACE,
         name: "Worker",
         fields: {
-            "id": { name: "id", args: {}, 'type: gql_ID },
-            "name": { name: "name", args: {}, 'type: gql_String }
+            "id":   { name: "id",   args: {}, 'type: builtInTypes.get(ID) },
+            "name": { name: "name", args: {}, 'type: builtInTypes.get(STRING) }
         },
         interfaces: [ citizenInterface, personInterface ],
         possibleTypes: []
@@ -92,7 +92,7 @@ function testCustomInterfaceTypeAppliedDirective() returns error? {
         kind: INTERFACE,
         name: "Person",
         fields: {
-            "name": { name: "name", args: {}, 'type: gql_String }
+            "name": { name: "name", args: {}, 'type: builtInTypes.get(STRING) }
         },
         interfaces: [],
         possibleTypes: [],

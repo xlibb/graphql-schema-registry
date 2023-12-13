@@ -11,38 +11,38 @@ function testInputField(string fileName, string inputTypeName, map<__InputValue>
     test:assertEquals(parsedSchema.types.get(inputTypeName).inputFields, inputFields);
  }
 
- function dataProviderInputFields() returns map<[string, string, map<__InputValue>]> {
-    return {
-        "1": ["input_fields", "SearchInput",
-                {
-                    "keyword": { name: "keyword", 'type: gql_String },
-                    "page": { name: "page", 'type: gql_Int }
-                }
-            ],
-        "2": ["input_fields_description", "SearchInput",
-                {
-                    "keyword": { name: "keyword", 'type: gql_String, description: "Keywords by client" }
-                }
-            ],
-        "3": ["input_fields_default_value", "SearchInput",
-                {
-                    "keyword": { name: "keyword", 'type: gql_String, defaultValue: "Hello world" },
-                    "page": { name: "page", 'type: gql_Int, defaultValue: 0 },
-                    "average": { name: "average", 'type: gql_Float, defaultValue: 5.5 },
-                    "repeat": { name: "repeat", 'type: gql_Boolean, defaultValue: false }
-                }
-            ],
-        "4": ["input_fields_applied_directives", "SearchInput",
-                {
-                    "keyword": { name: "keyword", 'type: gql_String, appliedDirectives: [ 
-                        {
-                            args: {
-                                "reason": { value: "No longer supported", definition: gql_String }
-                            },
-                            definition: deprecated
-                        }
-                    ]}
-                }
-            ]
-    };
+ function dataProviderInputFields() returns [string, string, map<__InputValue>][] {
+    return [ 
+        ["input_fields", "SearchInput",
+            {
+                "keyword":  { name: "keyword",  'type: builtInTypes.get(STRING) },
+                "page":     { name: "page",     'type: builtInTypes.get(INT) }
+            }
+        ],
+        ["input_fields_description", "SearchInput",
+            {
+                "keyword": { name: "keyword",   'type: builtInTypes.get(STRING),    description: "Keywords by client" }
+            }
+        ],
+        ["input_fields_default_value", "SearchInput",
+            {
+                "keyword":  { name: "keyword",  'type: builtInTypes.get(STRING),    defaultValue: "Hello world" },
+                "page":     { name: "page",     'type: builtInTypes.get(INT),       defaultValue: 0 },
+                "average":  { name: "average",  'type: builtInTypes.get(FLOAT),     defaultValue: 5.5 },
+                "repeat":   { name: "repeat",   'type: builtInTypes.get(BOOLEAN),   defaultValue: false }
+            }
+        ],
+        ["input_fields_applied_directives", "SearchInput",
+            {
+                "keyword": { name: "keyword",   'type: builtInTypes.get(STRING),    appliedDirectives: [ 
+                    {
+                        args: {
+                            [REASON_FIELD]: { value: REASON_FIELD_DEFAULT_VALUE, definition: builtInTypes.get(STRING) }
+                        },
+                        definition: builtInDirectives.get(DEPRECATED_DIR)
+                    }
+                ]}
+            }
+        ]
+     ];
  }

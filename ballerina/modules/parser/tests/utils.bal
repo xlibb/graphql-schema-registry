@@ -1,5 +1,10 @@
 import ballerina/io;
 import ballerina/file;
+
+final __Schema emptySchema = createSchema();
+final map<__Type> builtInTypes = emptySchema.types;
+final map<__Directive> builtInDirectives = emptySchema.directives;
+
 isolated function getGraphqlSdlFromFile(string fileName) returns string|error {
     string gqlFileName = string `${fileName}.graphql`;
     string path = check file:joinPath("modules", "parser", "tests", "resources", "sdl", gqlFileName);

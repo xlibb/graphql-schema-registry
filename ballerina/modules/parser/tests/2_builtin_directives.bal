@@ -10,11 +10,11 @@ function testBuiltInDirectives(__Directive expectedDirective) returns error? {
     test:assertEquals(parsedSchema.directives.get(expectedDirective.name), expectedDirective);
 }
 
-function dataProviderBuiltInDirectives() returns map<[__Directive]> {
-    return { 
-        "deprecated"  : [deprecated],
-        "skip"        : [skip],
-        "include"     : [include],
-        "specifiedBy" : [specifiedBy]
-    };
+function dataProviderBuiltInDirectives() returns [__Directive][] {
+    return [ 
+        [builtInDirectives.get(DEPRECATED_DIR)],
+        [builtInDirectives.get(SKIP_DIR)],
+        [builtInDirectives.get(INCLUDE_DIR)],
+        [builtInDirectives.get(SPECIFIED_BY_DIR)]
+    ];
 }

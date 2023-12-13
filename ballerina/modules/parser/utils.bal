@@ -1,19 +1,36 @@
 public type WRAPPING_TYPE NON_NULL | LIST;
 
-public const string INCLUDE_DIR = "include";
-public const string DEPRECATED_DIR = "deprecated";
-public const string SKIP_DIR = "skip";
-public const string SPECIFIED_BY_DIR = "specifiedBy";
+public const INCLUDE_DIR = "include";
+public const DEPRECATED_DIR = "deprecated";
+public const SKIP_DIR = "skip";
+public const SPECIFIED_BY_DIR = "specifiedBy";
+public const INCLUDE_DIR_DESC = "Directs the executor to include this field or fragment only when the `if` argument is true";
+public const DEPRECATED_DIR_DESC = "Marks the field, argument, input field or enum value as deprecated";
+public const SPECIFIED_BY_DIR_DESC = "Exposes a URL that specifies the behaviour of this scalar.";
+public const SKIP_DIR_DESC = "Directs the executor to skip this field or fragment when the `if` argument is true.";
+public const IF_FIELD = "if";
+public const REASON_FIELD = "reason";
+public const URL_FIELD = "url";
+public const INCLUDE_DIR_IF_DESC = "Included when true.";
+public const URL_FIELD_DESC = "The URL that specifies the behaviour of this scalar.";
+public const REASON_FIELD_DESC = "The reason for the deprecation";
+public const SKIP_DIR_IF_DESC = "Skipped when true.";
+public const REASON_FIELD_DEFAULT_VALUE = "No longer supported";
 
-public const string BOOLEAN = "Boolean";
-public const string STRING = "String";
-public const string FLOAT = "Float";
-public const string INT = "Int";
-public const string ID = "ID";
-public const string QUERY_TYPE = "Query";
-public const string MUTATION_TYPE = "Mutation";
-public const string SUBSCRIPTION_TYPE = "Subscription";
-public const string _SERVICE_TYPE = "_Service";
+public const BOOLEAN = "Boolean";
+public const STRING = "String";
+public const FLOAT = "Float";
+public const INT = "Int";
+public const ID = "ID";
+public const BOOLEAN_DESC = "Built-in Boolean";
+public const STRING_DESC = "Built-in String";
+public const FLOAT_DESC = "Built-in Float";
+public const INT_DESC = "Built-in Int";
+public const ID_DESC = "Built-in ID";
+public const QUERY_TYPE = "Query";
+public const MUTATION_TYPE = "Mutation";
+public const SUBSCRIPTION_TYPE = "Subscription";
+public const _SERVICE_TYPE = "_Service";
 
 public type BUILT_IN_TYPES _SERVICE_TYPE | BOOLEAN | STRING | FLOAT | INT | ID;
 
@@ -68,6 +85,14 @@ public isolated function createObjectType(string name, map<__Field> fields = {},
     };
 }
 
+public isolated function createScalarType(string name, string? description = ()) returns __Type {
+    return {
+        kind: SCALAR,
+        name: name,
+        description: description
+    };
+}
+
 public isolated function createDirective(string name, string? description, __DirectiveLocation[] locations, map<__InputValue> args, boolean isRepeatable) returns __Directive {
     return {
         name,
@@ -79,35 +104,15 @@ public isolated function createDirective(string name, string? description, __Dir
 }
 
 public isolated function getBuiltInDefinitions() returns [map<__Type>, map<__Directive>] {
-    __Type query_type = createObjectType(QUERY_TYPE);
     map<__Type> types = {};
 
-    types[BOOLEAN] = {
-                                kind: SCALAR,
-                                name: BOOLEAN,
-                                description: "Built-in Boolean"
-                            };
-    types[STRING] =  {
-                                kind: SCALAR,
-                                name: STRING,
-                                description: "Built-in String"
-                            };
-    types[FLOAT] =   {
-                                kind: SCALAR,
-                                name: FLOAT,
-                                description: "Built-in Float"
-                            };
-    types[INT] =     {
-                                kind: SCALAR,
-                                name: INT,
-                                description: "Built-in Int"
-                            };
-    types[ID] =      {
-                                kind: SCALAR,
-                                name: ID,
-                                description: "Built-in ID"
-                            };
-    types[QUERY_TYPE] = query_type;
+    types[BOOLEAN]  = createScalarType(BOOLEAN, BOOLEAN_DESC);
+    types[STRING]   = createScalarType(STRING, STRING_DESC);
+    types[FLOAT]    = createScalarType(FLOAT, FLOAT_DESC);
+    types[INT]      = createScalarType(INT, INT_DESC);
+    types[ID]       = createScalarType(ID, ID_DESC);
+
+    types[QUERY_TYPE] = createObjectType(QUERY_TYPE);
 
     map<__Directive> directives = getBuiltInDirectives(types);
 
@@ -117,12 +122,12 @@ public isolated function getBuiltInDefinitions() returns [map<__Type>, map<__Dir
 isolated function getBuiltInDirectives(map<__Type> types) returns map<__Directive> {
     __Directive include = createDirective(
         INCLUDE_DIR,
-        "Directs the executor to include this field or fragment only when the `if` argument is true",
+        INCLUDE_DIR_DESC,
         [ FIELD, FRAGMENT_SPREAD, INLINE_FRAGMENT ],
         {
-            "if": {
-                name: "if",
-                description: "Included when true.",
+            [IF_FIELD]: {
+                name: IF_FIELD,
+                description: INCLUDE_DIR_IF_DESC,
                 'type: wrapType(types.get(BOOLEAN), NON_NULL)
             }
         },
@@ -130,26 +135,26 @@ isolated function getBuiltInDirectives(map<__Type> types) returns map<__Directiv
     );
     __Directive deprecated = createDirective(
         DEPRECATED_DIR,
-        "Marks the field, argument, input field or enum value as deprecated",
-        [ FIELD_DEFINITION, ARGUMENT_DEFINITION, ENUM_VALUE, INPUT_FIELD_DEFINITION ],
+        DEPRECATED_DIR_DESC,
+        [ FIELD_DEFINITION, ENUM_VALUE, ARGUMENT_DEFINITION, INPUT_FIELD_DEFINITION ],
         {
-            "reason": {
-                name: "reason",
-                description: "The reason for the deprecation",
+            [REASON_FIELD]: {
+                name: REASON_FIELD,
+                description: REASON_FIELD_DESC,
                 'type: types.get(STRING),
-                defaultValue: "No longer supported"
+                defaultValue: REASON_FIELD_DEFAULT_VALUE
             }
         },
         false
     );
     __Directive specifiedBy = createDirective(
         SPECIFIED_BY_DIR,
-        "Exposes a URL that specifies the behaviour of this scalar.",
+        SPECIFIED_BY_DIR_DESC,
         [ SCALAR ],
         {
-            "url": {
-                name: "url",
-                description: "The URL that specifies the behaviour of this scalar.",
+            [URL_FIELD]: {
+                name: URL_FIELD,
+                description: URL_FIELD_DESC,
                 'type: wrapType(types.get(STRING), NON_NULL)
             }
         },
@@ -157,12 +162,12 @@ isolated function getBuiltInDirectives(map<__Type> types) returns map<__Directiv
     );
     __Directive skip = createDirective(
         SKIP_DIR,
-        "Directs the executor to skip this field or fragment when the `if` argument is true.",
+        SKIP_DIR_DESC,
         [ FIELD, FRAGMENT_SPREAD, INLINE_FRAGMENT ],
         {
-            "if": {
-                name: "if",
-                description: "Skipped when true.",
+            [IF_FIELD]: {
+                name: IF_FIELD,
+                description: SKIP_DIR_IF_DESC,
                 'type: wrapType(types.get(BOOLEAN), NON_NULL)
             }
         },
