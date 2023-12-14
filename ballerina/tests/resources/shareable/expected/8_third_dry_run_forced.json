@@ -15,8 +15,8 @@
                 }
             ],
             "hints": [
-                "INCONSISTENT_ARGUMENT_PRESENCE: Query.name, Found 'age' in subg1, but not in subg2.",
-                "INCONSISTENT_BUT_COMPATIBLE_OUTPUT_TYPE: Query.age, Found 'Int!' in subg1, Found 'Int' in subg2."
+                "INCONSISTENT_ARGUMENT_PRESENCE: Optional argument \"age\" on \"Query.name\" will not be included in the supergraph as it does not appear in all subgraphs: It is defined in subgraph(s) \"subg1\" but not in subgraph(s) \"subg2\"",
+                "INCONSISTENT_BUT_COMPATIBLE_OUTPUT_TYPE: Type of field \"Query.age\" is inconsistent but compatible across subgraphs. In subgraph(s) \"subg1\", the output type is \"Int!\". In subgraph(s) \"subg2\", the output type is \"Int\"."
             ]
         }
     }

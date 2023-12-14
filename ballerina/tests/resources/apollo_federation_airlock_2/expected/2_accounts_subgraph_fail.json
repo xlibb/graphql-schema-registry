@@ -14,7 +14,7 @@
             "extensions": {
                 "errors": [
                     {
-                        "message": "INVALID_FIELD_SHARING: Guest.id, Found 'shareable' in accounts, but not in monolith.",
+                        "message": "INVALID_FIELD_SHARING: Non-shareable field \"Guest.id\" is resolved from multiple subgraphs: It is resolved from subgraph(s) \"accounts\" and \"monolith\". And defined as non-shareable in \"monolith\"",
                         "details": {
                             "hint": {
                                 "code": "INVALID_FIELD_SHARING",
@@ -37,7 +37,7 @@
                         }
                     },
                     {
-                        "message": "INVALID_FIELD_SHARING: Guest.name, Found 'shareable' in none of the subgraphs.",
+                        "message": "INVALID_FIELD_SHARING: Non-shareable field \"Guest.name\" is resolved from multiple subgraphs: It is resolved from subgraph(s) \"accounts\" and \"monolith\". And defined as non-shareable in \"accounts\" and \"monolith\"",
                         "details": {
                             "hint": {
                                 "code": "INVALID_FIELD_SHARING",
@@ -59,7 +59,7 @@
                         }
                     },
                     {
-                        "message": "INVALID_FIELD_SHARING: Guest.profilePicture, Found 'shareable' in none of the subgraphs.",
+                        "message": "INVALID_FIELD_SHARING: Non-shareable field \"Guest.profilePicture\" is resolved from multiple subgraphs: It is resolved from subgraph(s) \"accounts\" and \"monolith\". And defined as non-shareable in \"accounts\" and \"monolith\"",
                         "details": {
                             "hint": {
                                 "code": "INVALID_FIELD_SHARING",
@@ -81,7 +81,7 @@
                         }
                     },
                     {
-                        "message": "INVALID_FIELD_SHARING: Host.id, Found 'shareable' in accounts, but not in monolith.",
+                        "message": "INVALID_FIELD_SHARING: Non-shareable field \"Host.id\" is resolved from multiple subgraphs: It is resolved from subgraph(s) \"accounts\" and \"monolith\". And defined as non-shareable in \"monolith\"",
                         "details": {
                             "hint": {
                                 "code": "INVALID_FIELD_SHARING",
@@ -104,7 +104,7 @@
                         }
                     },
                     {
-                        "message": "INVALID_FIELD_SHARING: Host.name, Found 'shareable' in none of the subgraphs.",
+                        "message": "INVALID_FIELD_SHARING: Non-shareable field \"Host.name\" is resolved from multiple subgraphs: It is resolved from subgraph(s) \"accounts\" and \"monolith\". And defined as non-shareable in \"accounts\" and \"monolith\"",
                         "details": {
                             "hint": {
                                 "code": "INVALID_FIELD_SHARING",
@@ -126,7 +126,7 @@
                         }
                     },
                     {
-                        "message": "INVALID_FIELD_SHARING: Host.profilePicture, Found 'shareable' in none of the subgraphs.",
+                        "message": "INVALID_FIELD_SHARING: Non-shareable field \"Host.profilePicture\" is resolved from multiple subgraphs: It is resolved from subgraph(s) \"accounts\" and \"monolith\". And defined as non-shareable in \"accounts\" and \"monolith\"",
                         "details": {
                             "hint": {
                                 "code": "INVALID_FIELD_SHARING",
@@ -148,7 +148,7 @@
                         }
                     },
                     {
-                        "message": "INVALID_FIELD_SHARING: Host.profileDescription, Found 'shareable' in none of the subgraphs.",
+                        "message": "INVALID_FIELD_SHARING: Non-shareable field \"Host.profileDescription\" is resolved from multiple subgraphs: It is resolved from subgraph(s) \"accounts\" and \"monolith\". And defined as non-shareable in \"accounts\" and \"monolith\"",
                         "details": {
                             "hint": {
                                 "code": "INVALID_FIELD_SHARING",

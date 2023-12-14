@@ -1,4 +1,4 @@
 [
-    "INPUT_TYPE_MISMATCH: Bar.bar.name, Found 'String' in subg1, subg4, Found 'Int' in subg2, Found 'ID' in subg3.",
-    "INPUT_TYPE_MISMATCH: Bar.bar.foo, Found 'ID' in subg1, Found 'String' in subg2, Found 'Float' in subg3, subg4."
+    "INPUT_TYPE_MISMATCH: Type of input field \"Bar.bar.name\" is inconsistent across subgraphs. In subgraph(s) \"subg1\" and \"subg4\", the input type is \"String\". In subgraph(s) \"subg2\", the input type is \"Int\". In subgraph(s) \"subg3\", the input type is \"ID\".",
+    "INPUT_TYPE_MISMATCH: Type of input field \"Bar.bar.foo\" is inconsistent across subgraphs. In subgraph(s) \"subg1\", the input type is \"ID\". In subgraph(s) \"subg2\", the input type is \"String\". In subgraph(s) \"subg3\" and \"subg4\", the input type is \"Float\"."
 ]

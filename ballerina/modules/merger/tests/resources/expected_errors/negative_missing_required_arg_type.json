@@ -1,4 +1,4 @@
 [
-    "REQUIRED_ARGUMENT_MISSING_IN_SOME_SUBGRAPH: Bar.bar, Found 'name' in subg1, subg3, subg4, but not in subg2.",
-    "REQUIRED_ARGUMENT_MISSING_IN_SOME_SUBGRAPH: Bar.bar, Found 'foo' in subg1, subg3, but not in subg2, subg4."
+    "REQUIRED_ARGUMENT_MISSING_IN_SOME_SUBGRAPH: Input field \"name\" of \"Bar.bar\" is required in some subgraphs but does not appear in all subgraphs: It is required in subgraph(s) \"subg1\", \"subg3\" and \"subg4\". But does not appear in subgraph(s) \"subg2\"",
+    "REQUIRED_ARGUMENT_MISSING_IN_SOME_SUBGRAPH: Input field \"foo\" of \"Bar.bar\" is required in some subgraphs but does not appear in all subgraphs: It is required in subgraph(s) \"subg1\" and \"subg3\". But does not appear in subgraph(s) \"subg2\" and \"subg4\""
 ]

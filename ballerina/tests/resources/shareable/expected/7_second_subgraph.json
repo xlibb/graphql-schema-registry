@@ -15,12 +15,12 @@
             ],
             "version": "1.0.0",
             "hints": [
-                "INCONSISTENT_UNION_MEMBER: UnionFoo, Found 'Foo' in subg1, but not in subg2.",
-                "INCONSISTENT_UNION_MEMBER: UnionFoo, Found 'Bar' in subg1, but not in subg2.",
-                "INCONSISTENT_UNION_MEMBER: UnionFoo, Found 'Waldo' in subg2, but not in subg1.",
-                "INCONSISTENT_UNION_MEMBER: UnionFoo, Found 'Bux' in subg2, but not in subg1.",
-                "INCONSISTENT_DEFAULT_VALUE_PRESENCE: Query.name.age, Found '' in subg1, Found '10' in subg2.",
-                "INCONSISTENT_BUT_COMPATIBLE_OUTPUT_TYPE: Query.age, Found 'Int!' in subg1, Found 'Int' in subg2."
+                "INCONSISTENT_UNION_MEMBER: Union type \"UnionFoo\" includes member type \"Foo\" in some but not all defining subgraphs: \"Foo\" is defined in subgraph(s) \"subg1\" but not in subgraph(s) \"subg2\".",
+                "INCONSISTENT_UNION_MEMBER: Union type \"UnionFoo\" includes member type \"Bar\" in some but not all defining subgraphs: \"Bar\" is defined in subgraph(s) \"subg1\" but not in subgraph(s) \"subg2\".",
+                "INCONSISTENT_UNION_MEMBER: Union type \"UnionFoo\" includes member type \"Waldo\" in some but not all defining subgraphs: \"Waldo\" is defined in subgraph(s) \"subg2\" but not in subgraph(s) \"subg1\".",
+                "INCONSISTENT_UNION_MEMBER: Union type \"UnionFoo\" includes member type \"Bux\" in some but not all defining subgraphs: \"Bux\" is defined in subgraph(s) \"subg2\" but not in subgraph(s) \"subg1\".",
+                "INCONSISTENT_DEFAULT_VALUE_PRESENCE: Input field \"Query.name.age\" has inconsistent default values across subgraphs: In subgraph(s) \"subg1\", no default value is defined. In subgraph(s) \"subg2\", the default value is '10'.",
+                "INCONSISTENT_BUT_COMPATIBLE_OUTPUT_TYPE: Type of field \"Query.age\" is inconsistent but compatible across subgraphs. In subgraph(s) \"subg1\", the output type is \"Int!\". In subgraph(s) \"subg2\", the output type is \"Int\"."
             ]
         }
     }

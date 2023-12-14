@@ -19,7 +19,12 @@ function testHints(string testname) returns error? {
 
 function dataProviderHintTest() returns [string][] {
     return [
+        ["hint_descriptions"],
         ["hint_fields_inconsistent_field"],
-        ["hint_descriptions"]
+        ["hint_inconsistent_argument_presence"],
+        ["hint_inconsistent_but_compatible_output_type"],
+        ["hint_inconsistent_union_member"],
+        ["hint_inconsistent_default_value_presence"],
+        ["hint_inconsistent_but_compatible_input_type"]
     ];
 }

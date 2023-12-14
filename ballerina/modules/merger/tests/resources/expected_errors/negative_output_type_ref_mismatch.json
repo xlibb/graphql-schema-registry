@@ -1,4 +1,4 @@
 [
-    "OUTPUT_TYPE_MISMATCH: Query.name, Found 'String' in subg1, subg4, Found 'Int' in subg2, Found 'ID' in subg3.",
-    "OUTPUT_TYPE_MISMATCH: Query.foo, Found 'ID' in subg1, Found 'String' in subg2, Found 'Float' in subg3, subg4."
+    "OUTPUT_TYPE_MISMATCH: Type of field \"Query.name\" is inconsistent across subgraphs. In subgraph(s) \"subg1\" and \"subg4\", the output type is \"String\". In subgraph(s) \"subg2\", the output type is \"Int\". In subgraph(s) \"subg3\", the output type is \"ID\".",
+    "OUTPUT_TYPE_MISMATCH: Type of field \"Query.foo\" is inconsistent across subgraphs. In subgraph(s) \"subg1\", the output type is \"ID\". In subgraph(s) \"subg2\", the output type is \"String\". In subgraph(s) \"subg3\" and \"subg4\", the output type is \"Float\"."
 ]

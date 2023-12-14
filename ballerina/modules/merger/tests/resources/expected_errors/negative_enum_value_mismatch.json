@@ -1,4 +1,4 @@
 [
-    "ENUM_VALUE_MISMATCH: Status, Found 'FAILED' in subg1, subg3, subg4, but not in subg2.",
-    "ENUM_VALUE_MISMATCH: Status, Found 'ADDITIONAL' in subg1, but not in subg2, subg3, subg4."
+    "ENUM_VALUE_MISMATCH: Enum type \"Status\" is used as both input and output. But value \"FAILED\" is not defined in all subgraphs defining \"Status\": \"FAILED\" is defined in subgraph(s) \"subg1\", \"subg3\" and \"subg4\". But not subgraph(s) \"subg2\"",
+    "ENUM_VALUE_MISMATCH: Enum type \"Status\" is used as both input and output. But value \"ADDITIONAL\" is not defined in all subgraphs defining \"Status\": \"ADDITIONAL\" is defined in subgraph(s) \"subg1\". But not subgraph(s) \"subg2\", \"subg3\" and \"subg4\""
 ]

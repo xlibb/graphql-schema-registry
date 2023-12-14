@@ -1,4 +1,4 @@
 [
-    "TYPE_KIND_MISMATCH: Foo, Found 'OBJECT' in subg1, subg2, Found 'SCALAR' in subg3, Found 'UNION' in subg4.",
-    "TYPE_KIND_MISMATCH: Fux, Found 'OBJECT' in subg1, Found 'INTERFACE' in subg2, Found 'ENUM' in subg3, Found 'INPUT_OBJECT' in subg4."
+    "TYPE_KIND_MISMATCH: Type \"Foo\" has mismatched kind: It is defined as OBJECT in subgraph(s) \"subg1\" and \"subg2\". It is defined as SCALAR in subgraph(s) \"subg3\". It is defined as UNION in subgraph(s) \"subg4\".",
+    "TYPE_KIND_MISMATCH: Type \"Fux\" has mismatched kind: It is defined as OBJECT in subgraph(s) \"subg1\". It is defined as INTERFACE in subgraph(s) \"subg2\". It is defined as ENUM in subgraph(s) \"subg3\". It is defined as INPUT_OBJECT in subgraph(s) \"subg4\"."
 ]

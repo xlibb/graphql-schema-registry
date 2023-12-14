@@ -12,3 +12,7 @@ subgraphs:
     routing_url: http://subg3
     schema:
       file: ./subg3.graphql
+  subg4:
+    routing_url: http://subg4
+    schema:
+      file: ./subg4.graphql
