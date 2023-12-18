@@ -1,6 +1,7 @@
 import ballerina/file;
 import ballerina/io;
 import ballerina/test;
+import ballerinax/mongodb;
 
 const REGISTRY_DATASOURCE = "datasource";
 
@@ -16,14 +17,34 @@ function getTestData(string testName, string subTestName) returns [string, json]
 
 @test:AfterSuite { }
 function removeRegistry() returns file:Error? {
-    string datasourcePath = check file:joinPath(REGISTRY_DATASOURCE);
-    check file:remove(datasourcePath, file:RECURSIVE);
+    check removeFileBasedRegistry();
 }
 
-function clearRegistry() returns file:Error? {
+function removeFileBasedRegistry() returns file:Error? {
     string datasourcePath = check file:joinPath(REGISTRY_DATASOURCE);
-    check removeAndCreateDir(check file:joinPath(datasourcePath, "subgraphs"));
-    check removeAndCreateDir(check file:joinPath(datasourcePath, "supergraph"));
+    if check file:test(datasourcePath, file:IS_DIR) {
+        check file:remove(datasourcePath, file:RECURSIVE);
+    }
+}
+
+function clearRegistry() returns error? {
+    check clearFileBasedRegistry();
+    check clearMongoBasedRegistry();
+}
+
+function clearFileBasedRegistry() returns file:Error? {
+    string datasourcePath = check file:joinPath(REGISTRY_DATASOURCE);
+    if check file:test(datasourcePath, file:IS_DIR) {
+        check removeAndCreateDir(check file:joinPath(datasourcePath, "subgraphs"));
+        check removeAndCreateDir(check file:joinPath(datasourcePath, "supergraph"));
+    }
+}
+
+function clearMongoBasedRegistry() returns error? {
+    mongodb:Client mongoClient = check new(mongoConfig);
+    _ = check mongoClient->delete("supergraphs", filter = {}, isMultiple = true);
+    _ = check mongoClient->delete("subgraphs", filter = {}, isMultiple = true);
+    _ = check mongoClient->delete("supergraphSubgraphs", filter = {}, isMultiple = true);
 }
 
 function removeAndCreateDir(string path) returns file:Error? {

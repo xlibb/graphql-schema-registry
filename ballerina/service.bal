@@ -10,7 +10,8 @@ isolated service / on new graphql:Listener(9090) {
     private final registry:Registry registry;
     
     public function init() returns error? {
-        datasource:Datasource datasource = check new FileDatasource("datasource");
+        datasource:Datasource datasource = check new MongodbDatasource();
+        // datasource:Datasource datasource = check new FileDatasource("datasource");
         // datasource:Datasource datasource = new InMemoryDatasource();
         self.registry = new(datasource);
     }
