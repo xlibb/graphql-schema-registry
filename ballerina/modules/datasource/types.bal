@@ -4,21 +4,16 @@ public type Supergraph record {|
     string apiSchema;
 |};
 
-public type Subgraph record {|
-    readonly int id;
+public type SubgraphId record {|
+    readonly string id;
     readonly string name;
+|};
+
+public type Subgraph record {|
+    *SubgraphId;
     string url;
     string schema;
 |};
-
-public type SupergraphSubgraph record {|
-    readonly int id;
-    string supergraphVersion;
-    int subgraphId;
-    string subgraphName;
-|};
-
-public type SupergraphInsert Supergraph;
 
 public type SubgraphInsert record {|
     readonly string name;
@@ -26,20 +21,12 @@ public type SubgraphInsert record {|
     string schema;
 |};
 
+public type SupergraphInsert record {|
+    *Supergraph;
+    SubgraphId[] subgraphs;
+|};
+
 public type SupergraphUpdate record {|
-    string schema?;
-    string apiSchema?;
+    *Supergraph;
+    SubgraphId[] subgraphs;
 |};
-
-public type SubgraphUpdate record {|
-    string url?;
-    string schema?;
-|};
-
-public type SupergraphSubgraphInsert record {|
-    string supergraphVersion;
-    int subgraphId;
-    string subgraphName;
-|};
-
-public type SupergraphSubgraphUpdate SupergraphSubgraphInsert;

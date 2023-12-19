@@ -42,21 +42,12 @@ public isolated class Registry {
     }
 
     public isolated function getSubgraphByName(string name) returns Subgraph|error {
-        datasource:Subgraph[] subgraphs = check self.datasource->/subgraphs/[name];
-        if subgraphs.length() > 0 {
-            datasource:Subgraph latestSubgraph = subgraphs.sort(
-                                                    "descending", 
-                                                    key = isolated function (datasource:Subgraph s) returns int {
-                                                        return s.id;
-                                                    })[0];
-            return {
-                name: latestSubgraph.name,
-                url: latestSubgraph.url,
-                schema: latestSubgraph.schema
-            };
-        } else {
-            return error SubgraphNotFound(string `No subgraph found with the name '${name}'`);
-        }
+        datasource:Subgraph latestSubgraph = check self.getLatestSubgraphByName(name);
+        return {
+            name: latestSubgraph.name,
+            url: latestSubgraph.url,
+            schema: latestSubgraph.schema
+        };
     }
 
     public isolated function getDiff(string newVersion, string oldVersion) returns differ:SchemaDiff[]|error {
@@ -76,33 +67,26 @@ public isolated class Registry {
     }
 
     public isolated function getVersions() returns string[]|datasource:Error {
-        return check self.datasource->/versions;
+        // Create a seperate resource function to fetch all the verisons
+        datasource:Supergraph[] supergraphs = check self.datasource->/supergraphs;
+        return supergraphs.map(s => s.version);
     }
 
     isolated function storeSchemas(map<datasource:Subgraph> subgraphs, Subgraph input, CompositionResult generatedSupergraph) returns error? {
         string? latestSupergraphVersion = check self.getLatestSupergraphVersion();
+        subgraphs[input.name] = check self.registerSubgraph(input);
         if latestSupergraphVersion is () || latestSupergraphVersion != generatedSupergraph.version {
-            subgraphs[input.name] = check self.registerSubgraph(input);
             check self.registerSupergraph(generatedSupergraph.cloneReadOnly(), subgraphs.toArray());
         } else {
-            datasource:Subgraph|datasource:Error|SubgraphNotFound currentSubgraph = self.getLatestSubgraphByName(input.name);
-            if currentSubgraph is datasource:Error {
-                return currentSubgraph;
+            datasource:SubgraphId[] updatedSubgraphRefs = [];
+            foreach datasource:Subgraph subgraph in subgraphs {
+                updatedSubgraphRefs.push({
+                    name: subgraph.name,
+                    id: subgraph.id
+                });
             }
-            subgraphs[input.name] = check self.registerSubgraph(input);
-            int updatedSubgraphId = subgraphs.get(input.name).id;
-            
-            if currentSubgraph !is SubgraphNotFound {
-                check self.updateSupergraphSubgraph(input.name, currentSubgraph.id, updatedSubgraphId, latestSupergraphVersion);
-            } else {
-                check self.registerSupergraphSubgraph(
-                        [{
-                            supergraphVersion: latestSupergraphVersion,
-                            subgraphId: updatedSubgraphId,
-                            subgraphName: input.name
-                        }]
-                    );
-            }
+
+            check self.updateSubgraphsOfSupergraph(latestSupergraphVersion, updatedSubgraphRefs);
         }
     }
 
@@ -209,53 +193,40 @@ public isolated class Registry {
     }
 
     isolated function registerSubgraph(Subgraph input) returns datasource:Subgraph|datasource:Error {
-        [int, string] persistedSubgraph = check self.datasource->/subgraphs.post({ name: input.name, url: input.url, schema: input.schema });
-        return {
-            id: persistedSubgraph[0],
-            name: persistedSubgraph[1],
-            url: input.url,
-            schema: input.schema
-        };
+        return check self.datasource->/subgraphs.post({ name: input.name, url: input.url, schema: input.schema });
     }
 
     isolated function registerSupergraph(CompositionResult & readonly input, datasource:Subgraph[] inputSubgraphs) returns datasource:Error? {
         check self.datasource->/supergraphs.post({
             version: input.version,
             schema: input.schemaSdl,
-            apiSchema: input.apiSchemaSdl
-        });
-        check self.registerSupergraphSubgraph(
-            inputSubgraphs.map(isolated function (datasource:Subgraph s) returns datasource:SupergraphSubgraphInsert {
+            apiSchema: input.apiSchemaSdl,
+            subgraphs: inputSubgraphs.map(isolated function (datasource:Subgraph s) returns datasource:SubgraphId {
                 return {
-                    supergraphVersion: input.version,
-                    subgraphId: s.id,
-                    subgraphName: s.name
+                    id: s.id,
+                    name: s.name
                 };
             })
-        );
-    }
-
-    isolated function registerSupergraphSubgraph(datasource:SupergraphSubgraphInsert[] data) returns datasource:Error? {
-        _ = check self.datasource->/supergraphsubgraphs.post(
-                data
-            );
-    }
-
-    isolated function updateSupergraphSubgraph(string subgraphName, int currentSubgraphId, int updatedSubgraphId, string version) returns error? {
-        datasource:SupergraphSubgraph supergraphSubgraph = check self.datasource->/supergraphsubgraphs/[currentSubgraphId]/[subgraphName]/[version]();
-        _ = check self.datasource->/supergraphsubgraphs/[supergraphSubgraph.id].put({
-            supergraphVersion: version,
-            subgraphId: updatedSubgraphId,
-            subgraphName: subgraphName
         });
+    }
+
+    isolated function updateSubgraphsOfSupergraph(string version, datasource:SubgraphId[] updatedSubgraphs) returns datasource:Error? {
+        datasource:Supergraph supergraph = check self.getSupergraph(version);
+        datasource:SupergraphUpdate updatedSupergraph = {
+            schema: supergraph.schema,
+            version: supergraph.version,
+            apiSchema: supergraph.apiSchema,
+            subgraphs: updatedSubgraphs
+        };
+        return check self.datasource->/supergraphs/[version].put(updatedSupergraph);
     }
 
     isolated function getLatestSubgraphByName(string name) returns datasource:Subgraph|datasource:Error|SubgraphNotFound {
-        datasource:Subgraph[] subgraphs = check self.datasource->/subgraphs/[name];
+        datasource:Subgraph[] subgraphs = check self.datasource->/subgraphs(name);
         if subgraphs.length() > 0 {
             datasource:Subgraph latestSubgraph = subgraphs.sort(
                                                     "descending", 
-                                                    key = isolated function (datasource:Subgraph s) returns int {
+                                                    key = isolated function (datasource:Subgraph s) returns string {
                                                         return s.id;
                                                     })[0];
             return latestSubgraph;
@@ -264,7 +235,7 @@ public isolated class Registry {
         }
     }
 
-    isolated function getSubgraph(int id, string name) returns datasource:Subgraph|datasource:Error {
+    isolated function getSubgraph(string id, string name) returns datasource:Subgraph|datasource:Error {
         return check self.datasource->/subgraphs/[id]/[name];
     }
 
