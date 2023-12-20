@@ -16,7 +16,7 @@ public isolated client class MongodbDatasource {
 
     isolated resource function get supergraphs() returns datasource:Supergraph[]|datasource:Error {
         datasource:Supergraph[] supergraphs = [];
-        string[] versions = check self->/versions;
+        string[] versions = check self.supergraphVersions();
         foreach string version in versions {
             datasource:Supergraph supergraph = check self->/supergraphs/[version];
             supergraphs.push(supergraph);
@@ -25,36 +25,36 @@ public isolated client class MongodbDatasource {
     }
 
     isolated resource function get supergraphs/[string version]() returns datasource:Supergraph|datasource:Error {
-        stream<datasource:Supergraph, error?>|mongodb:DatabaseError|mongodb:ApplicationError|error find = self.mongoClient->find(self.SUPERGRAPHS, filter = { version }, projection = { _id: 0, subgraphs: 0 });
-        if find !is stream<datasource:Supergraph, error?> {
-            return error datasource:Error(find.message());
+        stream<datasource:Supergraph, error?>|mongodb:DatabaseError|mongodb:ApplicationError|error result = self.mongoClient->find(self.SUPERGRAPHS, filter = { version }, projection = { _id: 0, subgraphs: 0 });
+        if result !is stream<datasource:Supergraph, error?> {
+            return error datasource:Error(result.message());
         }
-        record {|datasource:Supergraph value;|}|error? next = find.next();
-        if next is error {
-            return error datasource:Error(next.message());
+        record {|datasource:Supergraph value;|}|error? supergraph = result.next();
+        if supergraph is error {
+            return error datasource:Error(supergraph.message());
         }
-        if next is () {
+        if supergraph is () {
             return error datasource:Error(string `No supergraph found with version '${version}'`);
         }
 
-        return next.value;
+        return supergraph.value;
     }
 
     isolated resource function get supergraphs/[string version]/subgraphs() returns datasource:Subgraph[]|datasource:Error {
-        stream<record { datasource:SubgraphId[] subgraphs; }, error?>|mongodb:DatabaseError|mongodb:ApplicationError|error subgraphRefs = self.mongoClient->find(self.SUPERGRAPHS, filter = { version }, projection = { _id: 0, subgraphs: 1 });
-        if subgraphRefs !is stream<record { datasource:SubgraphId[] subgraphs; }, error?> {
+        stream<record { datasource:SubgraphId[] subgraphs; }, error?>|mongodb:DatabaseError|mongodb:ApplicationError|error results = self.mongoClient->find(self.SUPERGRAPHS, filter = { version }, projection = { _id: 0, subgraphs: 1 });
+        if results !is stream<record { datasource:SubgraphId[] subgraphs; }, error?> {
+            return error datasource:Error(results.message());
+        }
+        datasource:SubgraphId[][]|error subgraphRefs = from var result in results select result.subgraphs;
+        if subgraphRefs is error {
             return error datasource:Error(subgraphRefs.message());
         }
-        datasource:SubgraphId[][]|error out = from var subgs in subgraphRefs select subgs.subgraphs;
-        if out is error {
-            return error datasource:Error(out.message());
-        }
-        if out.length() == 0 {
+        if subgraphRefs.length() == 0 {
             return error datasource:Error(string `No supergraph found with version '${version}'`);
         }
 
         datasource:Subgraph[] subgraphs = [];
-        foreach var subgraphId in out[0] {
+        foreach var subgraphId in subgraphRefs[0] {
             datasource:Subgraph subgraph = check self->/subgraphs/[subgraphId.id]/[subgraphId.name];
             subgraphs.push(subgraph);
         }
@@ -62,14 +62,14 @@ public isolated client class MongodbDatasource {
     }
 
     isolated resource function post supergraphs(datasource:SupergraphInsert data) returns datasource:Error? {
-        string[] versions = check self->/versions;
+        string[] versions = check self.supergraphVersions();
         if self.hasVersion(versions, data.version) {
             return error datasource:Error(string `A supergraph already exists with the given version '${data.version}'`);
         }
 
-        mongodb:Error? insert = self.mongoClient->insert(data, self.SUPERGRAPHS);
-        if insert is mongodb:DatabaseError {
-            return error datasource:Error(insert.message());
+        mongodb:Error? insertResult = self.mongoClient->insert(data, self.SUPERGRAPHS);
+        if insertResult is mongodb:DatabaseError {
+            return error datasource:Error(insertResult.message());
         }
     }
 
@@ -88,12 +88,12 @@ public isolated client class MongodbDatasource {
     // isolated resource function delete supergraphs/[string version]() returns datasource:Supergraph|datasource:Error {
     // }
 
-    isolated resource function get versions() returns string[]|datasource:Error {
-        stream<record { string version; }, error?>|mongodb:DatabaseError|mongodb:ApplicationError|error find = self.mongoClient->find(self.SUPERGRAPHS, projection = { version: 1 });
-        if find !is stream<record { string version; }, error?> {
-            return error datasource:Error(find.message());
+    isolated function supergraphVersions() returns string[]|datasource:Error {
+        stream<record { string version; }, error?>|mongodb:DatabaseError|mongodb:ApplicationError|error result = self.mongoClient->find(self.SUPERGRAPHS, projection = { version: 1 });
+        if result !is stream<record { string version; }, error?> {
+            return error datasource:Error(result.message());
         }
-        string[]|error versions = from var supVer in find select supVer.version;
+        string[]|error versions = from var supergraph in result select supergraph.version;
         if versions is error {
             return error datasource:Error(versions.message());
         }
@@ -101,11 +101,11 @@ public isolated client class MongodbDatasource {
     }
 
     isolated resource function get subgraphs(string? name = ()) returns datasource:Subgraph[]|datasource:Error {
-        stream<datasource:Subgraph, error?>|mongodb:DatabaseError|mongodb:ApplicationError|error find = self.mongoClient->find(self.SUBGRAPHS, filter = name is () ? {} : { name }, projection = { _id: 0 });
-        if find !is stream<datasource:Subgraph, error?> {
-            return error datasource:Error(find.message());
+        stream<datasource:Subgraph, error?>|mongodb:DatabaseError|mongodb:ApplicationError|error result = self.mongoClient->find(self.SUBGRAPHS, filter = name is () ? {} : { name }, projection = { _id: 0 });
+        if result !is stream<datasource:Subgraph, error?> {
+            return error datasource:Error(result.message());
         }
-        datasource:Subgraph[]|error subgraphs = from var supVer in find select supVer;
+        datasource:Subgraph[]|error subgraphs = from var subgraph in result select subgraph;
         if subgraphs is error {
             return error datasource:Error(subgraphs.message());
         }
@@ -113,11 +113,11 @@ public isolated client class MongodbDatasource {
     }
 
     isolated resource function get subgraphs/[string id]/[string name]() returns datasource:Subgraph|datasource:Error {
-        stream<datasource:Subgraph, error?>|mongodb:DatabaseError|mongodb:ApplicationError|error find = self.mongoClient->find(self.SUBGRAPHS, filter = { id, name }, projection = { _id: 0 }, 'limit = 1);
-        if find !is stream<datasource:Subgraph, error?> {
-            return error datasource:Error(find.message());
+        stream<datasource:Subgraph, error?>|mongodb:DatabaseError|mongodb:ApplicationError|error result = self.mongoClient->find(self.SUBGRAPHS, filter = { id, name }, projection = { _id: 0 }, 'limit = 1);
+        if result !is stream<datasource:Subgraph, error?> {
+            return error datasource:Error(result.message());
         }
-        datasource:Subgraph[]|error subgraphs = from var supVer in find limit 1 select supVer;
+        datasource:Subgraph[]|error subgraphs = from var subgraph in result limit 1 select subgraph;
         if subgraphs is error {
             return error datasource:Error(subgraphs.message());
         }
@@ -125,11 +125,11 @@ public isolated client class MongodbDatasource {
     }
 
     isolated resource function get subgraphs/[string name]() returns datasource:Subgraph[]|datasource:Error {
-        stream<datasource:Subgraph, error?>|mongodb:DatabaseError|mongodb:ApplicationError|error find = self.mongoClient->find(self.SUBGRAPHS, filter = { name }, projection = { _id: 0 });
-        if find !is stream<datasource:Subgraph, error?> {
-            return error datasource:Error(find.message());
+        stream<datasource:Subgraph, error?>|mongodb:DatabaseError|mongodb:ApplicationError|error result = self.mongoClient->find(self.SUBGRAPHS, filter = { name }, projection = { _id: 0 });
+        if result !is stream<datasource:Subgraph, error?> {
+            return error datasource:Error(result.message());
         }
-        datasource:Subgraph[]|error subgraphs = from var supVer in find select supVer;
+        datasource:Subgraph[]|error subgraphs = from var subgraph in result select subgraph;
         if subgraphs is error {
             return error datasource:Error(subgraphs.message());
         }
@@ -137,20 +137,20 @@ public isolated client class MongodbDatasource {
     }
 
     isolated resource function post subgraphs(datasource:SubgraphInsert data) returns datasource:Subgraph|datasource:Error {
-        int|mongodb:Error count = self.mongoClient->countDocuments(self.SUBGRAPHS, filter = { name: data.name });
-        if count is mongodb:Error {
-            return error datasource:Error(count.message());
+        int|mongodb:Error documentCount = self.mongoClient->countDocuments(self.SUBGRAPHS, filter = { name: data.name });
+        if documentCount is mongodb:Error {
+            return error datasource:Error(documentCount.message());
         }
-        int nextId = count + 1;
+        int nextId = documentCount + 1;
         datasource:Subgraph subgraph = {
             id: nextId.toString(),
             name: data.name,
             url: data.url,
             schema: data.schema
         };
-        mongodb:Error? insert = self.mongoClient->insert(subgraph, self.SUBGRAPHS);
-        if insert is mongodb:DatabaseError {
-            return error datasource:Error(insert.message());
+        mongodb:Error? insertResult = self.mongoClient->insert(subgraph, self.SUBGRAPHS);
+        if insertResult is mongodb:DatabaseError {
+            return error datasource:Error(insertResult.message());
         }
         return subgraph;
     }
