@@ -3,14 +3,14 @@ import graphql_schema_registry.datasource;
 type SupergraphSubgraph record {|
     readonly string supergraphVersion;
     readonly string subgraphName;
-    string subgraphId;
+    string subgraphVersion;
 |};
 
 public isolated client class InMemoryDatasource {
     *datasource:Datasource;
 
     private final table<datasource:Supergraph> key(version) supergraphTable;
-    private final table<datasource:Subgraph> key(id, name) subgraphTable;
+    private final table<datasource:Subgraph> key(version, name) subgraphTable;
     private final table<SupergraphSubgraph> key(supergraphVersion, subgraphName) supergraphSubgraphTable;
 
     public function init() {
@@ -38,7 +38,7 @@ public isolated client class InMemoryDatasource {
         lock {
             table<datasource:Subgraph> tableResult = from var 'join in self.supergraphSubgraphTable
                                                      from var subgraph in self.subgraphTable
-                                                     where 'join.supergraphVersion === version && 'join.subgraphId === subgraph.id && 'join.subgraphName === subgraph.name
+                                                     where 'join.supergraphVersion === version && 'join.subgraphVersion === subgraph.version && 'join.subgraphName === subgraph.name
                                                      select subgraph;
             return tableResult.clone().toArray();
         }
@@ -58,7 +58,7 @@ public isolated client class InMemoryDatasource {
             foreach datasource:SubgraphId id in data.clone().subgraphs {
                 self.supergraphSubgraphTable.add({ 
                     supergraphVersion: data.version,
-                    subgraphId: id.id,
+                    subgraphVersion: id.version,
                     subgraphName: id.name 
                 });
             }
@@ -77,7 +77,7 @@ public isolated client class InMemoryDatasource {
                 self.supergraphSubgraphTable.put({ 
                     supergraphVersion: data.version,
                     subgraphName: id.name,
-                    subgraphId: id.id
+                    subgraphVersion: id.version
                 });
             }
         }
@@ -103,12 +103,12 @@ public isolated client class InMemoryDatasource {
         }
     }
 
-    isolated resource function get subgraphs/[string id]/[string name]() returns datasource:Subgraph|datasource:Error {
+    isolated resource function get subgraphs/[string name]/[string version]() returns datasource:Subgraph|datasource:Error {
         lock {
-            if !self.subgraphTable.hasKey([id, name]) {
-                return error datasource:Error(string `A subgraph with the given name '${name}' and id '${id}' doesn't exist.`);
+            if !self.subgraphTable.hasKey([version, name]) {
+                return error datasource:Error(string `A subgraph with the given name '${name}' and version '${version}' doesn't exist.`);
             }
-            return self.subgraphTable.get([id, name]).clone();
+            return self.subgraphTable.get([version, name]).clone();
         }
     }
 
@@ -123,13 +123,13 @@ public isolated client class InMemoryDatasource {
 
     isolated resource function post subgraphs(datasource:SubgraphInsert data) returns datasource:Subgraph|datasource:Error {
         lock {
-            int[] ids = from var subgraph in self.subgraphTable
+            int[] subgraphVersions = from var subgraph in self.subgraphTable
                         where subgraph.name == data.name
-                        order by subgraph.id descending
-                        select check self.subgraphIdFromString(subgraph.id);
-            int nextId = (ids.length() > 0 ? ids[0] : 0) + 1;
+                        order by subgraph.version descending
+                        select check self.subgraphIdFromString(subgraph.version);
+            int nextVersion = (subgraphVersions.length() > 0 ? subgraphVersions[0] : 0) + 1;
             datasource:Subgraph subgraph = {
-                id: nextId.toString(),
+                version: nextVersion.toString(),
                 name: data.name,
                 url: data.url,
                 schema: data.schema

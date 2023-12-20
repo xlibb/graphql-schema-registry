@@ -55,7 +55,7 @@ public isolated client class MongodbDatasource {
 
         datasource:Subgraph[] subgraphs = [];
         foreach var subgraphId in subgraphRefs[0] {
-            datasource:Subgraph subgraph = check self->/subgraphs/[subgraphId.id]/[subgraphId.name];
+            datasource:Subgraph subgraph = check self->/subgraphs/[subgraphId.name]/[subgraphId.version];
             subgraphs.push(subgraph);
         }
         return subgraphs;
@@ -112,14 +112,17 @@ public isolated client class MongodbDatasource {
         return subgraphs;
     }
 
-    isolated resource function get subgraphs/[string id]/[string name]() returns datasource:Subgraph|datasource:Error {
-        stream<datasource:Subgraph, error?>|mongodb:DatabaseError|mongodb:ApplicationError|error result = self.mongoClient->find(self.SUBGRAPHS, filter = { id, name }, projection = { _id: 0 }, 'limit = 1);
+    isolated resource function get subgraphs/[string name]/[string version]() returns datasource:Subgraph|datasource:Error {
+        stream<datasource:Subgraph, error?>|mongodb:DatabaseError|mongodb:ApplicationError|error result = self.mongoClient->find(self.SUBGRAPHS, filter = { name, version }, projection = { _id: 0 }, 'limit = 1);
         if result !is stream<datasource:Subgraph, error?> {
             return error datasource:Error(result.message());
         }
         datasource:Subgraph[]|error subgraphs = from var subgraph in result limit 1 select subgraph;
         if subgraphs is error {
             return error datasource:Error(subgraphs.message());
+        }
+        if subgraphs.length() <= 0 {
+            return error datasource:Error(string `A subgraph with the given name '${name}' and version '${version}' doesn't exist.`);
         }
         return subgraphs[0];
     }
@@ -141,9 +144,9 @@ public isolated client class MongodbDatasource {
         if documentCount is mongodb:Error {
             return error datasource:Error(documentCount.message());
         }
-        int nextId = documentCount + 1;
+        int nextVersion = documentCount + 1;
         datasource:Subgraph subgraph = {
-            id: nextId.toString(),
+            version: nextVersion.toString(),
             name: data.name,
             url: data.url,
             schema: data.schema

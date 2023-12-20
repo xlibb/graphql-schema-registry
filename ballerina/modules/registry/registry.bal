@@ -82,7 +82,7 @@ public isolated class Registry {
             foreach datasource:Subgraph subgraph in subgraphs {
                 updatedSubgraphRefs.push({
                     name: subgraph.name,
-                    id: subgraph.id
+                    version: subgraph.version
                 });
             }
 
@@ -203,7 +203,7 @@ public isolated class Registry {
             apiSchema: input.apiSchemaSdl,
             subgraphs: inputSubgraphs.map(isolated function (datasource:Subgraph s) returns datasource:SubgraphId {
                 return {
-                    id: s.id,
+                    version: s.version,
                     name: s.name
                 };
             })
@@ -227,7 +227,7 @@ public isolated class Registry {
             datasource:Subgraph latestSubgraph = subgraphs.sort(
                                                     "descending", 
                                                     key = isolated function (datasource:Subgraph s) returns string {
-                                                        return s.id;
+                                                        return s.version;
                                                     })[0];
             return latestSubgraph;
         } else {
@@ -235,8 +235,8 @@ public isolated class Registry {
         }
     }
 
-    isolated function getSubgraph(string id, string name) returns datasource:Subgraph|datasource:Error {
-        return check self.datasource->/subgraphs/[id]/[name];
+    isolated function getSubgraph(string name, string version) returns datasource:Subgraph|datasource:Error {
+        return check self.datasource->/subgraphs/[name]/[version];
     }
 
     isolated function getSubgraphsOfSupergraphAsMap(string version) returns map<datasource:Subgraph>|datasource:Error {

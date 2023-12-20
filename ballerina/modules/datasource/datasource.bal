@@ -15,7 +15,7 @@ public type Datasource isolated client object {
 
     isolated resource function get subgraphs(string? name = ()) returns Subgraph[]|Error;
 
-    isolated resource function get subgraphs/[string id]/[string name]() returns Subgraph|Error;
+    isolated resource function get subgraphs/[string name]/[string version]() returns Subgraph|Error;
 
     isolated resource function post subgraphs(SubgraphInsert data) returns Subgraph|Error;
 

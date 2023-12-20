@@ -55,7 +55,7 @@ isolated client class FileDatasource {
 
             datasource:Subgraph[] subgraphs = [];
             foreach datasource:SubgraphId id in subgraphIds {
-                datasource:Subgraph subgraph = check self->/subgraphs/[id.id]/[id.name];
+                datasource:Subgraph subgraph = check self->/subgraphs/[id.name]/[id.version];
                 subgraphs.push(subgraph);
             }
             return subgraphs.clone();
@@ -117,9 +117,9 @@ isolated client class FileDatasource {
         }
     }
 
-    isolated resource function get subgraphs/[string id]/[string name]() returns datasource:Subgraph|datasource:Error {
+    isolated resource function get subgraphs/[string name]/[string version]() returns datasource:Subgraph|datasource:Error {
         lock {
-            json subgraphJson = check self.readRecord(check self.joinPath(self.subgraphs, name, id.toString()));
+            json subgraphJson = check self.readRecord(check self.joinPath(self.subgraphs, name, version));
             datasource:Subgraph|error subgraph = subgraphJson.fromJsonWithType();
             if subgraph is error {
                 return error datasource:Error("Unable to convert into Subgraph");
@@ -131,14 +131,14 @@ isolated client class FileDatasource {
     isolated resource function get subgraphs/[string name]() returns datasource:Subgraph[]|datasource:Error {
         lock {
             string subgraphPath = check self.joinPath(self.subgraphs, name);
-            string[]|datasource:Error subgraphIds = self.getFileNames(subgraphPath);
-            if subgraphIds is datasource:Error {
+            string[]|datasource:Error subgraphVersions = self.getFileNames(subgraphPath);
+            if subgraphVersions is datasource:Error {
                 return [];
             }
 
             datasource:Subgraph[] subgraphs = [];
-            foreach string subgraphId in subgraphIds {
-                datasource:Subgraph subgraph = check self->/subgraphs/[subgraphId]/[name];
+            foreach string version in subgraphVersions {
+                datasource:Subgraph subgraph = check self->/subgraphs/[name]/[version];
                 subgraphs.push(subgraph);
             }
             return subgraphs.clone();
@@ -152,15 +152,15 @@ isolated client class FileDatasource {
             if err is file:Error {
                 return error datasource:Error(err.message());
             }
-            int[] ids = (check self.getFileNames(subgraphLocation)).map(i => check self.subgraphIdFromString(i)).sort("descending");
-            string nextId = ((ids.length() > 0 ? ids[0] : 0) + 1).toString();
+            int[] versions = (check self.getFileNames(subgraphLocation)).map(i => check self.subgraphIdFromString(i)).sort("descending");
+            string nextSubgraphVersion = ((versions.length() > 0 ? versions[0] : 0) + 1).toString();
             datasource:Subgraph subgraph = {
-                id: nextId,
+                version: nextSubgraphVersion,
                 name: data.name,
                 url: data.url,
                 schema: data.schema
             };
-            check self.writeRecord(check self.joinPath(subgraphLocation, nextId), subgraph.toJson());
+            check self.writeRecord(check self.joinPath(subgraphLocation, nextSubgraphVersion), subgraph.toJson());
             return subgraph.clone();
         }
     }

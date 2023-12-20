@@ -5,7 +5,7 @@ public type Supergraph record {|
 |};
 
 public type SubgraphId record {|
-    readonly string id;
+    readonly string version;
     readonly string name;
 |};
 
