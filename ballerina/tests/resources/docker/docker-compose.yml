@@ -18,16 +18,16 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: admin
       MONGO_INITDB_DATABASE: datasource
 
-  mongo-with-ssl:
-    image: mongo:4.2
-    restart: always
-    ports:
-      - 27018:27018
-    volumes:
-      - ./init-scripts/ssl.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
-      - ./certs/mongodb-server.pem:/etc/ssl/mongodb.pem:ro
-      - ./certs/mongodb-CA.pem:/etc/ssl/mongodb-ca.pem:ro
-    depends_on:
-      mongo-no-ssl:
-        condition: service_healthy
-    command: --port 27018 --tlsMode requireTLS --tlsCertificateKeyFile /etc/ssl/mongodb.pem --tlsCAFile /etc/ssl/mongodb-ca.pem
+  # mongo-with-ssl:
+  #   image: mongo:4.2
+  #   restart: always
+  #   ports:
+  #     - 27018:27018
+  #   volumes:
+  #     - ./init-scripts/ssl.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+  #     - ./certs/mongodb-server.pem:/etc/ssl/mongodb.pem:ro
+  #     - ./certs/mongodb-CA.pem:/etc/ssl/mongodb-ca.pem:ro
+  #   depends_on:
+  #     mongo-no-ssl:
+  #       condition: service_healthy
+  #   command: --port 27018 --tlsMode requireTLS --tlsCertificateKeyFile /etc/ssl/mongodb.pem --tlsCAFile /etc/ssl/mongodb-ca.pem

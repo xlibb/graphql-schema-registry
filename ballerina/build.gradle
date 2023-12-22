@@ -161,6 +161,38 @@ task initializeVariables {
     }
 }
 
+task startMongodbServer() {
+    doLast {
+        println("Starting mongodb server...")
+        def pb = new ProcessBuilder()
+        pb.directory(projectDir)
+        if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+            pb.command("cmd", "/c", "docker-compose -f tests/resources/docker/docker-compose.yml up && exit %%ERRORLEVEL%%")
+        } else {
+            pb.command("sh", "-c", "docker-compose -f tests/resources/docker/docker-compose.yml down")
+        }
+        def process = pb.start()
+        project.ext.set("mongoServer", process);
+    }
+}
+
+task stopMongodbServer() {
+    doLast {
+        println("Stopping mongodb server...")
+        exec {
+            if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+                commandLine 'cmd', '/c', "docker-compose -f tests/resources/docker/docker-compose.yml down && exit %%ERRORLEVEL%%"
+            } else {
+                commandLine 'sh', '-c', "docker-compose -f tests/resources/docker/docker-compose.yml down"
+            }
+        }
+        if (project.mongoServer != null) {
+            println("Destroying mongodb server process...")
+            project.mongoServer.destroy()
+        }
+    }
+}
+
 task build {
     dependsOn(":schema-registry-native:build")
     dependsOn(updateTomlFiles)
@@ -185,7 +217,9 @@ task test {
     dependsOn(updateTomlFiles)
     dependsOn(initializeVariables)
     dependsOn(getBallerinaRuntimePath)
+    dependsOn(startMongodbServer)
     finalizedBy(commitTomlFiles)
+    finalizedBy(stopMongodbServer)
 
     doLast {
         exec {
