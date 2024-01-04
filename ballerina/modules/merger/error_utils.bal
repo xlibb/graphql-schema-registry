@@ -14,10 +14,10 @@ isolated function appendErrors(MergeError[] newErrors, MergeError[] errors, stri
     newErrors.push(...updatedErrors);
 }
 
-isolated function addMergeErrorMessages(MergeError[] errors) returns InternalError|MergeError[] {
+isolated function createMergeErrorMessages(MergeError[] errors) returns InternalError|MergeError[] {
     MergeError[] transformedErrors = [];
     foreach MergeError inputError in errors {
-        MergeError|InternalError transformedError = addMergeErrorMessage(inputError);
+        MergeError|InternalError transformedError = createMergeErrorMessage(inputError);
         if transformedError is MergeError {
             transformedErrors.push(transformedError);
         } else {
@@ -27,7 +27,7 @@ isolated function addMergeErrorMessages(MergeError[] errors) returns InternalErr
     return transformedErrors;
 }
 
-isolated function addMergeErrorMessage(MergeError 'error) returns InternalError|MergeError {
+isolated function createMergeErrorMessage(MergeError 'error) returns InternalError|MergeError {
     Hint? hint = 'error.detail().hint;
     if hint is Hint {
         return error MergeError(printHint(hint), hint = hint);

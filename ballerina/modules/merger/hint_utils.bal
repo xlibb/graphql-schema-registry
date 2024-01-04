@@ -1,13 +1,13 @@
 isolated function appendHints(Hint[] newHints, Hint[] mergeHints, string? location = ()) {
-    addHintsLocation(mergeHints, location);
+    if location !is () {
+        addHintsLocation(mergeHints, location);
+    }
     newHints.push(...mergeHints);
 }
 
-isolated function addHintsLocation(Hint[] hints, string? location = ()) {
-    if location !is () {
-        foreach Hint hint in hints {
-            addHintLocation(hint, location);
-        }
+isolated function addHintsLocation(Hint[] hints, string location) {
+    foreach Hint hint in hints {
+        addHintLocation(hint, location);
     }
 }
 
