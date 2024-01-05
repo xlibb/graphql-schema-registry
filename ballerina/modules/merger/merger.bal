@@ -216,10 +216,10 @@ public class Merger {
             // ---------- Merge Descriptions -----------
             DescriptionSource[] descriptionSources = [];
             foreach Subgraph subgraph in subgraphs {
-                descriptionSources.push([
-                    subgraph.name,
-                    getTypeFromTypeMap(subgraph.schema, typeName).description
-                ]);
+                descriptionSources.push({
+                    subgraph: subgraph.name,
+                    definition: getTypeFromTypeMap(subgraph.schema, typeName).description
+                });
             }
             DescriptionMergeResult descriptionMergeResult = self.mergeDescription(descriptionSources);
             appendHints(hints, descriptionMergeResult.hints, typeName);
@@ -230,10 +230,10 @@ public class Merger {
             foreach Subgraph subgraph in subgraphs {
                 parser:__Type[]? possibleTypesResult = getTypeFromTypeMap(subgraph.schema, typeName).possibleTypes;
                 if possibleTypesResult is parser:__Type[] {
-                    possibleTypesSources.push([
-                        subgraph.name,
-                        possibleTypesResult
-                    ]);
+                    possibleTypesSources.push({
+                        subgraph: subgraph.name,
+                        definition: possibleTypesResult
+                    });
                 }
             }
             PossibleTypesMergeResult possibleTypesMergeResult = check self.mergePossibleTypes(possibleTypesSources);
@@ -283,10 +283,10 @@ public class Merger {
             // [Subgraph, string?][] descriptionSources = subgraphs.map(s => [s, s.schema.types.get(objectName).description]);
             DescriptionSource[] descriptionSources = [];
             foreach Subgraph subgraph in subgraphs {
-                descriptionSources.push([
-                    subgraph.name,
-                    getTypeFromTypeMap(subgraph.schema, typeName).description
-                ]);
+                descriptionSources.push({
+                    subgraph: subgraph.name,
+                    definition: getTypeFromTypeMap(subgraph.schema, typeName).description
+                });
             }
             DescriptionMergeResult descriptionMergeResult = self.mergeDescription(descriptionSources);
             appendHints(hints, descriptionMergeResult.hints, typeName);
@@ -299,12 +299,12 @@ public class Merger {
                 EntityStatus entityStatus = check self.isEntity(subgraphType);
                 map<parser:__Field>? subgraphFields = subgraphType.fields;
                 if subgraphFields is map<parser:__Field> {
-                    fieldMapSources.push([
-                        subgraph.name, 
-                        check self.getFilteredFields(typeName, subgraphFields),
-                        !subgraph.isFederation2Subgraph || self.isTypeAllowsMergingFields(subgraphType),
-                        entityStatus
-                    ]);
+                    fieldMapSources.push({
+                        subgraph: subgraph.name, 
+                        definition: check self.getFilteredFields(typeName, subgraphFields),
+                        isDefiningTypeShareable: !subgraph.isFederation2Subgraph || self.isTypeAllowsMergingFields(subgraphType),
+                        entityStatus: entityStatus
+                    });
                 }
             }
             FieldMapMergeResult|MergeError[] mergedFields = check self.mergeFields(fieldMapSources);
@@ -315,7 +315,7 @@ public class Merger {
             appendHints(hints, mergedFields.hints, typeName);
             typeDefinition.fields = mergedFields.result;
 
-            boolean isEverySourceEntity = fieldMapSources.map(f => f[3].isEntity)
+            boolean isEverySourceEntity = fieldMapSources.map(f => f.entityStatus.isEntity)
                                                          .reduce(isolated function (boolean 'final, boolean next) returns boolean => 'final && next, true);
             if isEverySourceEntity {
                 hints = self.filterEntityFieldInconsistencyHints(hints);
@@ -335,10 +335,10 @@ public class Merger {
             // [Subgraph, string?][] descriptions = subgraphs.map(s => [s, s.schema.types.get(typeName).description]);
             DescriptionSource[] descriptionSourcecs = [];
             foreach Subgraph subgraph in subgraphs {
-                descriptionSourcecs.push([
-                    subgraph.name,
-                    getTypeFromTypeMap(subgraph.schema, typeName).description
-                ]);
+                descriptionSourcecs.push({
+                    subgraph: subgraph.name,
+                    definition: getTypeFromTypeMap(subgraph.schema, typeName).description
+                });
             }
             DescriptionMergeResult descriptionMergeResult = self.mergeDescription(descriptionSourcecs);
             interface.description = descriptionMergeResult.result;
@@ -350,12 +350,12 @@ public class Merger {
                 parser:__Type subgraphType = subgraph.schema.types.get(typeName);
                 map<parser:__Field>? subgraphFields = subgraphType.fields;
                 if subgraphFields is map<parser:__Field> {
-                    fieldMaps.push([ 
-                        subgraph.name, 
-                        subgraphFields,
-                        !subgraph.isFederation2Subgraph || self.isTypeAllowsMergingFields(subgraphType),
-                        { isEntity: false, isResolvable: false, keyFields: [] }
-                    ]);
+                    fieldMaps.push({
+                        subgraph: subgraph.name, 
+                        definition: subgraphFields,
+                        isDefiningTypeShareable: !subgraph.isFederation2Subgraph || self.isTypeAllowsMergingFields(subgraphType),
+                        entityStatus: { isEntity: false, isResolvable: false, keyFields: [] }
+                   });
                 }
             }
             FieldMapMergeResult|MergeError[] mergedFields = check self.mergeFields(fieldMaps);
@@ -382,10 +382,10 @@ public class Merger {
             // [Subgraph, string?][] descriptions = subgraphs.map(s => [s, s.schema.types.get(typeName).description]);
             DescriptionSource[] descriptionSources = [];
             foreach Subgraph subgraph in subgraphs {
-                descriptionSources.push([
-                    subgraph.name,
-                    getTypeFromTypeMap(subgraph.schema, inputTypeName).description
-                ]);
+                descriptionSources.push({
+                    subgraph: subgraph.name,
+                    definition: getTypeFromTypeMap(subgraph.schema, inputTypeName).description
+                });
             }
             DescriptionMergeResult descriptionMergeResult = self.mergeDescription(descriptionSources);
             'type.description = descriptionMergeResult.result;
@@ -396,7 +396,10 @@ public class Merger {
             foreach Subgraph subgraph in subgraphs {
                 map<parser:__InputValue>? subgraphFields = getTypeFromTypeMap(subgraph.schema, inputTypeName).inputFields;
                 if subgraphFields is map<parser:__InputValue> {
-                    inputFieldSources.push([ subgraph.name, subgraphFields ]);
+                    inputFieldSources.push({
+                        subgraph: subgraph.name,
+                        definition: subgraphFields
+                    });
                 }
             }
             InputValueMapMergeResult|MergeError[] mergedArgResult = check self.mergeInputValues(inputFieldSources, true);
@@ -428,10 +431,10 @@ public class Merger {
             // ---------- Merge Descriptions -----------
             DescriptionSource[] descriptionSources = [];
             foreach Subgraph subgraph in subgraphs {
-                descriptionSources.push([
-                    subgraph.name,
-                    getTypeFromTypeMap(subgraph.schema, typeName).description
-                ]);
+                descriptionSources.push({
+                    subgraph: subgraph.name,
+                    definition: getTypeFromTypeMap(subgraph.schema, typeName).description
+                });
             }
             DescriptionMergeResult descriptionMergeResult = self.mergeDescription(descriptionSources);
             mergedType.description = descriptionMergeResult.result;
@@ -442,7 +445,10 @@ public class Merger {
             foreach Subgraph subgraph in subgraphs {
                 parser:__EnumValue[]? enumValues = getTypeFromTypeMap(subgraph.schema, typeName).enumValues;
                 if enumValues is parser:__EnumValue[] {
-                    enumValueSources.push([ subgraph.name, enumValues ]);
+                    enumValueSources.push({
+                        subgraph: subgraph.name,
+                        definition: enumValues
+                    });
                 } else {
                     return error InternalError("Invalid enum type");
                 }
@@ -472,10 +478,10 @@ public class Merger {
             // ---------- Merge Descriptions -----------
             DescriptionSource[] descriptionSources = [];
             foreach Subgraph subgraph in subgraphs {
-                descriptionSources.push([
-                    subgraph.name,
-                    getTypeFromTypeMap(subgraph.schema, typeName).description
-                ]);
+                descriptionSources.push({
+                    subgraph: subgraph.name,
+                    definition: getTypeFromTypeMap(subgraph.schema, typeName).description
+                });
             }
             DescriptionMergeResult descriptionMergeResult = self.mergeDescription(descriptionSources);
             mergedType.description = descriptionMergeResult.result;
@@ -486,14 +492,15 @@ public class Merger {
 
     isolated function mergeDescription(DescriptionSource[] sources) returns DescriptionMergeResult {
         map<DescriptionSourceGroup> sourceGroups = {};
-        foreach DescriptionSource ['source, description] in sources {
+        foreach DescriptionSource descriptionSource in sources {
+            string? description = descriptionSource.definition;
             if description is () || description == "" {
                 continue;
             }
             if !sourceGroups.hasKey(description) {
-                sourceGroups[description] = { data: description, subgraphs: ['source] };
+                sourceGroups[description] = { data: description, subgraphs: [descriptionSource.subgraph] };
             } else {
-                sourceGroups.get(description).subgraphs.push('source);
+                sourceGroups.get(description).subgraphs.push(descriptionSource.subgraph);
             }
         }
 
@@ -529,12 +536,18 @@ public class Merger {
 
     isolated function mergeEnumValues(EnumValueSetSource[] sources, EnumTypeUsage usage) returns EnumValuesMergeResult|MergeError[]|InternalError {
         map<EnumValueSource[]> unionedEnumValues = {}; 
-        foreach EnumValueSetSource [subgraph, enumValues] in sources {
-            foreach parser:__EnumValue enumValue in enumValues {
+        foreach EnumValueSetSource enumValueSetSource in sources {
+            foreach parser:__EnumValue enumValue in enumValueSetSource.definition {
                 if unionedEnumValues.hasKey(enumValue.name) {
-                    unionedEnumValues.get(enumValue.name).push([subgraph, enumValue]);
+                    unionedEnumValues.get(enumValue.name).push({
+                        subgraph: enumValueSetSource.subgraph,
+                        definition: enumValue
+                    });
                 } else {
-                    unionedEnumValues[enumValue.name] = [[subgraph, enumValue]];
+                    unionedEnumValues[enumValue.name] = [{
+                        subgraph: enumValueSetSource.subgraph,
+                        definition: enumValue
+                    }];
                 }
             }
         }
@@ -542,7 +555,7 @@ public class Merger {
         MergeError[] errors = [];
 
         map<EnumValueSource[]>|MergeError[] filteredEnumValues = self.filterEnumValuesBasedOnUsage(
-                                                                        sources.map(s => s[0]),
+                                                                        sources.map(s => s.subgraph),
                                                                         unionedEnumValues,
                                                                         usage);
         if filteredEnumValues is MergeError[] {
@@ -551,15 +564,21 @@ public class Merger {
         }
 
         parser:__EnumValue[] mergedEnumValues = [];
-        foreach [string, EnumValueSource[]] [valueName, valueSource] in filteredEnumValues.entries() {
+        foreach [string, EnumValueSource[]] [valueName, enumValueSources] in filteredEnumValues.entries() {
             DescriptionSource[] descriptionSources = [];
             DeprecationSource[] deprecationSources = []; // Handle deprecations
             string[] definingSubgraphs = [];
 
-            foreach EnumValueSource [subgraph, definition] in valueSource {
-                definingSubgraphs.push(subgraph);
-                descriptionSources.push([subgraph, definition.description]);
-                deprecationSources.push([subgraph, [definition.isDeprecated, definition.deprecationReason]]);
+            foreach EnumValueSource enumValueSource in enumValueSources {
+                definingSubgraphs.push(enumValueSource.subgraph);
+                descriptionSources.push({
+                    subgraph: enumValueSource.subgraph, 
+                    definition: enumValueSource.definition.description
+                });
+                deprecationSources.push({
+                    subgraph: enumValueSource.subgraph, 
+                    definition: [enumValueSource.definition.isDeprecated, enumValueSource.definition.deprecationReason]
+                });
             }
 
             DescriptionMergeResult mergedDesc = self.mergeDescription(descriptionSources);
@@ -602,7 +621,7 @@ public class Merger {
                 foreach string enumValue in inconsistentEnumValues {
                     ConsistentInconsistenceSubgraphs subgraphs = self.getConsistentInconsistentSubgraphs(
                                                                     sources,
-                                                                    allEnumValues.get(enumValue)
+                                                                    allEnumValues.get(enumValue).map(v => v.subgraph)
                                                                   );
                     errors.push(error MergeError("Inconsistent Enum value", hint = {
                         code: ENUM_VALUE_MISMATCH,
@@ -638,13 +657,21 @@ public class Merger {
 
         // Get union of all the fields
         map<FieldSource[]> unionedFields = {};
-        foreach FieldMapSource [subgraph, subgraphFields, isTypeShareable, entityStatus] in sources {
-            foreach [string, parser:__Field] [fieldName, fieldValue] in subgraphFields.entries() {
-                boolean isEntityField = entityStatus.keyFields.indexOf(fieldName) !is ();
+        foreach FieldMapSource fieldMapSource in sources {
+            foreach [string, parser:__Field] [fieldName, fieldValue] in fieldMapSource.definition.entries() {
+                boolean isEntityField = fieldMapSource.entityStatus.keyFields.indexOf(fieldName) !is ();
                 if !unionedFields.hasKey(fieldName) {
-                    unionedFields[fieldName] = [[subgraph, fieldValue, isTypeShareable || isEntityField]];
+                    unionedFields[fieldName] = [{
+                        subgraph: fieldMapSource.subgraph, 
+                        definition: fieldValue, 
+                        isAllowedToMerge: fieldMapSource.isDefiningTypeShareable || isEntityField
+                    }];
                 } else { 
-                    unionedFields.get(fieldName).push([subgraph, fieldValue, isTypeShareable || isEntityField]);
+                    unionedFields.get(fieldName).push({
+                        subgraph: fieldMapSource.subgraph,
+                        definition: fieldValue, 
+                        isAllowedToMerge: fieldMapSource.isDefiningTypeShareable || isEntityField
+                    });
                 }
             }
         }
@@ -653,11 +680,11 @@ public class Merger {
         foreach [string, FieldSource[]] [fieldName, fieldSources] in unionedFields.entries() {
             string[] shareableSubgraphs = [];
             string[] nonShareableSubgraphs = [];
-            foreach FieldSource [subgraph, 'field, isAllowedToShare] in fieldSources {
-                if isAllowedToShare || self.isShareableOnField('field) {
-                    shareableSubgraphs.push(subgraph);
+            foreach FieldSource fieldSource in fieldSources {
+                if fieldSource.isAllowedToMerge || self.isShareableOnField(fieldSource.definition) {
+                    shareableSubgraphs.push(fieldSource.subgraph);
                 } else {
-                    nonShareableSubgraphs.push(subgraph);
+                    nonShareableSubgraphs.push(fieldSource.subgraph);
                 }
             }
             if fieldSources.length() > 1 && shareableSubgraphs.length() !== fieldSources.length() {
@@ -682,23 +709,23 @@ public class Merger {
             DeprecationSource[] deprecationSources = []; // Handle deprecations
             TypeReferenceSource[] outputTypes = [];
 
-            foreach FieldSource [subgraph, mergingField, _] in fieldSources {
-                inputFieldSources.push([
-                    subgraph,
-                    mergingField.args
-                ]);
-                descriptionSources.push([
-                    subgraph,
-                    mergingField.description
-                ]);
-                deprecationSources.push([
-                    subgraph,
-                    [ mergingField.isDeprecated, mergingField.deprecationReason ]
-                ]);
-                outputTypes.push([
-                    subgraph,
-                    mergingField.'type
-                ]);
+            foreach FieldSource fieldSource in fieldSources {
+                inputFieldSources.push({
+                    subgraph: fieldSource.subgraph,
+                    definition: fieldSource.definition.args
+                });
+                descriptionSources.push({
+                    subgraph: fieldSource.subgraph,
+                    definition: fieldSource.definition.description
+                });
+                deprecationSources.push({
+                    subgraph: fieldSource.subgraph,
+                    definition: [ fieldSource.definition.isDeprecated, fieldSource.definition.deprecationReason ]
+                });
+                outputTypes.push({
+                    subgraph: fieldSource.subgraph,
+                    definition: fieldSource.definition.'type
+                });
             }
 
             InputValueMapMergeResult|MergeError[] mergedArgResult = check self.mergeInputValues(inputFieldSources);
@@ -729,7 +756,10 @@ public class Merger {
                 'type: mergedOutputType
             };
 
-            ConsistentInconsistenceSubgraphs subgraphs = self.getConsistentInconsistentSubgraphs(sources.map(f => f[0]), fieldSources.map(f => [f[0], f[1]]));
+            ConsistentInconsistenceSubgraphs subgraphs = self.getConsistentInconsistentSubgraphs(
+                                                                sources.map(f => f.subgraph),
+                                                                fieldSources.map(f => f.subgraph)
+                                                        );
             if subgraphs.inconsistent.length() != 0 { // Add hints only if there are inconsistencies
                 hints.push({
                     code: INCONSISTENT_TYPE_FIELD,
@@ -744,7 +774,7 @@ public class Merger {
 
             check self.applyJoinFieldDirectives(
                 mergedField.appliedDirectives, 
-                consistentSubgraphs = fieldSources.'map(s => s[0]),
+                consistentSubgraphs = fieldSources.'map(f => f.subgraph),
                 hasInconsistentFields = unionedFields.get(fieldName).length() != sources.length(),
                 outputTypeMismatches = typeMergeResult.sources
             );
@@ -762,27 +792,33 @@ public class Merger {
         map<parser:__Type> mergedPossibleTypes = {};
         Hint[] hints = [];
 
-        // Get union of possible types across subgraphs
-        foreach PossibleTypesSource [subgraph, possibleTypes] in sources {
-            foreach parser:__Type possibleType in possibleTypes {
+        foreach PossibleTypesSource possibleTypeSource in sources {
+            foreach parser:__Type possibleType in possibleTypeSource.definition {
                 string? possibleTypeName = possibleType.name;
-                if possibleTypeName !is () {
-                    mergedPossibleTypes[possibleTypeName] = check self.getTypeFromSupergraph(possibleTypeName);
-
-                    if typeRefMap.hasKey(possibleTypeName) {
-                        typeRefMap.get(possibleTypeName).push([subgraph, possibleType]);
-                    } else {
-                        typeRefMap[possibleTypeName] = [[subgraph, possibleType]];
-                    }
+                if possibleTypeName is () {
+                    continue;
+                }
+                
+                mergedPossibleTypes[possibleTypeName] = check self.getTypeFromSupergraph(possibleTypeName);
+                if typeRefMap.hasKey(possibleTypeName) {
+                    typeRefMap.get(possibleTypeName).push({
+                        subgraph: possibleTypeSource.subgraph, 
+                        definition: possibleType 
+                    });
+                } else {
+                    typeRefMap[possibleTypeName] = [{
+                        subgraph: possibleTypeSource.subgraph, 
+                        definition: possibleType
+                    }];
                 }
             }
         }
 
         TypeReferenceSourceGroup[] typeReferenceSources = [];
         foreach [string, TypeReferenceSource[]] [typeName, references] in typeRefMap.entries() {
-            ConsistentInconsistenceSubgraphs subgraphs = self.getConsistentInconsistentSubgraphs(sources.map(s => s[0]), references);
+            ConsistentInconsistenceSubgraphs subgraphs = self.getConsistentInconsistentSubgraphs(sources.map(s => s.subgraph), references.map(r => r.subgraph));
 
-            if subgraphs.inconsistent.length() != 0 { // Add hints only if there are inconsistencies
+            if subgraphs.inconsistent.length() != 0 {
                 hints.push({
                     code: INCONSISTENT_UNION_MEMBER,
                     location: [],
@@ -808,13 +844,19 @@ public class Merger {
     }
 
     isolated function mergeInputValues(InputFieldMapSource[] sources, boolean isTypeInputType = false) returns InputValueMapMergeResult|MergeError[]|InternalError {
-        map<InputSource[]> unionedInputs = {};
-        foreach InputFieldMapSource [subgraph, arguments] in sources {
-            foreach parser:__InputValue arg in arguments {
+        map<InputValueSource[]> unionedInputs = {};
+        foreach InputFieldMapSource inputValueMapSource in sources {
+            foreach parser:__InputValue arg in inputValueMapSource.definition {
                 if unionedInputs.hasKey(arg.name) {
-                    unionedInputs.get(arg.name).push([subgraph, arg]);
+                    unionedInputs.get(arg.name).push({
+                        subgraph: inputValueMapSource.subgraph,
+                        definition: arg
+                    });
                 } else {
-                    unionedInputs[arg.name] = [[subgraph, arg]];
+                    unionedInputs[arg.name] = [{
+                        subgraph: inputValueMapSource.subgraph,
+                        definition: arg
+                    }];
                 }
             }
         }
@@ -822,24 +864,24 @@ public class Merger {
         Hint[] hints = [];
         MergeError[] errors = [];
         map<parser:__InputValue> mergedArguments = {};
-        foreach [string, InputSource[]] [argName, argDefs] in unionedInputs.entries() {
+        foreach [string, InputValueSource[]] [argName, argDefs] in unionedInputs.entries() {
             if argDefs.length() == sources.length() { // Arguments that are defined in all subgraphs
                 DescriptionSource[] descriptionSources = [];
                 DefaultValueSource[] defaultValueSources = [];
                 TypeReferenceSource[] typeReferenceSources = [];
-                foreach InputSource [subgraph, arg] in argDefs {
-                    descriptionSources.push([
-                        subgraph,
-                        arg.description
-                    ]);
-                    defaultValueSources.push([
-                        subgraph,
-                        arg.defaultValue
-                    ]);
-                    typeReferenceSources.push([
-                        subgraph,
-                        arg.'type
-                    ]);
+                foreach InputValueSource inputValueSource in argDefs {
+                    descriptionSources.push({
+                        subgraph: inputValueSource.subgraph,
+                        definition: inputValueSource.definition.description
+                    });
+                    defaultValueSources.push({
+                        subgraph: inputValueSource.subgraph,
+                        definition: inputValueSource.definition.defaultValue
+                    });
+                    typeReferenceSources.push({
+                        subgraph: inputValueSource.subgraph,
+                        definition: inputValueSource.definition.'type
+                    });
                 }
 
                 TypeReferenceMergeResult|MergeError|InternalError inputTypeMergeResult = self.mergeTypeReferenceSet(typeReferenceSources, "INPUT");
@@ -874,7 +916,7 @@ public class Merger {
                 if isTypeInputType {
                     check self.applyJoinFieldDirectives(
                         mergedInputField.appliedDirectives, 
-                        consistentSubgraphs = argDefs.'map(s => s[0]),
+                        consistentSubgraphs = argDefs.'map(a => a.subgraph),
                         hasInconsistentFields = false,
                         outputTypeMismatches = inputTypeMergeResult.sources
                     );
@@ -883,7 +925,7 @@ public class Merger {
                 mergedArguments[argName] = mergedInputField;
                 
             } else {
-                ConsistentInconsistenceSubgraphs subgraphs = self.getConsistentInconsistentSubgraphs(sources.map(s => s[0]), argDefs);
+                ConsistentInconsistenceSubgraphs subgraphs = self.getConsistentInconsistentSubgraphs(sources.map(s => s.subgraph), argDefs.map(a => a.subgraph));
 
                 Hint hint = {
                     code: INCONSISTENT_ARGUMENT_PRESENCE,
@@ -896,7 +938,7 @@ public class Merger {
                 };
                 hints.push(hint);
 
-                boolean isRequiredTypeFound = argDefs.some(v => isTypeRequired(v[1].'type));
+                boolean isRequiredTypeFound = argDefs.some(a => isTypeRequired(a.definition.'type));
                 if isRequiredTypeFound {
                     hint.code = REQUIRED_ARGUMENT_MISSING_IN_SOME_SUBGRAPH;
                     errors.push(error MergeError("Required argument is missing on some subgraph(s)", hint = hint));
@@ -909,13 +951,13 @@ public class Merger {
 
     isolated function mergeDefaultValues(DefaultValueSource[] sources) returns DefaultValueMergeResult|MergeError {
         map<DefaultValueSourceGroup> unionedDefaultValues = {};
-        foreach DefaultValueSource [subgraph, value] in sources {
-            string? valueString = value.toString();
+        foreach DefaultValueSource defaultValueSource in sources {
+            string? valueString = defaultValueSource.definition.toString();
             if valueString is string {
                 if unionedDefaultValues.hasKey(valueString) {
-                    unionedDefaultValues.get(valueString).subgraphs.push(subgraph);
+                    unionedDefaultValues.get(valueString).subgraphs.push(defaultValueSource.subgraph);
                 } else {
-                    unionedDefaultValues[valueString] = { data: value, subgraphs: [ subgraph ] };
+                    unionedDefaultValues[valueString] = { data: defaultValueSource.definition, subgraphs: [ defaultValueSource.subgraph ] };
                 }
             }
         }
@@ -987,16 +1029,16 @@ public class Merger {
 
     isolated function mergeTypeReferenceSet(TypeReferenceSource[] sources, "INPUT"|"OUTPUT" refType) returns TypeReferenceMergeResult|MergeError|InternalError {
         map<TypeReferenceSourceGroup> unionedReferences = {};
-        foreach TypeReferenceSource [subgraph, typeReference] in sources {
-            string key = check typeReferenceToString(typeReference);
+        foreach TypeReferenceSource typeReferenceSource in sources {
+            string key = check typeReferenceToString(typeReferenceSource.definition);
 
             if !unionedReferences.hasKey(key) {
                 unionedReferences[key] = { 
-                    data: typeReference,
-                    subgraphs: [ subgraph ]
+                    data: typeReferenceSource.definition,
+                    subgraphs: [ typeReferenceSource.subgraph ]
                  };
             } else {
-                unionedReferences.get(key).subgraphs.push(subgraph);
+                unionedReferences.get(key).subgraphs.push(typeReferenceSource.subgraph);
             }
         }
 
@@ -1529,13 +1571,13 @@ public class Merger {
         return isDirectiveApplied('field.appliedDirectives, SHAREABLE_DIR);
     }
 
-    isolated function getConsistentInconsistentSubgraphs(string[] sources, [string, anydata][] defs) 
+    isolated function getConsistentInconsistentSubgraphs(string[] sources, string[] defs) 
                                                                             returns ConsistentInconsistenceSubgraphs {
         string[] consistentSubgraphs = [];
         string[] inconsistentSubgraphs = [];
         foreach string subgraph in sources {
             boolean isConsistentSubgraph = false;
-            foreach var [consistentSubgraph, _] in defs {
+            foreach string consistentSubgraph in defs {
                 if subgraph == consistentSubgraph {
                     isConsistentSubgraph = true;
                     break;
