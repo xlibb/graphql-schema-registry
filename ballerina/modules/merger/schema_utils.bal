@@ -78,18 +78,14 @@ isolated function typeReferenceToString(parser:__Type 'type) returns string|Inte
     }
 }
 
-isolated function implementInterface(parser:__Type 'type, parser:__Type interface) returns InternalError? {
-    parser:__Type[]? interfaces = 'type.interfaces;
-    if interfaces is parser:__Type[] {
-        foreach parser:__Type implementedType in interfaces {
-            if implementedType.name == interface.name {
-                return ();
-            }
+isolated function implementInterfaceToType(parser:__Type 'type, parser:__Type implementingInterface) returns InternalError? {
+    parser:__Type[] interfaces = 'type.interfaces ?: [];
+    foreach parser:__Type implementedType in interfaces {
+        if implementedType.name == implementingInterface.name {
+            return ();
         }
-        interfaces.push(interface);
-    } else {
-        return error InternalError("Provided type cannot implement interfaces");
     }
+    interfaces.push(implementingInterface);
 }
 
 function applyDirective(parser:__Type|parser:__InputValue 'type, parser:__AppliedDirective appliedDirective) returns InternalError? {
@@ -154,7 +150,7 @@ isolated function isTypeOnTypeMap(parser:__Schema schema, string name) returns b
     return schema.types.hasKey(name);
 }
 
-isolated function getTypeFromTypeMap(parser:__Schema schema, string name) returns parser:__Type {
+isolated function getTypeFromSchema(parser:__Schema schema, string name) returns parser:__Type {
     return schema.types.get(name);
 }
 

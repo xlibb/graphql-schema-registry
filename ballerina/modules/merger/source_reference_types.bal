@@ -56,19 +56,17 @@ type SubgraphSourceGroup record {|
 |};
 type TypeKindSourceGroup record {|
     *SubgraphSourceGroup;
-    parser:__TypeKind data;
+    parser:__TypeKind definition;
 |};
 type DescriptionSourceGroup record {|
     *SubgraphSourceGroup;
-    string? data;
+    string? definition;
 |};
 type DefaultValueSourceGroup record {|
     *SubgraphSourceGroup;
-    anydata data;
+    anydata definition;
 |};
 type TypeReferenceSourceGroup record {|
     *SubgraphSourceGroup;
-    parser:__Type data;
+    parser:__Type definition;
 |};
-
-type TypeKindSourceGroupMap map<TypeKindSourceGroup>;
