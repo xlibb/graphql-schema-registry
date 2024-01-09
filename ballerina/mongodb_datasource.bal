@@ -3,6 +3,8 @@ import ballerinax/mongodb;
 
 configurable mongodb:ConnectionConfig mongoConfig = ?;
 
+type MongoErrors mongodb:DatabaseError|mongodb:ApplicationError|error;
+
 public isolated client class MongodbDatasource {
     *datasource:Datasource;
 
@@ -25,7 +27,13 @@ public isolated client class MongodbDatasource {
     }
 
     isolated resource function get supergraphs/[string version]() returns datasource:Supergraph|datasource:Error {
-        stream<datasource:Supergraph, error?>|mongodb:DatabaseError|mongodb:ApplicationError|error result = self.mongoClient->find(self.SUPERGRAPHS, filter = { version }, projection = { _id: 0, subgraphs: 0 });
+        stream<datasource:Supergraph, error?>|MongoErrors result = self.mongoClient->find(
+                                                                                    self.SUPERGRAPHS,
+                                                                                    filter = { version },
+                                                                                    projection = { 
+                                                                                        _id: 0, 
+                                                                                        subgraphs: 0 
+                                                                                    });
         if result !is stream<datasource:Supergraph, error?> {
             return error datasource:Error(result.message());
         }
@@ -41,7 +49,13 @@ public isolated client class MongodbDatasource {
     }
 
     isolated resource function get supergraphs/[string version]/subgraphs() returns datasource:Subgraph[]|datasource:Error {
-        stream<record { datasource:SubgraphId[] subgraphs; }, error?>|mongodb:DatabaseError|mongodb:ApplicationError|error results = self.mongoClient->find(self.SUPERGRAPHS, filter = { version }, projection = { _id: 0, subgraphs: 1 });
+        stream<record { datasource:SubgraphId[] subgraphs; }, error?>|MongoErrors results = self.mongoClient->find(
+                                                                                                self.SUPERGRAPHS, 
+                                                                                                filter = { version }, 
+                                                                                                projection = { 
+                                                                                                    _id: 0, 
+                                                                                                    subgraphs: 1 
+                                                                                                });
         if results !is stream<record { datasource:SubgraphId[] subgraphs; }, error?> {
             return error datasource:Error(results.message());
         }
@@ -85,11 +99,10 @@ public isolated client class MongodbDatasource {
         }
     }
 
-    // isolated resource function delete supergraphs/[string version]() returns datasource:Supergraph|datasource:Error {
-    // }
-
     isolated function supergraphVersions() returns string[]|datasource:Error {
-        stream<record { string version; }, error?>|mongodb:DatabaseError|mongodb:ApplicationError|error result = self.mongoClient->find(self.SUPERGRAPHS, projection = { version: 1 });
+        stream<record { string version; }, error?>|MongoErrors result = self.mongoClient->find(
+                                                                            self.SUPERGRAPHS,
+                                                                            projection = { version: 1 });
         if result !is stream<record { string version; }, error?> {
             return error datasource:Error(result.message());
         }
@@ -101,7 +114,10 @@ public isolated client class MongodbDatasource {
     }
 
     isolated resource function get subgraphs(string? name = ()) returns datasource:Subgraph[]|datasource:Error {
-        stream<datasource:Subgraph, error?>|mongodb:DatabaseError|mongodb:ApplicationError|error result = self.mongoClient->find(self.SUBGRAPHS, filter = name is () ? {} : { name }, projection = { _id: 0 });
+        stream<datasource:Subgraph, error?>|MongoErrors result = self.mongoClient->find(
+                                                                            self.SUBGRAPHS,
+                                                                            filter = name is () ? {} : { name },
+                                                                            projection = { _id: 0 });
         if result !is stream<datasource:Subgraph, error?> {
             return error datasource:Error(result.message());
         }
@@ -113,7 +129,11 @@ public isolated client class MongodbDatasource {
     }
 
     isolated resource function get subgraphs/[string name]/[string version]() returns datasource:Subgraph|datasource:Error {
-        stream<datasource:Subgraph, error?>|mongodb:DatabaseError|mongodb:ApplicationError|error result = self.mongoClient->find(self.SUBGRAPHS, filter = { name, version }, projection = { _id: 0 }, 'limit = 1);
+        stream<datasource:Subgraph, error?>|MongoErrors result = self.mongoClient->find(
+                                                                        self.SUBGRAPHS,
+                                                                        filter = { name, version },
+                                                                        projection = { _id: 0 }, 
+                                                                        'limit = 1);
         if result !is stream<datasource:Subgraph, error?> {
             return error datasource:Error(result.message());
         }
@@ -128,7 +148,10 @@ public isolated client class MongodbDatasource {
     }
 
     isolated resource function get subgraphs/[string name]() returns datasource:Subgraph[]|datasource:Error {
-        stream<datasource:Subgraph, error?>|mongodb:DatabaseError|mongodb:ApplicationError|error result = self.mongoClient->find(self.SUBGRAPHS, filter = { name }, projection = { _id: 0 });
+        stream<datasource:Subgraph, error?>|MongoErrors result = self.mongoClient->find(
+                                                                            self.SUBGRAPHS,
+                                                                            filter = { name },
+                                                                            projection = { _id: 0 });
         if result !is stream<datasource:Subgraph, error?> {
             return error datasource:Error(result.message());
         }
@@ -140,7 +163,9 @@ public isolated client class MongodbDatasource {
     }
 
     isolated resource function post subgraphs(datasource:SubgraphInsert data) returns datasource:Subgraph|datasource:Error {
-        int|mongodb:Error documentCount = self.mongoClient->countDocuments(self.SUBGRAPHS, filter = { name: data.name });
+        int|mongodb:Error documentCount = self.mongoClient->countDocuments(
+                                                                self.SUBGRAPHS, 
+                                                                filter = { name: data.name });
         if documentCount is mongodb:Error {
             return error datasource:Error(documentCount.message());
         }
@@ -157,9 +182,6 @@ public isolated client class MongodbDatasource {
         }
         return subgraph;
     }
-
-    // isolated resource function put subgraphs/[int id]/[string name](datasource:SubgraphUpdate value) returns datasource:Subgraph|datasource:Error {
-    // }
 
     isolated function hasVersion(string[] versions, string version) returns boolean {
         return versions.indexOf(version) !is ();
