@@ -17,7 +17,6 @@
 import graphql_schema_registry.datasource;
 import ballerina/file;
 import ballerina/io;
-import ballerina/lang.array;
 
 const SUPERGRAPH_FILE_NAME = "supergraph";
 const SUBGRAPHS_FILE_NAME = "subgraphs";
@@ -112,9 +111,6 @@ isolated client class FileDatasource {
         }
     }
 
-    // isolated resource function delete supergraphs/[string version]() returns datasource:Supergraph|datasource:Error {
-    // }
-
     isolated function supergraphVersions() returns string[]|datasource:Error {
         lock {
             return check self.getFileNames(self.supergraphs).clone();
@@ -198,18 +194,18 @@ isolated client class FileDatasource {
     }
 
     isolated function writeRecord(string location, json records) returns datasource:Error? {
-        io:Error? result = io:fileWriteString(location, self.encodeRecord(records.toJsonString()));
+        io:Error? result = io:fileWriteJson(location, records);
         if result is io:Error {
             return error datasource:Error(result.message());
         }
     }
 
     isolated function readRecord(string location) returns json|datasource:Error {
-        string|io:Error encodedRecord = io:fileReadString(location);
-        if encodedRecord is io:Error {
+        json|io:Error jsonRecord = io:fileReadJson(location);
+        if jsonRecord is io:Error {
             return error datasource:Error(string `Unable to read '${location}'`);
         }
-        return check self.decodeRecord(encodedRecord);
+        return jsonRecord;
     }
 
     isolated function getFileNames(string location) returns string[]|datasource:Error {
@@ -227,26 +223,6 @@ isolated client class FileDatasource {
             versions.push(fileName);
         }
         return versions;
-    }
-
-    isolated function encodeRecord(string jsonString) returns string {
-        return jsonString.toBytes().toBase64();
-    }
-
-    isolated function decodeRecord(string encodedRecord) returns json|datasource:Error {
-        byte[]|error data = array:fromBase64(encodedRecord);
-        if data is error {
-            return error datasource:Error(string `Unable to decode base64. ${data.message()}`);
-        }
-        string|error jsonString = string:fromBytes(data);
-        if jsonString is error {
-            return error datasource:Error(string `Unable to read json. ${jsonString.message()}`);
-        }
-        json|error schemaRecord = jsonString.fromJsonString();
-        if schemaRecord is error {
-            return error datasource:Error(string `Unable to create type from json. ${schemaRecord.message()}`);
-        }
-        return schemaRecord;
     }
 
     isolated function checkAndCreateDir(string location) returns datasource:Error? {
