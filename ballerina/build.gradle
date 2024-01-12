@@ -133,7 +133,7 @@ def disableGroups = ""
 def debugParams = ""
 def balJavaDebugParam = ""
 def graalvmFlag = ""
-def testParams = ""
+def testParams = "--coverage-format=xml --code-coverage"
 
 task initializeVariables {
     if (project.hasProperty("groups")) {
