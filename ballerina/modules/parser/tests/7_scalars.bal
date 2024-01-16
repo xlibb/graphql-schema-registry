@@ -34,5 +34,5 @@ function dataProviderScalarValidation() returns map<[string, __Type]> {
     return { 
         "1" : ["scalars", { kind: SCALAR, name: "Email", description: "" }],
         "2" : ["scalars_with_description", { kind: SCALAR, name: "Email", description: "Email description" }]
-     };
+    };
 }

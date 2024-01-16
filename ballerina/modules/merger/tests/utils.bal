@@ -107,5 +107,4 @@ function getMergedAndParsedSchemas(string fileName) returns TestSchemas|error {
     } else {
         return merged;
     }
-
 }

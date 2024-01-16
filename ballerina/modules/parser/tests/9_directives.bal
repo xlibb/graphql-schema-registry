@@ -25,9 +25,9 @@ function testDirective(string fileName, __Directive expectedDirective) returns e
 
     __Schema parsedSchema = check parseSdl(sdl);
     test:assertEquals(parsedSchema.directives.get(expectedDirective.name), expectedDirective);
- }
+}
 
- function dataProviderDirective() returns map<[string, __Directive]> {
+function dataProviderDirective() returns map<[string, __Directive]> {
     return {
         "1": ["directives_multiple_locations", 
                 {
@@ -77,4 +77,4 @@ function testDirective(string fileName, __Directive expectedDirective) returns e
                 }
             ]
     };
- }
+}

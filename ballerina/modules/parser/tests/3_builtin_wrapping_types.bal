@@ -57,5 +57,5 @@ function dataProviderWrappingTypes() returns [string, string, __Type][] {
             "list_of_list_of_list",
             wrapType(wrapType(wrapType(builtInTypes.get(STRING), LIST), LIST), LIST)
         ]
-     ];
+    ];
 }

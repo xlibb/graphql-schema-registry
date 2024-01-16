@@ -46,7 +46,6 @@ isolated function getDirectiveLocationsFromStrings(string[] locations) returns p
     return enumLocations;
 }
 
-// Change parser to Parse DirectiveLocations as enums
 isolated function getDirectiveLocationFromString(string location) returns parser:__DirectiveLocation|InternalError {
     match location {
         "QUERY" => { return parser:QUERY; }
@@ -124,7 +123,6 @@ isolated function getMutualType(parser:__Type typeA, parser:__Type typeB) return
 isolated function isParentType(parser:__Type & readonly parent, parser:__Type & readonly child) returns boolean {
     parser:__Type[]? interfaces = child.interfaces;
     if interfaces !is () {
-        // return interfaces.some(t => t.name == parent.name);
         return interfaces.some(isolated function(parser:__Type t) returns boolean {
             return t.name == parent.name;
         });
@@ -136,7 +134,6 @@ isolated function isParentType(parser:__Type & readonly parent, parser:__Type & 
 isolated function isUnionMember(parser:__Type & readonly unionType, parser:__Type & readonly unionMember) returns boolean {
     parser:__Type[]? possibleTypes = unionType.possibleTypes;
     if possibleTypes !is () {
-        // return possibleTypes.some(t => t.name == unionMember.name);
         return possibleTypes.some(isolated function(parser:__Type t) returns boolean {
             return t.name == unionMember.name;
         });

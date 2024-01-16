@@ -6,4 +6,3 @@ enum Status {
   COMPLETED
   FAILED
 }
-

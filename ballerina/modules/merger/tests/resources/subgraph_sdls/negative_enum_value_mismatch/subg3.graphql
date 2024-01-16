@@ -7,4 +7,3 @@ enum Status {
   COMPLETED
   FAILED
 }
-

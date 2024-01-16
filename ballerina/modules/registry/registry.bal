@@ -83,7 +83,6 @@ public isolated class Registry {
     }
 
     public isolated function getVersions() returns string[]|datasource:Error {
-        // Create a seperate resource function to fetch all the verisons
         datasource:Supergraph[] supergraphs = check self.datasource->/supergraphs;
         return supergraphs.map(s => s.version);
     }

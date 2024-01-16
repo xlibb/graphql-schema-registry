@@ -46,4 +46,3 @@ function dataProviderTestDiffSeverity() returns [DiffSeverity[], DiffSeverity][]
         [[DANGEROUS, BREAKING, DANGEROUS, DANGEROUS], BREAKING]
     ];
 }
-

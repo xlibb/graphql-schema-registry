@@ -397,4 +397,3 @@ isolated function addIndentation(int level) returns string {
     }
     return indentation;
 }
-

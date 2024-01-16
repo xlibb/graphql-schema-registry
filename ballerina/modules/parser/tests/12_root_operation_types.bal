@@ -70,4 +70,4 @@ function testRootOperationTypes() returns error? {
     test:assertEquals(parsedSchema.mutationType,            mutationType);
     test:assertEquals(parsedSchema.types["Subscription"],   subscriptionType);
     test:assertEquals(parsedSchema.subscriptionType,        subscriptionType);
- }
+}

@@ -9,4 +9,3 @@ directive @bux on OBJECT
 type Query {
     name: String
 }
-

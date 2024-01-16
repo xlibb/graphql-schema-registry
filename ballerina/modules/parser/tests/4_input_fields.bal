@@ -27,7 +27,7 @@ function testInputField(string fileName, string inputTypeName, map<__InputValue>
     test:assertEquals(parsedSchema.types.get(inputTypeName).inputFields, inputFields);
  }
 
- function dataProviderInputFields() returns [string, string, map<__InputValue>][] {
+function dataProviderInputFields() returns [string, string, map<__InputValue>][] {
     return [ 
         ["input_fields", "SearchInput",
             {
@@ -60,5 +60,5 @@ function testInputField(string fileName, string inputTypeName, map<__InputValue>
                 ]}
             }
         ]
-     ];
- }
+    ];
+}

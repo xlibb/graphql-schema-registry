@@ -27,7 +27,7 @@ function testEnumValues(string fileName, string typeName, __EnumValue[] expected
     test:assertEquals(parsedSchema.types.get(typeName).enumValues, expectedEnumValues);
  }
 
- function dataProviderEnumValues() returns [string, string, __EnumValue[]][] {
+function dataProviderEnumValues() returns [string, string, __EnumValue[]][] {
     return [ 
         ["enum_values", "Status",
             [ { name: "ON_HOLD" }, { name: "COMPLETED" }, { name: "FAILED" } ]
@@ -48,5 +48,5 @@ function testEnumValues(string fileName, string typeName, __EnumValue[] expected
                 deprecationReason: "Added PAUSED"
             }]
         ]
-     ];
- }
+    ];
+}

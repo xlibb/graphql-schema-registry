@@ -33,7 +33,7 @@ function testAppliedDirective(string fileName, string fieldName, __AppliedDirect
     }
  }
 
- function dataProviderAppliedDirective() returns map<[string, string, __AppliedDirective[]]> {
+function dataProviderAppliedDirective() returns map<[string, string, __AppliedDirective[]]> {
     return {
         "1": ["applied_directive", "name", 
                 [ 
@@ -62,7 +62,7 @@ function testAppliedDirective(string fileName, string fieldName, __AppliedDirect
                 ]
         ]                                                    
     };
- }
+}
 
 @test:Config {
     groups: ["builtin", "applied_directives", "input_values"],
@@ -267,4 +267,4 @@ function testAppliedDirectiveOnDirectiveDefinitionDependsOnEnum() returns error?
     __Schema parsedSchema = check parseSdl(sdl);
     test:assertEquals(parsedSchema.directives.get("bar"), bar);
     test:assertEquals(parsedSchema.queryType.appliedDirectives, [applied_bar]);
- }
+}

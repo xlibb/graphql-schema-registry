@@ -29,7 +29,7 @@ function testCustomUnionTypes(string fileName, __Type expectedUnionType) returns
     } else {
         test:assertFail("No Union type found");
     }
- }
+}
 
 function dataProviderUnion() returns map<[string, __Type]> {
     __Type dogType = {

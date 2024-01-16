@@ -22,4 +22,3 @@ type Bar @shareable {
     foo: Foo
     fux: Float
 }
-

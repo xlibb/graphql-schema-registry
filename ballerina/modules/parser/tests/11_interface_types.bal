@@ -33,7 +33,7 @@ function testCustomInterfaceTypes() returns error? {
 
     __Schema parsedSchema = check parseSdl(sdl);
     test:assertEquals(parsedSchema.types["Person"], personInterface);
- }
+}
 
 @test:Config {
     groups: ["custom", "types", "interface"]
@@ -53,7 +53,7 @@ function testCustomInterfaceTypesDescription() returns error? {
 
     __Schema parsedSchema = check parseSdl(sdl);
     test:assertEquals(parsedSchema.types["Person"], personInterface);
- }
+}
 
 @test:Config {
     groups: ["custom", "types", "interface"]
@@ -91,7 +91,7 @@ function testCustomInterfaceTypesInterfaceImplementations() returns error? {
 
     __Schema parsedSchema = check parseSdl(sdl);
     test:assertEquals(parsedSchema.types["Worker"], workerInterface);
- }
+}
 
 @test:Config {
     groups: ["custom", "types", "interface"]
@@ -122,4 +122,4 @@ function testCustomInterfaceTypeAppliedDirective() returns error? {
 
     __Schema parsedSchema = check parseSdl(sdl);
     test:assertEquals(parsedSchema.types["Person"], personInterface);
- }
+}

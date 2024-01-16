@@ -42,7 +42,7 @@ function testCustomObjectTypes() returns error? {
     __Schema parsedSchema = check parseSdl(sdl);
     test:assertEquals(parsedSchema.types["Address"], addressType);
     test:assertEquals(parsedSchema.types["Person"], personType);
- }
+}
 
 @test:Config {
     groups: ["custom", "types", "object"]
@@ -62,7 +62,7 @@ function testCustomObjectTypesDescription() returns error? {
 
     __Schema parsedSchema = check parseSdl(sdl);
     test:assertEquals(parsedSchema.types["Person"], personType);
- }
+}
 
 @test:Config {
     groups: ["custom", "types", "object"]
@@ -108,7 +108,7 @@ function testCustomObjectTypeInterfaceImplementations() returns error? {
     __Schema parsedSchema = check parseSdl(sdl);
     test:assertEquals(parsedSchema.types["Student"], studentType);
     test:assertEquals(parsedSchema.types["Teacher"], teacherType);
- }
+}
 
 @test:Config {
     groups: ["custom", "types", "object"]
@@ -138,4 +138,4 @@ function testCustomObjectTypeAppliedDirective() returns error? {
 
     __Schema parsedSchema = check parseSdl(sdl);
     test:assertEquals(parsedSchema.types["Person"], personType);
- }
+}
