@@ -17,20 +17,21 @@
 import ballerina/test;
 
 @test:Config {
-    groups: ["merger", "compatible", "enums", "conflict"],
-    dataProvider:  dataProviderConflictEnumTypes
+    groups: ["merger", "compatible", "descriptions"],
+    dataProvider: dataProviderTypeDescriptions
 }
-function testConflictEnumTypes(TestSchemas schemas, string typeName) returns error? {
-    test:assertEquals(schemas.merged.types.get(typeName).enumValues, schemas.parsed.types.get(typeName).enumValues);
+function testTypeDescriptions(TestSchemas schemas, string typeName) returns error? {
+    test:assertEquals(schemas.merged.types.get(typeName).description, schemas.parsed.types.get(typeName).description);
 }
 
-function dataProviderConflictEnumTypes() returns [TestSchemas, string][]|error {
-    TestSchemas schemas = check getMergedAndParsedSchemas("multiple_subgraphs_conflicting_compatible_enum_types");
+function dataProviderTypeDescriptions() returns [TestSchemas, string][]|error {
+    TestSchemas schemas = check getMergedAndParsedSchemas("conflicting_types_description");
 
     return [
-        [ schemas, "Foo" ],
-        [ schemas, "Waldo" ],
-        [ schemas, "Bar" ],
-        [ schemas, "Thud" ]
+        [schemas, "Email"],
+        [schemas, "Bux"],
+        [schemas, "Bar"],
+        [schemas, "Foo"],
+        [schemas, "Waldo"]
     ];
 }

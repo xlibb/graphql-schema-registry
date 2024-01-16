@@ -36,7 +36,7 @@ function testConflictInterfaceTypeFields(TestSchemas schemas, string typeName, s
 
 function dataProviderConflictInterfaceTypesFields() returns [TestSchemas, string, string][]|error {
     string typeName = "Foo";
-    TestSchemas schemas = check getMergedAndParsedSchemas("multiple_subgraphs_conflicting_compatible_interfaces");
+    TestSchemas schemas = check getMergedAndParsedSchemas("conflicting_interfaces");
 
     return [
         [ schemas, typeName, "name" ],

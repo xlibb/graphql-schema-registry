@@ -37,7 +37,7 @@ function testConflictCompatibleDefaultValues(TestSchemas schemas, string typeNam
 
 function dataProviderConflictCompatibleDefaultValues() returns [TestSchemas, string, string][]|error {
     string typeName = "Foo";
-    TestSchemas schemas = check getMergedAndParsedSchemas("multiple_subgraphs_conflicting_default_values");
+    TestSchemas schemas = check getMergedAndParsedSchemas("conflicting_default_values");
 
     return [
         [ schemas, typeName, "name" ],

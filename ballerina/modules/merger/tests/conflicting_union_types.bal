@@ -22,7 +22,7 @@ import graphql_schema_registry.parser;
 }
 function testConflictUnionTypesAppliedDirectives() returns error? {
     string typeName = "Foo";
-    TestSchemas schemas = check getMergedAndParsedSchemas("multiple_subgraphs_conflicting_compatible_union_types");
+    TestSchemas schemas = check getMergedAndParsedSchemas("conflicting_union_types");
 
     foreach parser:__AppliedDirective expectedAppliedDirective in schemas.parsed.types.get(typeName).appliedDirectives {
         test:assertTrue(schemas.merged.types.get(typeName).appliedDirectives
@@ -36,7 +36,7 @@ function testConflictUnionTypesAppliedDirectives() returns error? {
 }
 function testConflictUnionTypesPossibleTypes() returns error? {
     string typeName = "Foo";
-    TestSchemas schemas = check getMergedAndParsedSchemas("multiple_subgraphs_conflicting_compatible_union_types");
+    TestSchemas schemas = check getMergedAndParsedSchemas("conflicting_union_types");
 
     parser:__Type[]? actualPossibleTypes = schemas.merged.types.get(typeName).possibleTypes;
     parser:__Type[]? expectedPossibleTypes = schemas.parsed.types.get(typeName).possibleTypes;

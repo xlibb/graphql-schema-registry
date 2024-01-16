@@ -17,13 +17,21 @@
 import ballerina/test;
 
 @test:Config {
-    groups: ["merger", "compatible", "join__Graph"]
+    groups: ["merger", "compatible", "key"],
+    dataProvider: dataProviderKeyDirective
 }
-function testNoConflictJoinGraph() returns error? {
-    TestSchemas schemas = check getMergedAndParsedSchemas("multiple_subgraphs_join__Graph");
-    
+function testKeyDirective(string typeName) returns error? {
+    TestSchemas schemas = check getMergedAndParsedSchemas("federation_key");
+
     test:assertEquals(
-        schemas.merged.types.get(JOIN_GRAPH_TYPE),
-        schemas.parsed.types.get(JOIN_GRAPH_TYPE)
+        schemas.merged.types.get(typeName),
+        schemas.parsed.types.get(typeName)
     );
+}
+
+function dataProviderKeyDirective() returns [string][] {
+    return [
+        ["Foo"],
+        ["Fox"]
+    ];
 }

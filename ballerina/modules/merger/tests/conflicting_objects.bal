@@ -36,7 +36,7 @@ function testConflictObjectTypeFields(TestSchemas schemas, string typeName, stri
 
 function dataProviderConflictObjectTypesFields() returns [TestSchemas, string, string][]|error {
     string typeName = "Foo";
-    TestSchemas schemas = check getMergedAndParsedSchemas("multiple_subgraphs_conflicting_compatible_objects");
+    TestSchemas schemas = check getMergedAndParsedSchemas("conflicting_objects");
 
     return [
         [ schemas, typeName, "name" ],
@@ -63,7 +63,7 @@ function testConflictObjectFieldInputType(TestSchemas schemas, string typeName, 
 
 function dataProviderConflictObjectFieldInputType() returns [TestSchemas, string, string][]|error {
     string typeName = "Bar";
-    TestSchemas schemas = check getMergedAndParsedSchemas("multiple_subgraphs_conflicting_compatible_objects");
+    TestSchemas schemas = check getMergedAndParsedSchemas("conflicting_objects");
 
     return [
         [ schemas, typeName, "name" ]

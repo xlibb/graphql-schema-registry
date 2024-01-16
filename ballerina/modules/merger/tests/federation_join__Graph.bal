@@ -17,22 +17,13 @@
 import ballerina/test;
 
 @test:Config {
-    groups: ["merger", "compatible", "shareable"],
-    dataProvider:  dataProviderShareableDirective
+    groups: ["merger", "compatible", "join__Graph"]
 }
-function testShareableDirective(TestSchemas schemas, string typeName) returns error? {
+function testNoConflictJoinGraph() returns error? {
+    TestSchemas schemas = check getMergedAndParsedSchemas("federation_join__Graph");
+    
     test:assertEquals(
-        schemas.merged.types.get(typeName),
-        schemas.parsed.types.get(typeName)
+        schemas.merged.types.get(JOIN_GRAPH_TYPE),
+        schemas.parsed.types.get(JOIN_GRAPH_TYPE)
     );
-}
-
-function dataProviderShareableDirective() returns [TestSchemas, string][]|error {
-    TestSchemas schemas = check getMergedAndParsedSchemas("multiple_subgraphs_shareable");
-
-    return [
-        [schemas, "Foo"],
-        [schemas, "Waldo"],
-        [schemas, "Fox"]
-    ];
 }

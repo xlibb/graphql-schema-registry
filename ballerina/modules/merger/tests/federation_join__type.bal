@@ -28,7 +28,7 @@ function testJoinType(TestSchemas schemas, string typeName) returns error? {
 }
 
 function dataProviderJoinType() returns [TestSchemas, string][]|error {
-    TestSchemas multiple_subgraph_schemas = check getMergedAndParsedSchemas("multiple_subgraphs_join__type");
+    TestSchemas multiple_subgraph_schemas = check getMergedAndParsedSchemas("federation_join__type");
     TestSchemas single_subgraph_schemas = check getMergedAndParsedSchemas("single_subgraph_join__type");
 
     return [

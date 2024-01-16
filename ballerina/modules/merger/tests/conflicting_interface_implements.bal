@@ -26,7 +26,7 @@ function testConflictInterfaceImplements(TestSchemas schemas, string typeName) r
 }
 
 function dataProviderConflictInterfaceImplements() returns [TestSchemas, string][]|error {
-    TestSchemas schemas = check getMergedAndParsedSchemas("multiple_subgraphs_conflicting_interface_implements");
+    TestSchemas schemas = check getMergedAndParsedSchemas("conflicting_interface_implements");
 
     return [
         [ schemas, "Foo" ]
