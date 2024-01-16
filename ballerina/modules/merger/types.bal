@@ -50,8 +50,3 @@ public type EntityStatus record {|
     boolean isResolvable;
     string[] keyFields;
 |};
-
-type ConsistentInconsistenceSubgraphs record {|
-    string[] consistent;
-    string[] inconsistent;
-|};
