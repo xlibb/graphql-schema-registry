@@ -326,7 +326,6 @@ isolated function getDefaultValueDiff(INPUT_FIELD_DEFAULT | ARGUMENT_DEFAULT sub
     }
 }
 
-// TODO: Check if better algorithm exists
 isolated function getTypeReferenceDiff(INPUT_FIELD_TYPE | ARGUMENT_TYPE | FIELD_TYPE subject, parser:__Type newType, parser:__Type oldType) returns SchemaDiff?|Error {
     DiffSeverity? typeChangeSeverity = getTypeRefChangeSeverity(subject === FIELD_TYPE ? "OUTPUT" : "INPUT", newType, oldType);
     if typeChangeSeverity is DiffSeverity {

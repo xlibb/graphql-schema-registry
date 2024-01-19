@@ -145,7 +145,6 @@ public isolated class Registry {
     }
 
     isolated function composeSupergraph(Subgraph[] subgraphs) returns ComposedSupergraphSchemas|parser:SchemaError[]|merger:MergeError[]|error {
-        // merger:Subgraph[] mergingSubgraphs = subgraphs.map(s => check self.parseSubgraph(s.name, s.url, s.schema));
         merger:Subgraph[] mergingSubgraphs = [];
         foreach Subgraph subgraph in subgraphs {
             merger:Subgraph|parser:SchemaError[] parsedSubgraph = self.parseSubgraph(subgraph.name, subgraph.url, subgraph.schema);

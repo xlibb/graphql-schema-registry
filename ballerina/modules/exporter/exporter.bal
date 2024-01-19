@@ -49,14 +49,14 @@ isolated function exportSchemaType(parser:__Schema schema) returns string?|Expor
         }
         string fieldMapSdl = addBraces(addAsBlock(check exportFieldMap(fieldMap, 1)));
 
-        return SCHEMA_TYPE + appliedDirectivesSdl + fieldMapSdl;
+        return string `${SCHEMA_TYPE}${appliedDirectivesSdl}${fieldMapSdl}`;
     } else {
         return ();
     }
 }
 
 isolated function getKeyValuePair(string key, string value) returns string {
-    return key + COLON + SPACE + value;
+    return string `${key}${COLON}${SPACE}${value}`;
 }
 
 isolated function exportTypes(parser:__Schema schema) returns string|ExportError {
@@ -92,7 +92,7 @@ isolated function exportUnionType(parser:__Type 'type) returns string|ExportErro
     string appliedDirectivesSdl = check exportTypeAppliedDirectives('type.appliedDirectives, EMPTY_STRING);
     string possibleTypesSdl = check exportPossibleTypes(possibleTypes);
 
-    return descriptionSdl + UNION_TYPE + SPACE + typeName + appliedDirectivesSdl + SPACE + EQUAL + SPACE + possibleTypesSdl;
+    return string `${descriptionSdl}${UNION_TYPE}${SPACE}${typeName}${appliedDirectivesSdl}${SPACE}${EQUAL}${SPACE}${possibleTypesSdl}`;
 }
 
 isolated function exportPossibleTypes(parser:__Type[] possibleTypes) returns string|ExportError {
@@ -100,7 +100,7 @@ isolated function exportPossibleTypes(parser:__Type[] possibleTypes) returns str
     foreach parser:__Type 'type in possibleTypes {
         typeReferenceSdls.push(check exportTypeReference('type));
     }
-    return string:'join(SPACE + PIPE + SPACE, ...typeReferenceSdls);
+    return string:'join(string `${SPACE}${PIPE}${SPACE}`, ...typeReferenceSdls);
 }
 
 isolated function exportInterfaceType(parser:__Type 'type) returns string|ExportError {
@@ -116,7 +116,7 @@ isolated function exportInterfaceType(parser:__Type 'type) returns string|Export
     string implementsSdl = check exportImplements(interfaces);
     string fieldMapSdl = addBraces(addAsBlock(check exportFieldMap(fields, 1)));
 
-    return descriptionSdl + INTERFACE_TYPE + SPACE + typeName + implementsSdl + appliedDirectivesSdl + fieldMapSdl;
+    return string `${descriptionSdl}${INTERFACE_TYPE}${SPACE}${typeName}${implementsSdl}${appliedDirectivesSdl}${fieldMapSdl}`;
 }
 
 isolated function exportInputObjectType(parser:__Type 'type) returns string|ExportError {
@@ -131,7 +131,7 @@ isolated function exportInputObjectType(parser:__Type 'type) returns string|Expo
     string inputFieldSdls = addAsBlock(check exportInputValues(inputFields, LINE_BREAK, 1));
     inputFieldSdls = addBraces(inputFieldSdls);
 
-    return descriptionSdl + INPUT_TYPE + SPACE + typeName + appliedDirectivesSdl + inputFieldSdls;
+    return string `${descriptionSdl}${INPUT_TYPE}${SPACE}${typeName}${appliedDirectivesSdl}${inputFieldSdls}`;
 }
 
 isolated function exportScalarType(parser:__Type 'type) returns string|ExportError {
@@ -139,7 +139,7 @@ isolated function exportScalarType(parser:__Type 'type) returns string|ExportErr
     string descriptionSdl = exportDescription('type.description === "" ? () : 'type.description, 0);
     string appliedDirectivesSdl = check exportTypeAppliedDirectives('type.appliedDirectives, EMPTY_STRING, false);
 
-    return descriptionSdl + SCALAR_TYPE + SPACE + typeName + appliedDirectivesSdl;
+    return string `${descriptionSdl}${SCALAR_TYPE}${SPACE}${typeName}${appliedDirectivesSdl}`;
 }
 
 isolated function exportEnumType(parser:__Type 'type) returns string|ExportError {
@@ -153,7 +153,7 @@ isolated function exportEnumType(parser:__Type 'type) returns string|ExportError
     string appliedDirectivesSdl = check exportTypeAppliedDirectives('type.appliedDirectives);
     string enumValuesSdl = addBraces(addAsBlock(check exportEnumValues(enumValues, 1)));
 
-    return descriptionSdl + ENUM_TYPE + SPACE + typeName + appliedDirectivesSdl + enumValuesSdl;
+    return string `${descriptionSdl}${ENUM_TYPE}${SPACE}${typeName}${appliedDirectivesSdl}${enumValuesSdl}`;
 }
 
 isolated function exportEnumValues(parser:__EnumValue[] enumValues, int indentation) returns string|ExportError {
@@ -171,7 +171,7 @@ isolated function exportEnumValue(parser:__EnumValue value, boolean isFirstInBlo
     string descriptionSdl = exportDescription(value.description, indentation, isFirstInBlock);
     string appliedDirsSdl = check exportAppliedDirectives(value.appliedDirectives, true);
 
-    return descriptionSdl + addIndentation(indentation) + valueNameSdl + appliedDirsSdl;
+    return string `${descriptionSdl}${addIndentation(indentation)}${valueNameSdl}${appliedDirsSdl}`;
 }
 
 isolated function exportObjectType(parser:__Type 'type) returns string|ExportError {
@@ -187,7 +187,7 @@ isolated function exportObjectType(parser:__Type 'type) returns string|ExportErr
     string implementsSdl = check exportImplements(interfaces);
     string fieldMapSdl = addBraces(addAsBlock(check exportFieldMap(fields, 1)));
 
-    return descriptionSdl + OBJECT_TYPE + SPACE + typeName + implementsSdl + appliedDirectivesSdl + fieldMapSdl;
+    return string `${descriptionSdl}${OBJECT_TYPE}${SPACE}${typeName}${implementsSdl}${appliedDirectivesSdl}${fieldMapSdl}`;
 }
 
 isolated function exportImplements(parser:__Type[] interfaces) returns string|ExportError {
@@ -197,7 +197,8 @@ isolated function exportImplements(parser:__Type[] interfaces) returns string|Ex
         foreach parser:__Type 'type in interfaces {
             interfaceSdls.push(check exportTypeReference('type));
         }
-        implementsSdl = SPACE + IMPLEMENTS + SPACE + string:'join(SPACE + AMPERSAND + SPACE, ...interfaceSdls);
+        implementsSdl = string `${SPACE}${IMPLEMENTS}${SPACE}` + 
+                        string:'join(string `${SPACE}${AMPERSAND}${SPACE}`, ...interfaceSdls);
     }
     return implementsSdl;
 }
@@ -233,8 +234,10 @@ isolated function exportField(parser:__Field 'field, boolean isFirstInBlock, int
     string argsSdl = check exportFieldInputValues('field.args, indentation);
     string appliedDirectiveSdl = check exportAppliedDirectives('field.appliedDirectives, true);
 
-    string fieldSdl = getKeyValuePair('field.name + argsSdl, typeReferenceSdl) + appliedDirectiveSdl;
-    return descriptionSdl + addIndentation(indentation) + fieldSdl;
+    string fieldNameWithArgsSdl = string `${'field.name}${argsSdl}`;
+    string fieldSdl = getKeyValuePair(fieldNameWithArgsSdl, typeReferenceSdl);
+    string fieldWithAppliedDirectivesSdl = string `${fieldSdl}${appliedDirectiveSdl}`;
+    return string `${descriptionSdl}${addIndentation(indentation)}${fieldWithAppliedDirectivesSdl}`;
 }
 
 isolated function exportFieldInputValues(map<parser:__InputValue> args, int indentation) returns string|ExportError {
@@ -242,9 +245,9 @@ isolated function exportFieldInputValues(map<parser:__InputValue> args, int inde
     if args != {} {
         if args.toArray().some(i => i.description is string) {
             argsSdl = check exportInputValues(args, LINE_BREAK, indentation + 1);
-            argsSdl = addAsBlock(argsSdl) + addIndentation(indentation);
+            argsSdl = string `${addAsBlock(argsSdl)}${addIndentation(indentation)}`;
         } else {
-            argsSdl = check exportInputValues(args, COMMA + SPACE);
+            argsSdl = check exportInputValues(args, COMMA_FOLLOWING_SPACE);
         }
         argsSdl = addParantheses(argsSdl);
     }
@@ -267,12 +270,13 @@ isolated function exportDirectives(parser:__Schema schema) returns string?|Expor
 isolated function exportDirective(parser:__Directive directive) returns string|ExportError {
     string directiveDefinitionSdl = string `directive @${directive.name}`;
     string directiveArgsSdl = directive.args.length() > 0 ? 
-                                    addParantheses(check exportInputValues(directive.args, COMMA + SPACE))
+                                    addParantheses(check exportInputValues(directive.args, COMMA_FOLLOWING_SPACE))
                                     : EMPTY_STRING;
-    string repeatableSdl = directive.isRepeatable ? REPEATABLE + SPACE : EMPTY_STRING;
-    string directiveLocations = ON + SPACE + string:'join(SPACE + PIPE + SPACE, ...directive.locations);
+    string repeatableSdl = directive.isRepeatable ? string `${REPEATABLE}${SPACE}` : EMPTY_STRING;
+    string validLocations = string:'join(string `${SPACE}${PIPE}${SPACE}`, ...directive.locations);
+    string directiveLocations = string `${ON}${SPACE}${validLocations}`;
 
-    return directiveDefinitionSdl + directiveArgsSdl + SPACE + repeatableSdl + directiveLocations;
+    return string `${directiveDefinitionSdl}${directiveArgsSdl}${SPACE}${repeatableSdl}${directiveLocations}`;
 }
 
 isolated function exportInputValues(map<parser:__InputValue> args, string seperator, int indentation = 0) returns string|ExportError {
@@ -292,15 +296,16 @@ isolated function exportInputValue(parser:__InputValue arg, boolean isFirstInBlo
     string defaultValueSdl = check exportDefaultValue(arg.defaultValue);
     string appliedDirectivesSdl = check exportAppliedDirectives(arg.appliedDirectives, true);
 
-    string inputValueSdl = getKeyValuePair(arg.name, typeReferenceSdl) + defaultValueSdl + appliedDirectivesSdl;
-    return descriptionSdl + addIndentation(indentation) + inputValueSdl;
+    string inputValueWithType = getKeyValuePair(arg.name, typeReferenceSdl);
+    string inputValueSdl = string `${inputValueWithType}${defaultValueSdl}${appliedDirectivesSdl}`;
+    return string `${descriptionSdl}${addIndentation(indentation)}${inputValueSdl}`;
 }
 
 isolated function exportDefaultValue(anydata? defaultValue) returns string|ExportError {
     if defaultValue is () {
         return EMPTY_STRING;
     } else {
-        return SPACE + EQUAL + SPACE + check exportValue(defaultValue);
+        return string `${SPACE}${EQUAL}${SPACE}${check exportValue(defaultValue)}`;
     }
 }
 
@@ -325,7 +330,7 @@ isolated function exportAppliedDirectives(parser:__AppliedDirective[] directives
         }
         string seperator = inline ? SPACE : LINE_BREAK;
         string prefix = inline ? SPACE : EMPTY_STRING;
-        appliedDirectiveSdls = prefix + string:'join(seperator, ...directiveSdls);
+        appliedDirectiveSdls = string `${prefix}${string:'join(seperator, ...directiveSdls)}`;
     }
     return appliedDirectiveSdls;
 }
@@ -340,11 +345,11 @@ isolated function exportAppliedDirective(parser:__AppliedDirective appliedDirect
     }
     string inputsSdl = EMPTY_STRING;
     if inputs.length() > 0 {
-        inputsSdl = string:'join(COMMA + SPACE, ...inputs);
+        inputsSdl = string:'join(COMMA_FOLLOWING_SPACE, ...inputs);
         inputsSdl = addParantheses(inputsSdl);
     }
 
-    return addIndentation(indentation) + directiveSdl + inputsSdl;
+    return string `${addIndentation(indentation)}${directiveSdl}${inputsSdl}`;
 }
 
 isolated function exportDescription(string? description, int indentation, boolean isFirstInBlock = true) returns string {
@@ -352,11 +357,9 @@ isolated function exportDescription(string? description, int indentation, boolea
     if description is string {
         descriptionSdl += isFirstInBlock ? EMPTY_STRING : LINE_BREAK;
         descriptionSdl += addIndentation(indentation);
-        string newDescription = description.length() <= DESCRIPTION_LINE_LIMIT ? 
-                                            description : addAsBlock(
-                                                                addIndentation(indentation) + description
-                                                            ) + addIndentation(indentation);
-        descriptionSdl += string `"""${newDescription}"""` + LINE_BREAK;
+        string blockDescription = addAsBlock(addIndentation(indentation) + description) + addIndentation(indentation);
+        string newDescription = description.length() <= DESCRIPTION_LINE_LIMIT ? description : blockDescription;
+        descriptionSdl += string `"""${newDescription}"""${LINE_BREAK}`;
     }
     return descriptionSdl;
 }
@@ -366,7 +369,7 @@ isolated function exportTypeReference(parser:__Type 'type) returns string|Export
     if 'type.kind == parser:LIST {
         return addSquareBrackets(check exportTypeReference(<parser:__Type>'type.ofType));
     } else if 'type.kind == parser:NON_NULL {
-        return check exportTypeReference(<parser:__Type>'type.ofType) + EXCLAMATION;
+        return string `${check exportTypeReference(<parser:__Type>'type.ofType)}${EXCLAMATION}`;
     } else if typeName is string {
         return typeName;
     } else {
@@ -375,7 +378,7 @@ isolated function exportTypeReference(parser:__Type 'type) returns string|Export
 }
 
 isolated function addAsBlock(string input, boolean addEndingBreak = true) returns string {
-    return LINE_BREAK + input + (addEndingBreak ? LINE_BREAK : EMPTY_STRING);
+    return string `${LINE_BREAK}${input}${(addEndingBreak ? LINE_BREAK : EMPTY_STRING)}`;
 }
 
 isolated function addBraces(string input) returns string {

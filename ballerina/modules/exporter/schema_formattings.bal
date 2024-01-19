@@ -24,6 +24,7 @@ const string EQUAL = "=";
 const string PIPE = "|";
 const string AMPERSAND = "&";
 const string INDENTATION = "  ";
+const string COMMA_FOLLOWING_SPACE = COMMA + " ";
 
 const string OBJECT_TYPE = "type";
 const string ENUM_TYPE = "enum";

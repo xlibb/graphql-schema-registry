@@ -7,8 +7,8 @@ const REGISTRY_DATASOURCE = "datasource";
 
 function getTestData(string testName, string subTestName) returns [string, json]|error {
     string basePath = check file:joinPath("tests", "resources", testName);
-    string queriesPath = check file:joinPath(basePath, "queries", subTestName + ".graphql");
-    string resultPath = check file:joinPath(basePath, "expected", subTestName + ".json");
+    string queriesPath = check file:joinPath(basePath, "queries", string `${subTestName}.graphql`);
+    string resultPath = check file:joinPath(basePath, "expected", string `${subTestName}.json`);
     json result = check io:fileReadJson(resultPath);
     string query = check io:fileReadString(queriesPath);
 

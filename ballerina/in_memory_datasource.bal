@@ -140,17 +140,12 @@ public isolated client class InMemoryDatasource {
             int nextVersion = (subgraphVersions.length() > 0 ? subgraphVersions[0] : 0) + 1;
             datasource:Subgraph subgraph = {
                 version: nextVersion.toString(),
-                name: data.name,
-                url: data.url,
-                schema: data.schema
+                ...data.clone()
             };
             self.subgraphTable.add(subgraph);
             return subgraph.clone();
         }
     }
-
-    // isolated resource function delete subgraphs/[int id]/[string name]() returns datasource:Subgraph|datasource:Error {
-    // }
 
     isolated function subgraphIdFromString(string strId) returns int|datasource:Error {
         int|error id = int:fromString(strId);

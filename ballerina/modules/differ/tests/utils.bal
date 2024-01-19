@@ -21,7 +21,7 @@ import graphql_schema_registry.parser;
 string basePath = check file:joinPath("modules", "differ", "tests", "resources");
 
 function getExpectedDiffs(string fileName) returns SchemaDiff[]|error {
-    string expectedDiffPath = check file:joinPath(basePath, "expected_diffs", fileName + ".json");
+    string expectedDiffPath = check file:joinPath(basePath, "expected_diffs", string `${fileName}.json`);
     json expectedDiffsJson = check io:fileReadJson(expectedDiffPath);
     SchemaDiff[] expectedDiffs = check expectedDiffsJson.cloneWithType();
     return expectedDiffs;

@@ -18,14 +18,11 @@ import graphql_schema_registry.parser;
 
 // Get the __AppliedDirective for a given __Directive and it's arguments. Default arguments will be added automatically.
 isolated function getAppliedDirectiveFromDirective(parser:__Directive directive, map<anydata> arguments) returns parser:__AppliedDirective|InternalError {
-    map<parser:__AppliedDirectiveInputValue> applied_args = directive.args.'map(m => { 
-                                                                                        value: m.defaultValue, 
-                                                                                        definition: m.'type 
-                                                                                     }
-                                                                                );
+    map<parser:__AppliedDirectiveInputValue> applied_args = directive.args.'map(m => {  value: m.defaultValue, 
+                                                                                        definition: m.'type });
 
     foreach [string, anydata] [key, value] in arguments.entries() {
-        if (applied_args.hasKey(key)) {
+        if applied_args.hasKey(key) {
             applied_args[key].value = value;
         } else {
             return error InternalError(string `'${key}' is not a parameter in the directive (${applied_args.toJsonString()})`);

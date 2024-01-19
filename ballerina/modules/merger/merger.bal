@@ -598,7 +598,7 @@ public class Merger {
         parser:__EnumValue[] mergedEnumValues = [];
         foreach [string, EnumValueSource[]] [valueName, enumValueSources] in filteredEnumValues.entries() {
             DescriptionSource[] descriptionSources = [];
-            DeprecationSource[] deprecationSources = []; // Handle deprecations
+            DeprecationSource[] deprecationSources = [];
             string[] definingSubgraphs = [];
 
             foreach EnumValueSource enumValueSource in enumValueSources {
@@ -1136,11 +1136,6 @@ public class Merger {
             sources: typeRefs
         };
         
-        // parser:__Type mergedTypeReference = typeReferences[0][1];
-        // foreach [Subgraph, parser:__Type] [subgraph, typeReference] in typeReferences {
-        //     mergedTypeReference = check self.getMergedTypeReference(typeReference, mergedTypeReference);
-        // }
-        // return mergedTypeReference;
     }
 
     isolated function getMergedOutputTypeReference(parser:__Type typeA, parser:__Type typeB) returns parser:__Type|InternalError|MergeError {

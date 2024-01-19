@@ -51,13 +51,12 @@ isolated function createDiff(DiffAction action, DiffSubject subject, DiffSeverit
     };
 }
 
-// TODO: Use exporter function for this. Also make exporter non-class module because there is no reason to make it a class
 isolated function getTypeReferenceAsString(parser:__Type 'type) returns string|Error {
     string? typeName = 'type.name;
     if 'type.kind == parser:LIST {
-        return "[" + check getTypeReferenceAsString(<parser:__Type>'type.ofType) + "]";
+        return string `[${check getTypeReferenceAsString(<parser:__Type>'type.ofType)}]`;
     } else if 'type.kind == parser:NON_NULL {
-        return check getTypeReferenceAsString(<parser:__Type>'type.ofType) + "!";
+        return string `${check getTypeReferenceAsString(<parser:__Type>'type.ofType)}!`;
     } else if typeName is string {
         return typeName;
     } else {
