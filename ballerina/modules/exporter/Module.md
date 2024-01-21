@@ -1,6 +1,2 @@
-Prints "Hello, World!" with a main function.
-[//]: # (above is the module summary)
-
 # Module Overview
-Provides an overview about the module when generating the API documentations.
-For example, refer to https://lib.ballerina.io/ballerina/io/latest
+This module takes a GraphQL Schema represented in the form of the parser:__Schema type and transforms it into a GraphQL Schema Definition Language (SDL) format. The output is a string representation of the original schema in SDL.

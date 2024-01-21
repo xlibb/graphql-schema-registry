@@ -1,6 +1,3 @@
-Prints "Hello, World!" with a main function.
-[//]: # (above is the module summary)
-
 # Module Overview
-Provides an overview about the module when generating the API documentations.
-For example, refer to https://lib.ballerina.io/ballerina/io/latest
+This module is designed to get multiple Subgraph schemas identified by their respective names and URLs, merging them into a unified Supergraph schema.
+Additionally, it has the capability to generate the Supergraph API schema.
