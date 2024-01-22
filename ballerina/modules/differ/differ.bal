@@ -24,17 +24,11 @@ public isolated function getMajorSeverity(DiffSeverity[] diffs) returns DiffSeve
     if diffs.length() == 0 {
         return ();
     }
-    DiffSeverity majorSeverity = SAFE;
-    foreach DiffSeverity diff in diffs {
-        if diff is BREAKING {
-            majorSeverity = BREAKING;
-            break;
-        }
-        if diff is DANGEROUS {
-            majorSeverity = DANGEROUS;
-        }
-    }
-    return majorSeverity;
+    DiffSeverity[] orderedSeverities = from var severity in diffs
+                                       order by severity ascending
+                                       limit 1
+                                       select severity;
+    return orderedSeverities[0];
 }
 
 isolated function getDiff(parser:__Schema newSchema, parser:__Schema oldSchema) returns SchemaDiff[]|Error {
