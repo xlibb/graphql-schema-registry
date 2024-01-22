@@ -138,12 +138,12 @@ public isolated client class InMemoryDatasource {
                         order by subgraph.version descending
                         select check self.subgraphIdFromString(subgraph.version);
             int nextVersion = (subgraphVersions.length() > 0 ? subgraphVersions[0] : 0) + 1;
-            datasource:Subgraph subgraph = {
+            datasource:Subgraph & readonly subgraph = {
                 version: nextVersion.toString(),
                 ...data.clone()
             };
             self.subgraphTable.add(subgraph);
-            return subgraph.clone();
+            return subgraph;
         }
     }
 
