@@ -15,7 +15,6 @@
 // under the License.
 
 const string COMMA = ",";
-const string SPACE = " ";
 const string EXCLAMATION = "!";
 const string COLON = ":";
 const string LINE_BREAK = "\n";
