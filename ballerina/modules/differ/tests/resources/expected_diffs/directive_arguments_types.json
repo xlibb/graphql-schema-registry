@@ -1,0 +1,110 @@
+[
+    {
+        "severity": "BREAKING",
+        "action": "CHANGED",
+        "subject": "ARGUMENT_TYPE",
+        "location": ["@bux", "argument_type_changed_1"],
+        "fromValue": "String",
+        "toValue": "String!",
+        "value": null
+    },
+    {
+        "severity": "DANGEROUS",
+        "action": "CHANGED",
+        "subject": "ARGUMENT_TYPE",
+        "location": ["@bux", "argument_type_changed_2"],
+        "fromValue": "String!",
+        "toValue": "String",
+        "value": null
+    },
+    {
+        "severity": "BREAKING",
+        "action": "CHANGED",
+        "subject": "ARGUMENT_TYPE",
+        "location": ["@bux", "argument_type_changed_3"],
+        "fromValue": "String",
+        "toValue": "ID",
+        "value": null
+    },
+    {
+        "severity": "BREAKING",
+        "action": "CHANGED",
+        "subject": "ARGUMENT_TYPE",
+        "location": ["@bux", "argument_type_changed_4"],
+        "fromValue": "[[ID!]!]!",
+        "toValue": "[[String!]!]!",
+        "value": null
+    },
+    {
+        "severity": "BREAKING",
+        "action": "CHANGED",
+        "subject": "ARGUMENT_TYPE",
+        "location": ["@bux", "argument_type_changed_5"],
+        "fromValue": "[String!]",
+        "toValue": "[String!]!",
+        "value": null
+    },
+    {
+        "severity": "DANGEROUS",
+        "action": "CHANGED",
+        "subject": "ARGUMENT_TYPE",
+        "location": ["@bux", "argument_type_changed_6"],
+        "fromValue": "[String!]!",
+        "toValue": "[String!]",
+        "value": null
+    },
+    {
+        "severity": "DANGEROUS",
+        "action": "CHANGED",
+        "subject": "ARGUMENT_TYPE",
+        "location": ["@bux", "argument_type_changed_7"],
+        "fromValue": "[[String!]!]!",
+        "toValue": "[[String]]",
+        "value": null
+    },
+    {
+        "severity": "BREAKING",
+        "action": "CHANGED",
+        "subject": "ARGUMENT_TYPE",
+        "location": ["@bux", "argument_type_changed_8"],
+        "fromValue": "[[String]]",
+        "toValue": "[[String!]!]!",
+        "value": null
+    },
+    {
+        "severity": "DANGEROUS",
+        "action": "CHANGED",
+        "subject": "ARGUMENT_TYPE",
+        "location": ["@bux", "argument_type_changed_9"],
+        "fromValue": "[[String!]!]!",
+        "toValue": "[[String!]]!",
+        "value": null
+    },
+    {
+        "severity": "BREAKING",
+        "action": "CHANGED",
+        "subject": "ARGUMENT_TYPE",
+        "location": ["@bux", "argument_type_changed_10"],
+        "fromValue": "[[String!]]!",
+        "toValue": "[[String!]!]!",
+        "value": null
+    },
+    {
+        "severity": "BREAKING",
+        "action": "CHANGED",
+        "subject": "ARGUMENT_TYPE",
+        "location": ["@bux", "argument_type_changed_11"],
+        "fromValue": "[[String]!]!",
+        "toValue": "[[String!]]!",
+        "value": null
+    },
+    {
+        "severity": "BREAKING",
+        "action": "CHANGED",
+        "subject": "ARGUMENT_TYPE",
+        "location": ["@bux", "argument_type_changed_12"],
+        "fromValue": "[[String!]]!",
+        "toValue": "[[String]!]!",
+        "value": null
+    }
+]

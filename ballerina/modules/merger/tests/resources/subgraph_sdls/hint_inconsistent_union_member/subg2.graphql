@@ -1,0 +1,9 @@
+type Query {
+    name: String
+}
+
+union Foo = Waldo
+
+type Waldo {
+    name: String
+}

@@ -1,0 +1,10 @@
+{
+    "errors": [
+        {
+            "message": "No subgraph change",
+            "locations": [{ "line": 2, "column": 5 }],
+            "path": ["publishSubgraph"]
+        }
+    ],
+    "data": { "publishSubgraph": null }
+}

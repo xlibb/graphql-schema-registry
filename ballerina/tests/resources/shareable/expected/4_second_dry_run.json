@@ -1,0 +1,42 @@
+{
+    "errors": [
+        {
+            "message": "Operation causes breaking changes",
+            "locations": [{ "line": 2, "column": 5 }],
+            "path": ["dryRun"],
+            "extensions": {
+                "errors": [
+                    {
+                        "message": "BREAKING: Removed 'age' from Query.name.",
+                        "details": {
+                            "diff": {
+                                "severity": "BREAKING",
+                                "action": "REMOVED",
+                                "subject": "ARGUMENT",
+                                "location": ["Query", "name"],
+                                "value": "age",
+                                "fromValue": null,
+                                "toValue": null
+                            }
+                        }
+                    },
+                    {
+                        "message": "BREAKING: Changed value of 'Query.age' from 'Int!' to 'Int'.",
+                        "details": {
+                            "diff": {
+                                "severity": "BREAKING",
+                                "action": "CHANGED",
+                                "subject": "FIELD_TYPE",
+                                "location": ["Query", "age"],
+                                "value": null,
+                                "fromValue": "Int!",
+                                "toValue": "Int"
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    ],
+    "data": { "dryRun": null }
+}

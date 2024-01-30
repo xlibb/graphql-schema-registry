@@ -1,0 +1,3 @@
+[
+    "INCONSISTENT_BUT_COMPATIBLE_INPUT_TYPE: Type of input field \"Foo.foo\" is inconsistent but compatible across subgraphs. In subgraph(s) \"subg1\", the input type is \"ID!\". In subgraph(s) \"subg2\", \"subg3\" and \"subg4\", the input type is \"ID\"."
+]

@@ -1,0 +1,14 @@
+directive @testDirective(name: String!, age: Int!, avg: Float!, is: Boolean!, enum: TestEnum!, list: [String]!) on OBJECT
+
+type Query {
+    name: String
+}
+
+type Student @testDirective(name: "Hello", age: 10, avg: 24.5, is: false, enum: VAL1, list: ["A", "B"]) {
+    name: String
+}
+
+enum TestEnum {
+    VAL1
+    VAL2
+}

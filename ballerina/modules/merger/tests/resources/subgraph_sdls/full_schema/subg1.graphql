@@ -1,0 +1,76 @@
+extend schema @link(url: "https://specs.apollo.dev/federation/v2.0", import: ["@key", "@shareable"]) 
+
+type Query {
+  "Returns the list of products"
+  products: [Product!]!
+  "Returns the product for the given id. If the product does not exist, returns null"
+  product(
+    "ID of the product to be retrieved"
+    id: ID!
+  ): Product
+}
+
+"Represents a product in the system"
+type Product @key(fields: "id") {
+  "The unique ID of the product"
+  id: ID!
+  "The name of the product"
+  name: String!
+  "The description of the product"
+  description: String!
+  "The price of the product"
+  price: Float!
+}
+
+interface Bux {
+	id: ID
+}
+
+type Foo implements Bux {
+  name: String @shareable
+	id: ID
+}
+
+union UnionFoo = UnionBar | UnionBux
+
+type UnionBar {
+    name(id: ID): String @shareable
+}
+
+type UnionBux {
+    name: String
+}
+
+input InputFoo {
+    diff_non_nullable_type_1: ID!
+    diff_non_nullable_type_2: ID
+    diff_outer_non_nullable_type: [ID]
+}
+
+type OutputFoo {
+    diff_non_nullable_type_1: ID! @shareable
+    diff_non_nullable_type_2: ID @shareable
+    diff_outer_non_nullable_type: [ID] @shareable
+    diff_inner_non_nullable_type: [ID] @shareable
+    diff_outer_inner_non_nullable_type: [ID!]! @shareable
+}
+
+enum EnumWaldo {
+    QUZ
+    NUX
+}
+
+enum EnumBar {
+    BUX
+    BOX
+}
+
+enum EnumThud {
+    FRED
+    RICK
+}
+
+enum EnumFoo {
+    BAR
+    BUN
+}

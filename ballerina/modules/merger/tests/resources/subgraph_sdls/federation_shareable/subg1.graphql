@@ -1,0 +1,24 @@
+extend schema
+  @link(url: "https://specs.apollo.dev/federation/v2.0", import: ["@shareable"])
+
+
+type Query {
+    hello: String
+}
+
+type Foo {
+    shareable_bux: ID
+    shareable_bar: ID! @shareable
+    shareable_foo: String @shareable
+}
+
+type Waldo @shareable {
+    shareable_id: ID!
+    shareable_name: String!
+    shareable_age: Int
+}
+
+interface Fox {
+    id: ID
+    name: String
+}

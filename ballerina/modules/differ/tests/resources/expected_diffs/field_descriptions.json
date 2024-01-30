@@ -1,0 +1,29 @@
+[
+    {
+        "severity": "SAFE",
+        "action": "ADDED",
+        "subject": "FIELD_DESCRIPTION",
+        "location": ["Bar", "desc_added"],
+        "value": "Added description",
+        "fromValue": null,
+        "toValue": null
+    },
+    {
+        "severity": "SAFE",
+        "action": "CHANGED",
+        "subject": "FIELD_DESCRIPTION",
+        "location": ["Bar", "desc_changed"],
+        "value": null,
+        "fromValue": "Changed description prev",
+        "toValue": "Changed description"
+    },
+    {
+        "severity": "SAFE",
+        "action": "REMOVED",
+        "subject": "FIELD_DESCRIPTION",
+        "location": ["Bar", "desc_removed"],
+        "value": "Description to be removed",
+        "fromValue": null,
+        "toValue": null
+    }
+]

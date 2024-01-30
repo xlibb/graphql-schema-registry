@@ -1,0 +1,27 @@
+extend schema
+  @link(url: "https://specs.apollo.dev/federation/v2.0", import: ["@key", "@shareable"])
+
+type Query {
+    addr: String
+}
+
+"Foo in Subg2 and Subg3"
+type Foo @key(fields: "id", resolvable: false) {
+    id: ID!
+    he: String
+}
+
+"Fox in Subg2"
+type Fox @key(fields: "id name age") {
+    id: ID!
+    name: String
+    age: Int
+    fox: Float
+}
+
+type Bar @shareable {
+    "Subg2 Bar name"
+    name: String
+    "Subg2 foo"
+    foo: Foo
+}

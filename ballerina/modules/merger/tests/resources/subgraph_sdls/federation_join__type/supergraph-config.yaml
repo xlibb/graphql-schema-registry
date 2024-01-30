@@ -1,0 +1,14 @@
+federation_version: 2
+subgraphs:
+  subg1:
+    routing_url: http://subg1
+    schema:
+      file: ./subg1.graphql
+  subg2:
+    routing_url: http://subg2
+    schema:
+      file: ./subg2.graphql
+  subg3:
+    routing_url: http://subg3
+    schema:
+      file: ./subg3.graphql

@@ -1,0 +1,11 @@
+directive @bar(name: String @foo(status: COMPLETED)) on OBJECT
+directive @foo(status: Status) on INPUT_FIELD_DEFINITION
+
+type Query @bar {
+    name: String
+}
+
+enum Status {
+    COMPLETED
+    FAILED
+}

@@ -1,0 +1,4 @@
+[
+    "INCONSISTENT_BUT_COMPATIBLE_OUTPUT_TYPE: Type of field \"Query.foo\" is inconsistent but compatible across subgraphs. In subgraph(s) \"subg1\" and \"subg2\", the output type is \"String\". In subgraph(s) \"subg3\", the output type is \"String!\".",
+    "INCONSISTENT_BUT_COMPATIBLE_OUTPUT_TYPE: Type of field \"Query.fux\" is inconsistent but compatible across subgraphs. In subgraph(s) \"subg1\", the output type is \"String\". In subgraph(s) \"subg2\" and \"subg3\", the output type is \"String!\"."
+]

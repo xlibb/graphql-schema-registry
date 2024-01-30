@@ -1,0 +1,4 @@
+[
+    "INCONSISTENT_ARGUMENT_PRESENCE: Optional argument \"age\" on \"Query.name\" will not be included in the supergraph as it does not appear in all subgraphs: It is defined in subgraph(s) \"subg1\" and \"subg3\" but not in subgraph(s) \"subg2\"",
+    "INCONSISTENT_ARGUMENT_PRESENCE: Optional argument \"foo\" on \"Query.age\" will not be included in the supergraph as it does not appear in all subgraphs: It is defined in subgraph(s) \"subg2\" and \"subg3\" but not in subgraph(s) \"subg1\""
+]

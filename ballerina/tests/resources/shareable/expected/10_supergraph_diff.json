@@ -1,0 +1,69 @@
+{
+    "data": {
+        "diff": [
+            {
+                "severity": "SAFE",
+                "action": "ADDED",
+                "subject": "TYPE",
+                "location": [],
+                "value": "Bux",
+                "fromValue": null,
+                "toValue": null
+            },
+            {
+                "severity": "SAFE",
+                "action": "ADDED",
+                "subject": "TYPE",
+                "location": [],
+                "value": "Waldo",
+                "fromValue": null,
+                "toValue": null
+            },
+            {
+                "severity": "SAFE",
+                "action": "ADDED",
+                "subject": "FIELD",
+                "location": ["Query"],
+                "value": "value",
+                "fromValue": null,
+                "toValue": null
+            },
+            {
+                "severity": "SAFE",
+                "action": "ADDED",
+                "subject": "FIELD_DESCRIPTION",
+                "location": ["Query", "name"],
+                "value": "This is the name description in subgraph-2",
+                "fromValue": null,
+                "toValue": null
+            },
+            {
+                "severity": "BREAKING",
+                "action": "CHANGED",
+                "subject": "FIELD_TYPE",
+                "location": ["Query", "age"],
+                "value": null,
+                "fromValue": "Int!",
+                "toValue": "Int"
+            },
+            {
+                "severity": "DANGEROUS",
+                "action": "ADDED",
+                "subject": "UNION_MEMBER",
+                "location": ["UnionFoo"],
+                "value": "Waldo",
+                "fromValue": null,
+                "toValue": null
+            },
+            {
+                "severity": "DANGEROUS",
+                "action": "ADDED",
+                "subject": "UNION_MEMBER",
+                "location": ["UnionFoo"],
+                "value": "Bux",
+                "fromValue": null,
+                "toValue": null
+            }
+        ]
+    }
+}

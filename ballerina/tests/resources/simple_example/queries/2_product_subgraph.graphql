@@ -1,0 +1,48 @@
+mutation PublishSubgraph {
+    publishSubgraph(
+        schema: {
+            name: "products"
+            url: "http://localhost:8080"
+            schema: """
+extend schema @link(url: "https://specs.apollo.dev/federation/v2.0", import: ["@key"]) 
+
+type Query {
+  "Returns the list of products"
+  products: [Product!]!
+  "Returns the product for the given id. If the product does not exist, returns null"
+  product(
+    "ID of the product to be retrieved"
+    id: ID!
+  ): Product
+}
+
+"Represents a product in the system"
+type Product @key(fields: "id") {
+  "The unique ID of the product"
+  id: ID!
+  "The name of the product"
+  name: String!
+  "The description of the product"
+  description: String!
+  "The price of the product"
+  price: Float!
+}
+            """
+        }
+        isForced: false
+    ) {
+        schema
+        apiSchema
+        version
+        hints
+        diffs {
+            severity
+            action
+            subject
+            location
+            value
+            fromValue
+            toValue
+        }
+    }
+}

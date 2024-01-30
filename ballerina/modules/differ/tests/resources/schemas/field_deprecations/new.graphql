@@ -1,0 +1,14 @@
+type Query {
+    name: String
+}
+
+type Bar {
+    field_deprecation_common: String
+    field_deprecation_1: String @deprecated
+    field_deprecation_2: String
+    field_deprecation_3: String @deprecated
+    field_deprecation_reason_1: String @deprecated(reason: "Same reason")
+    field_deprecation_reason_2: String @deprecated
+    field_deprecation_reason_3: String @deprecated(reason: "Added reason")
+    field_deprecation_reason_4: String @deprecated(reason: "Changed reason")
+}

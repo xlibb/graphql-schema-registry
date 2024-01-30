@@ -1,0 +1,26 @@
+mutation PublishSubgraph {
+    publishSubgraph(
+        schema: {
+            name: "subg3"
+            url: "http://subg3"
+            schema: """
+            extend schema 
+                @link(url: "https://specs.apollo.dev/federation/v2.0", import: ["@shareable"])
+                
+            type Query {
+                value: Boolean
+            }
+            """
+        }
+        isForced: true
+    ) {
+        schema
+        apiSchema
+        subgraphs {
+            name
+            schema
+        }
+        version
+        hints
+    }
+}

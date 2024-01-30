@@ -1,0 +1,9 @@
+type Query {
+    query: String
+}
+
+enum Status {
+    ON_HOLD
+    COMPLETED
+    FAILED
+}

@@ -1,0 +1,20 @@
+[
+    {
+        "severity": "DANGEROUS",
+        "action": "ADDED",
+        "subject": "UNION_MEMBER",
+        "location": ["Waldo"],
+        "value": "Bux",
+        "fromValue": null,
+        "toValue": null
+    },
+    {
+        "severity": "BREAKING",
+        "action": "REMOVED",
+        "subject": "UNION_MEMBER",
+        "location": ["Waldo"],
+        "value": "Bar",
+        "fromValue": null,
+        "toValue": null
+    }
+]

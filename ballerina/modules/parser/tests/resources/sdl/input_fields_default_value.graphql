@@ -1,0 +1,10 @@
+type Query {
+    search(criteria: SearchInput): String
+}
+
+input SearchInput {
+    keyword: String = "Hello world"
+    page: Int = 0
+    average: Float = 5.5
+    repeat: Boolean = false
+}

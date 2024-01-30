@@ -1,0 +1,56 @@
+[
+    {
+        "severity": "BREAKING",
+        "action": "CHANGED",
+        "subject": "TYPE_KIND",
+        "location": ["Bar"],
+        "value": null,
+        "fromValue": "INTERFACE",
+        "toValue": "OBJECT"
+    },
+    {
+        "severity": "BREAKING",
+        "action": "CHANGED",
+        "subject": "TYPE_KIND",
+        "location": ["Bux"],
+        "value": null,
+        "fromValue": "ENUM",
+        "toValue": "UNION"
+    },
+    {
+        "severity": "BREAKING",
+        "action": "CHANGED",
+        "subject": "TYPE_KIND",
+        "location": ["Foo"],
+        "value": null,
+        "fromValue": "OBJECT",
+        "toValue": "SCALAR"
+    },
+    {
+        "severity": "BREAKING",
+        "action": "CHANGED",
+        "subject": "TYPE_KIND",
+        "location": ["Waldo"],
+        "value": null,
+        "fromValue": "INPUT_OBJECT",
+        "toValue": "ENUM"
+    },
+    {
+        "severity": "BREAKING",
+        "action": "CHANGED",
+        "subject": "TYPE_KIND",
+        "location": ["Wux"],
+        "value": null,
+        "fromValue": "UNION",
+        "toValue": "INTERFACE"
+    },
+    {
+        "severity": "BREAKING",
+        "action": "CHANGED",
+        "subject": "TYPE_KIND",
+        "location": ["Fun"],
+        "value": null,
+        "fromValue": "SCALAR",
+        "toValue": "INPUT_OBJECT"
+    }
+]

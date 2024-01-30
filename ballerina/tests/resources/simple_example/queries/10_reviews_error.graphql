@@ -1,0 +1,78 @@
+mutation PublishSubgraph {
+    publishSubgraph(
+        schema: {
+            name: "reviews"
+            url: "http://localhost:8082"
+            schema: """
+extend schema @link(url: "https://specs.apollo.dev/federation/v2.0", import: ["@key"]) 
+
+type Query {
+  "Returns a list of reviews"
+  reviews: [Review!]!
+}
+
+type Review {
+  "The ID of the review"
+  id: ID!
+  "The title of the review"
+  title: String!
+  "The review comment"
+  comment: String!
+  "The rating of the review"
+  rating: Int!
+  "The author of the review"
+  author: User!
+  "The product that the review is for"
+  product: Product!
+}
+
+type User {
+  id: ID!
+  reviews: [Review!]!
+}
+
+type Product @key(fields: "id") {
+  id: ID!
+  reviews: [Review!]!
+}
+
+type Mutation {
+  "Adds a new review"
+  addReview(
+    "The review to be added."
+    input: ReviewInput!
+  ): Review!
+}
+
+"The input type for the addReview mutation"
+input ReviewInput {
+  "The title of the review"
+  title: String!
+  "The comment of the review"
+  comment: String!
+  "The rating of the review. This is an integer between 0 and 5"
+  rating: Int!
+  "The ID of the review author"
+  authorId: String!
+  "The product ID that the review is for"
+  productId: String!
+}
+            """
+        }
+        isForced: false
+    ) {
+        schema
+        apiSchema
+        version
+        hints
+        diffs {
+            severity
+            action
+            subject
+            location
+            value
+            fromValue
+            toValue
+        }
+    }
+}

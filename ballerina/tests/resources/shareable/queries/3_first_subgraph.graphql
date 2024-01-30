@@ -1,0 +1,38 @@
+mutation PublishSubgraph {
+    publishSubgraph(
+        schema: {
+            name: "subg1"
+            url: "http://subg1"
+            schema: """
+            type Query {
+                name(age: Int): String
+                age: Int!
+            }
+
+            type Foo {
+                name: String
+            }
+
+            type Bar {
+                name: String
+            }
+
+            union UnionFoo = Foo | Bar
+            """
+        }
+    ) {
+        schema
+        apiSchema
+        version
+        hints
+        diffs {
+            severity
+            action
+            subject
+            location
+            value
+            fromValue
+            toValue
+        }
+    }
+}

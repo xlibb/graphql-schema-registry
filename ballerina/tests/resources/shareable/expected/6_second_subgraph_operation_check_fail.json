@@ -1,0 +1,40 @@
+{
+    "errors": [
+        {
+            "message": "Operation causes breaking changes",
+            "locations": [
+                {
+                    "line": 2,
+                    "column": 5
+                }
+            ],
+            "path": [
+                "publishSubgraph"
+            ],
+            "extensions": {
+                "errors": [
+                    {
+                        "message": "BREAKING: Changed value of 'Query.age' from 'Int!' to 'Int'.",
+                        "details": {
+                            "diff": {
+                                "severity": "BREAKING",
+                                "action": "CHANGED",
+                                "subject": "FIELD_TYPE",
+                                "location": [
+                                    "Query",
+                                    "age"
+                                ],
+                                "value": null,
+                                "fromValue": "Int!",
+                                "toValue": "Int"
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    ],
+    "data": {
+        "publishSubgraph": null
+    }
+}

@@ -1,0 +1,15 @@
+type Query {
+    name: String
+}
+
+type Bar {
+    name(
+        "Common description"
+        desc_common: String
+        "Added description"
+        desc_added: String
+        "Changed description"
+        desc_changed: String
+        desc_removed: String
+    ): String
+}

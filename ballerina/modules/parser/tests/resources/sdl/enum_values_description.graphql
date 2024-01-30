@@ -1,0 +1,8 @@
+type Query {
+    query: String
+}
+
+enum Status {
+    "Project is on hold"
+    ON_HOLD
+}

@@ -1,0 +1,9 @@
+directive @testDirective on INTERFACE
+
+type Query {
+    person: Person!
+}
+
+interface Person @testDirective {
+    name: String
+}

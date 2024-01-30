@@ -1,0 +1,20 @@
+type Query {
+    name: String
+}
+
+enum Status {
+    FOO
+    BUX
+    
+    "Description added"
+    BUN
+    WALDO
+    "Description changed 2"
+    WOLF
+
+    DOG @deprecated
+    CAT
+    ZEBRA @deprecated
+    LION @deprecated(reason: "New reason")
+    HORSE @deprecated(reason: "Reason changed")
+}

@@ -1,0 +1,30 @@
+{
+    "errors": [
+        {
+            "message": "Supergraph composition error",
+            "locations": [{ "line": 2, "column": 5 }],
+            "path": ["publishSubgraph"],
+            "extensions": {
+                "errors": [
+                    {
+                        "message": "INVALID_FIELD_SHARING: Non-shareable field \"User.id\" is resolved from multiple subgraphs: It is resolved from subgraph(s) \"users\" and \"reviews\". And defined as non-shareable in \"reviews\"",
+                        "details": {
+                            "hint": {
+                                "code": "INVALID_FIELD_SHARING",
+                                "location": ["User", "id"],
+                                "details": [
+                                    {
+                                        "value": "shareable",
+                                        "consistentSubgraphs": ["users"],
+                                        "inconsistentSubgraphs": ["reviews"]
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    ],
+    "data": { "publishSubgraph": null }
+}

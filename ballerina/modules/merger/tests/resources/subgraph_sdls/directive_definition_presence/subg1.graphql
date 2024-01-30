@@ -1,0 +1,6 @@
+directive @foo on OBJECT
+directive @executableFoo on FIELD
+
+type Query {
+    name: String
+}

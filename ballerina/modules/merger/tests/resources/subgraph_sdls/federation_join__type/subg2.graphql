@@ -1,0 +1,24 @@
+type Query {
+    address: String
+}
+
+scalar Email
+
+"Subgraph 1 description"
+union Foo = Bar
+
+"Subgraph 1 description"
+type Bar {
+    name: String
+}
+
+"Subgraph 3 description"
+interface Bux {
+    name: String
+}
+
+"Subgraph 1 description"
+enum Waldo {
+    COMPLETE
+    FAIL
+}

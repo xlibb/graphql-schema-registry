@@ -1,0 +1,18 @@
+type Query {
+    name: String
+}
+
+"Foo type description"
+type Foo {
+    name: String
+    bar: Bar
+}
+
+type Bar {
+    name: String
+}
+
+"Bux interface description"
+interface Bux {
+    name: String
+}

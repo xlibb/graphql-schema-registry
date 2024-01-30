@@ -1,0 +1,14 @@
+type Query {
+    address: String
+}
+
+type Foo {
+    name: String
+    "Represents if a student or not"
+    isStudent: Boolean
+    isBux: [ID]
+}
+
+type Bar {
+    name(page: [[Int!]!]!, , query: String = "Def", isValid: Boolean): String
+}

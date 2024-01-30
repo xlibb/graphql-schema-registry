@@ -1,0 +1,16 @@
+extend schema @link(url: "https://specs.apollo.dev/federation/v2.0", import: ["@key"]) 
+
+type Query {
+  "Returns the list of users"
+  users: [User!]!
+}
+
+"Represents a user in the system"
+type User @key(fields: "id") {
+  "The unique identifier for the user"
+  id: ID!
+  "The name of the user"
+  name: String!
+  "The email of the user"
+  email: String!
+}

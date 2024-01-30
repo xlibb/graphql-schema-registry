@@ -1,0 +1,153 @@
+schema
+  @link(url: "https://specs.apollo.dev/link/v1.0")
+  @link(url: "https://specs.apollo.dev/join/v0.3", for: EXECUTION)
+{
+  query: Query
+  mutation: Mutation
+}
+
+directive @join__enumValue(graph: join__Graph!) repeatable on ENUM_VALUE
+
+directive @join__field(graph: join__Graph, requires: join__FieldSet, provides: join__FieldSet, type: String, external: Boolean, override: String, usedOverridden: Boolean) repeatable on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
+
+directive @join__graph(name: String!, url: String!) on ENUM_VALUE
+
+directive @join__implements(graph: join__Graph!, interface: String!) repeatable on OBJECT | INTERFACE
+
+directive @join__type(graph: join__Graph!, key: join__FieldSet, extension: Boolean! = false, resolvable: Boolean! = true, isInterfaceObject: Boolean! = false) repeatable on OBJECT | INTERFACE | UNION | ENUM | INPUT_OBJECT | SCALAR
+
+directive @join__unionMember(graph: join__Graph!, member: String!) repeatable on UNION
+
+directive @link(url: String, as: String, for: link__Purpose, import: [link__Import]) repeatable on SCHEMA
+
+scalar join__FieldSet
+
+enum join__Graph {
+  SUBG1 @join__graph(name: "subg1", url: "http://subg1")
+  SUBG2 @join__graph(name: "subg2", url: "http://subg2")
+  SUBG3 @join__graph(name: "subg3", url: "http://subg3")
+}
+
+scalar link__Import
+
+enum link__Purpose {
+  """
+  `SECURITY` features provide metadata necessary to securely resolve fields.
+  """
+  SECURITY
+
+  """
+  `EXECUTION` features provide metadata necessary for operation execution.
+  """
+  EXECUTION
+}
+
+type Mutation
+  @join__type(graph: SUBG3)
+{
+  """Adds a new review"""
+  addReview(
+    """The review to be added."""
+    input: ReviewInput!
+  ): Review!
+}
+
+"""Represents a product in the system"""
+type Product
+  @join__type(graph: SUBG1, key: "id")
+  @join__type(graph: SUBG3, key: "id")
+{
+  """The unique ID of the product"""
+  id: ID!
+
+  """The name of the product"""
+  name: String! @join__field(graph: SUBG1)
+
+  """The description of the product"""
+  description: String! @join__field(graph: SUBG1)
+
+  """The price of the product"""
+  price: Float! @join__field(graph: SUBG1)
+  reviews: [Review!]! @join__field(graph: SUBG3)
+}
+
+type Query
+  @join__type(graph: SUBG1)
+  @join__type(graph: SUBG2)
+  @join__type(graph: SUBG3)
+{
+  """Returns the list of products"""
+  products: [Product!]! @join__field(graph: SUBG1)
+
+  """
+  Returns the product for the given id. If the product does not exist, returns null
+  """
+  product(
+    """ID of the product to be retrieved"""
+    id: ID!
+  ): Product @join__field(graph: SUBG1)
+
+  """Returns the list of users"""
+  users: [User!]! @join__field(graph: SUBG2)
+
+  """Returns a list of reviews"""
+  reviews: [Review!]! @join__field(graph: SUBG3)
+}
+
+type Review
+  @join__type(graph: SUBG3)
+{
+  """The ID of the review"""
+  id: ID!
+
+  """The title of the review"""
+  title: String!
+
+  """The review comment"""
+  comment: String!
+
+  """The rating of the review (0 to 5)"""
+  rating: Int!
+
+  """The author of the review"""
+  author: User!
+
+  """The product that the review is for"""
+  product: Product!
+}
+
+"""The input type for the addReview mutation"""
+input ReviewInput
+  @join__type(graph: SUBG3)
+{
+  """The title of the review"""
+  title: String!
+
+  """The comment of the review"""
+  comment: String!
+
+  """The rating of the review. This is an integer between 0 and 5"""
+  rating: Int!
+
+  """The ID of the review author"""
+  authorId: String!
+
+  """The product ID that the review is for"""
+  productId: String!
+}
+
+"""Represents a user in the system"""
+type User
+  @join__type(graph: SUBG2, key: "id")
+  @join__type(graph: SUBG3, key: "id")
+{
+  """The unique identifier for the user"""
+  id: ID!
+
+  """The name of the user"""
+  name: String! @join__field(graph: SUBG2)
+
+  """The email of the user"""
+  email: String! @join__field(graph: SUBG2)
+  reviews: [Review!]! @join__field(graph: SUBG3)
+}

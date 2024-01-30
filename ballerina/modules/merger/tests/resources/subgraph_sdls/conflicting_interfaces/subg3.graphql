@@ -1,0 +1,14 @@
+type Query {
+    address: String
+}
+
+interface Foo {
+    name: String
+    "Represents if a student or not"
+    isStudent: Boolean
+    isBux: [ID]
+}
+
+interface Bar {
+    name(page: [[Int!]!]!, , query: String = "Def", isValid: Boolean): String
+}

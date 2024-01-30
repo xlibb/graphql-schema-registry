@@ -1,0 +1,35 @@
+type Query {
+    name: String
+}
+
+type Foo {
+    same_named_type: ID
+    same_non_nullable_type: ID!
+    same_list_type: [ID]
+    same_multi_list_type: [[ID]]
+    same_multi_wrapping_type: [[ID]]!
+    same_multi_outer_inner_wrapping_type: [ID!]!
+    diff_non_nullable_type_1: ID
+    diff_non_nullable_type_2: ID!
+    diff_outer_non_nullable_type: [ID]
+    diff_inner_non_nullable_type: [ID]
+    diff_outer_inner_non_nullable_type: [ID]
+    diff_outer_inner_diff_non_nullable_type: [ID]!
+    diff_outer_inner_diff_wrapping_type: [ID]
+    interface_implements: Bux
+    union_member: Fox
+}
+
+union Fred = Fox
+
+type Fox {
+    name: String
+}
+
+type Bux implements Bar {
+    name: String
+}
+
+interface Bar {
+    name: String
+}

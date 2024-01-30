@@ -1,0 +1,4 @@
+[
+    "DEFAULT_VALUE_MISMATCH: Input field \"Bar.bar.name\" has incompatible default values across subgraphs: In subgraph(s) \"subg1\", the default value is 'Bar'. In subgraph(s) \"subg2\" and \"subg4\", the default value is 'Bux'. In subgraph(s) \"subg3\", no default value is defined.",
+    "DEFAULT_VALUE_MISMATCH: Input field \"Bar.bar.age\" has incompatible default values across subgraphs: In subgraph(s) \"subg1\", no default value is defined. In subgraph(s) \"subg2\" and \"subg3\", the default value is '10'. In subgraph(s) \"subg4\", the default value is '30'."
+]

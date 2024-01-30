@@ -1,0 +1,235 @@
+/* 
+ * Copyright (c) 2023, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License. 
+ */
+
+import org.apache.tools.ant.taskdefs.condition.Os
+
+description = 'Ballerina - GraphQL Schema Registry'
+
+def packageName = "graphql-schema-registry"
+def packageOrg = "xlibb"
+def tomlVersion = "${project.version}"
+def ballerinaTomlFilePlaceHolder = new File("${project.rootDir}/build-config/resources/Ballerina.toml")
+def ballerinaTomlFile = new File("$project.projectDir/Ballerina.toml")
+def distributionBinPath =  ""
+def testCoverageParam = "--code-coverage --coverage-format=xml"
+
+task updateTomlFiles {
+    doLast {
+        def newBallerinaToml = ballerinaTomlFilePlaceHolder.text.replace("@toml.version@", tomlVersion)
+        ballerinaTomlFile.text = newBallerinaToml
+    }
+}
+
+task commitTomlFiles {
+    doLast {
+        project.exec {
+            ignoreExitValue true
+            if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+                commandLine 'cmd', '/c', "git commit -m \"[Automated] Update the native jar versions\" Ballerina.toml Dependencies.toml"
+            } else {
+                commandLine 'sh', '-c', "git commit -m '[Automated] Update the native jar versions' Ballerina.toml Dependencies.toml"
+            }
+        }
+    }
+}
+
+task downloadBallerinaDist(type: Download) {
+    dependsOn {
+        checkBallerinaVersion
+    }
+
+    onlyIf {
+        checkBallerinaVersion.shouldDownload
+    }
+
+    doFirst {
+        println "Ballerina distribution version ${ballerinaLangVersion} not installed."
+        File distribution = new File("${project.rootDir}/ballerina-dist/ballerina-${ballerinaLangVersion}-swan-lake.zip")
+        if (distribution.exists()){
+            println "Using already downloaded distribution"
+        } else {
+            println "Downloading Ballerina distribution version ${ballerinaLangVersion}"
+        }
+    }
+
+    src "https://github.com/ballerina-platform/ballerina-distribution/releases/download/v${ballerinaLangVersion}/ballerina-${ballerinaLangVersion}-swan-lake.zip"
+    overwrite false
+    onlyIfNewer true
+    dest "${project.rootDir}/ballerina-dist"
+
+    doLast {
+        println "Ballerina distribution downloaded successfully."
+    }
+}
+
+task getBallerinaRuntimePath {
+    dependsOn {
+        extractBallerinaDist
+    }
+    doLast {
+        if (checkBallerinaVersion.shouldDownload) {
+            distributionBinPath =
+                    "${project.rootDir}/build/ballerina-${ballerinaLangVersion}-swan-lake/distributions/ballerina-${ballerinaLangVersion}/bin"
+        } else {
+            distributionBinPath =
+                    "${System.getenv("BALLERINA_HOME")}/distributions/ballerina-${ballerinaLangVersion}/bin"
+        }
+    }
+}
+
+task extractBallerinaDist(type: Copy) {
+    dependsOn downloadBallerinaDist
+    onlyIf {
+        !(file("${project.rootDir}/build/ballerina-${ballerinaLangVersion}-swan-lake/bin").exists())
+    }
+    println "Extracting Ballerina distribution..."
+    def fileName = "ballerina-${ballerinaLangVersion}-swan-lake"
+    from zipTree("${project.rootDir}/ballerina-dist/${fileName}.zip")
+    into "${project.rootDir}/build"
+    doLast {
+        println "Ballerina distribution extracted successfully."
+    }
+}
+
+task checkBallerinaVersion(type: Exec) {
+    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+        commandLine 'cmd', '/c', 'bal', '--version'
+    } else {
+        commandLine 'bash', 'bal', '--version'
+    }
+
+    standardOutput = new ByteArrayOutputStream()
+    ignoreExitValue = true
+
+    doLast {
+        String output = standardOutput.toString().trim()
+        println "Ballerina distribution check result: $output"
+        standardOutput = System.out
+        if (executionResult.get().exitValue != 0 || !output.contains(ballerinaLangVersion)
+                || System.getenv("BALLERINA_HOME") == null) {
+            checkBallerinaVersion.ext.shouldDownload = true
+        } else {
+            checkBallerinaVersion.ext.shouldDownload = false
+        }
+    }
+}
+
+def groupParams = ""
+def disableGroups = ""
+def debugParams = ""
+def balJavaDebugParam = ""
+def graalvmFlag = ""
+def testParams = "--coverage-format=xml --code-coverage"
+
+task initializeVariables {
+    if (project.hasProperty("groups")) {
+        groupParams = "--groups ${project.findProperty('groups')}"
+    }
+    if (project.hasProperty("disable")) {
+        disableGroups = "--disable-groups ${project.findProperty("disable")}"
+    }
+    if (project.hasProperty("debug")) {
+        debugParams = "--debug ${project.findProperty("debug")}"
+    }
+    if (project.hasProperty("balJavaDebug")) {
+        balJavaDebugParam = "BAL_JAVA_DEBUG=${project.findProperty("balJavaDebug")}"
+    }
+    if (project.hasProperty('balGraalVMTest')) {
+        graalvmFlag = '--graalvm'
+    }
+
+    gradle.taskGraph.whenReady { graph ->
+        if (graph.hasTask(":${packageName}-ballerina:test")) {
+            if (!project.hasProperty('balGraalVMTest')) {
+                testParams = "${testCoverageParam}"
+            }
+        }
+    }
+}
+
+task startMongodbServer() {
+    doLast {
+        println("Starting mongodb server...")
+        def pb = new ProcessBuilder()
+        pb.directory(projectDir)
+        if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+            pb.command("cmd", "/c", "docker-compose -f tests/resources/docker/docker-compose.yml up && exit %%ERRORLEVEL%%")
+        } else {
+            pb.command("sh", "-c", "docker-compose -f tests/resources/docker/docker-compose.yml down")
+        }
+        def process = pb.start()
+        project.ext.set("mongoServer", process);
+    }
+}
+
+task stopMongodbServer() {
+    doLast {
+        println("Stopping mongodb server...")
+        exec {
+            if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+                commandLine 'cmd', '/c', "docker-compose -f tests/resources/docker/docker-compose.yml down && exit %%ERRORLEVEL%%"
+            } else {
+                commandLine 'sh', '-c', "docker-compose -f tests/resources/docker/docker-compose.yml down"
+            }
+        }
+        if (project.mongoServer != null) {
+            println("Destroying mongodb server process...")
+            project.mongoServer.destroy()
+        }
+    }
+}
+
+task build {
+    dependsOn(":schema-registry-native:build")
+    dependsOn(updateTomlFiles)
+    dependsOn(getBallerinaRuntimePath)
+    finalizedBy(commitTomlFiles)
+
+    doLast {
+        exec {
+            workingDir project.projectDir
+            environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
+            if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+                commandLine 'cmd', '/c', "\"${distributionBinPath}/bal.bat\" build && exit %%ERRORLEVEL%%"
+            } else {
+                commandLine 'sh', '-c', "${distributionBinPath}/bal build"
+            }
+        }
+    }
+}
+
+task test {
+    dependsOn(":schema-registry-native:build")
+    dependsOn(updateTomlFiles)
+    dependsOn(initializeVariables)
+    dependsOn(getBallerinaRuntimePath)
+    dependsOn(startMongodbServer)
+    finalizedBy(commitTomlFiles)
+    finalizedBy(stopMongodbServer)
+
+    doLast {
+        exec {
+            workingDir project.projectDir
+            environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
+            if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+                commandLine 'cmd', '/c', "\"${distributionBinPath}/bal.bat\" test ${graalvmFlag} ${testParams} --offline ${groupParams} ${disableGroups} ${debugParams} && exit %%ERRORLEVEL%%"
+            } else {
+                commandLine 'sh', '-c', "${distributionBinPath}/bal test ${graalvmFlag} ${testParams} --offline ${groupParams} ${disableGroups} ${debugParams}"
+            }
+        }
+    }
+}

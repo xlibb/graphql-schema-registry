@@ -1,0 +1,39 @@
+interface Bar implements Foo {
+  id: [ID!]
+  name: String
+}
+
+interface Bux implements Foo & Bar {
+  id: [ID!]
+  name: String
+  age: Int
+}
+
+scalar Email
+
+interface Foo {
+  id: [ID!]
+}
+
+enum Fux {
+  COMPLETED
+  FAILED
+}
+
+input InputQuery {
+  name: String
+}
+
+type Iron {
+  isTrue: Boolean
+}
+
+type Object implements Foo {
+  id: [ID!]
+}
+
+type Query {
+  u: String
+}
+
+union Waldo = Object | Iron

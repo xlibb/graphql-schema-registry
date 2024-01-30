@@ -1,0 +1,24 @@
+{
+    "data": {
+        "publishSubgraph": {
+            "schema": "schema\n  @link(url: \"https://specs.apollo.dev/link/v1.0\")\n  @link(url: \"https://specs.apollo.dev/join/v0.3\", for: EXECUTION)\n{\n  query: Query\n}\n\ndirective @join__enumValue(graph: join__Graph!) repeatable on ENUM_VALUE\n\ndirective @join__field(graph: join__Graph, requires: join__FieldSet, provides: join__FieldSet, type: String, external: Boolean, override: String, usedOverridden: Boolean) repeatable on FIELD_DEFINITION | INPUT_FIELD_DEFINITION\n\ndirective @join__graph(name: String!, url: String!) on ENUM_VALUE\n\ndirective @join__implements(graph: join__Graph!, interface: String!) repeatable on OBJECT | INTERFACE\n\ndirective @join__type(graph: join__Graph!, key: join__FieldSet, extension: Boolean! = false, resolvable: Boolean! = true, isInterfaceObject: Boolean! = false) repeatable on OBJECT | INTERFACE | UNION | ENUM | INPUT_OBJECT | SCALAR\n\ndirective @join__unionMember(graph: join__Graph!, member: String!) repeatable on UNION\n\ndirective @link(url: String, as: String, for: link__Purpose, import: [link__Import]) repeatable on SCHEMA\n\ntype Bar\n  @join__type(graph: SUBG1)\n{\n  name: String\n}\n\ntype Bux\n  @join__type(graph: SUBG2)\n{\n  name: String\n}\n\ntype Foo\n  @join__type(graph: SUBG1)\n{\n  name: String\n}\n\nscalar join__FieldSet\n\nenum join__Graph {\n  SUBG1 @join__graph(name: \"subg1\", url: \"http://subg1\")\n  SUBG2 @join__graph(name: \"subg2\", url: \"http://subg2\")\n  SUBG3 @join__graph(name: \"subg3\", url: \"http://subg3\")\n}\n\nscalar link__Import\n\nenum link__Purpose {\n  \"\"\"\n  `SECURITY` features provide metadata necessary to securely resolve fields.\n  \"\"\"\n  SECURITY\n\n  \"\"\"\n  `EXECUTION` features provide metadata necessary for operation execution.\n  \"\"\"\n  EXECUTION\n}\n\ntype Query\n  @join__type(graph: SUBG1)\n  @join__type(graph: SUBG2)\n  @join__type(graph: SUBG3)\n{\n  \"\"\"This is the name description in subgraph-2\"\"\"\n  name(age: Int): String @join__field(graph: SUBG1) @join__field(graph: SUBG2)\n  age: Int @join__field(graph: SUBG1, type: \"Int!\") @join__field(graph: SUBG2, type: \"Int\")\n  value: Boolean @join__field(graph: SUBG2) @join__field(graph: SUBG3)\n}\n\nunion UnionFoo\n  @join__type(graph: SUBG1)\n  @join__type(graph: SUBG2)\n  @join__unionMember(graph: SUBG1, member: \"Foo\")\n  @join__unionMember(graph: SUBG1, member: \"Bar\")\n  @join__unionMember(graph: SUBG2, member: \"Waldo\")\n  @join__unionMember(graph: SUBG2, member: \"Bux\")\n = Foo | Bar | Waldo | Bux\n\ntype Waldo\n  @join__type(graph: SUBG2)\n{\n  name: String\n}",
+            "apiSchema": "type Bar {\n  name: String\n}\n\ntype Bux {\n  name: String\n}\n\ntype Foo {\n  name: String\n}\n\ntype Query {\n  \"\"\"This is the name description in subgraph-2\"\"\"\n  name(age: Int): String\n  age: Int\n  value: Boolean\n}\n\nunion UnionFoo = Foo | Bar | Waldo | Bux\n\ntype Waldo {\n  name: String\n}",
+            "subgraphs": [
+                {
+                    "name": "subg1",
+                    "schema": "type Query {\n    name(age: Int): String\n    age: Int!\n}\n\ntype Foo {\n    name: String\n}\n\ntype Bar {\n    name: String\n}\n\nunion UnionFoo = Foo | Bar"
+                },
+                {
+                    "name": "subg2",
+                    "schema": "extend schema \n    @link(url: \"https://specs.apollo.dev/federation/v2.0\", import: [\"@shareable\"])\n    \ntype Query @shareable {\n    \"This is the name description in subgraph-2\"\n    name(age: Int = 10): String\n    age: Int\n    value: Boolean\n}\n\ntype Waldo {\n    name: String\n}\n\ntype Bux {\n    name: String\n}\n\nunion UnionFoo = Waldo | Bux"
+                },
+                {
+                    "name": "subg3",
+                    "schema": "extend schema \n    @link(url: \"https://specs.apollo.dev/federation/v2.0\", import: [\"@shareable\"])\n    \ntype Query @shareable {\n    value: Boolean\n}"
+                }
+            ],
+            "version": "1.0.0",
+            "hints": []
+        }
+    }
+}

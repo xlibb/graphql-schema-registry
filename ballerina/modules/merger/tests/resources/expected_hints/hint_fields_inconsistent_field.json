@@ -1,0 +1,4 @@
+[
+    "INCONSISTENT_TYPE_FIELD: Field \"Bar.fux\" of non-entity object type \"Bar\" is defined in some but not all subgraphs that define \"Bar\": \"Bar.fux\" is defined in subgraph(s) \"subg1\" but not in subgraph(s) \"subg2\" and \"subg3\"",
+    "INCONSISTENT_TYPE_FIELD: Field \"Bar.fox\" of non-entity object type \"Bar\" is defined in some but not all subgraphs that define \"Bar\": \"Bar.fox\" is defined in subgraph(s) \"subg2\" and \"subg3\" but not in subgraph(s) \"subg1\""
+]

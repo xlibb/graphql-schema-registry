@@ -1,0 +1,11 @@
+query Diff {
+    diff(newVersion: "0.1.1", oldVersion: "0.1.0") {
+        severity
+        action
+        subject
+        location
+        value
+        fromValue
+        toValue
+    }
+}

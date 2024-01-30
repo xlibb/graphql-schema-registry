@@ -1,0 +1,179 @@
+{
+    "errors": [
+        {
+            "message": "Supergraph composition error",
+            "locations": [
+                {
+                    "line": 2,
+                    "column": 5
+                }
+            ],
+            "path": [
+                "publishSubgraph"
+            ],
+            "extensions": {
+                "errors": [
+                    {
+                        "message": "INVALID_FIELD_SHARING: Non-shareable field \"Guest.id\" is resolved from multiple subgraphs: It is resolved from subgraph(s) \"accounts\" and \"monolith\". And defined as non-shareable in \"monolith\"",
+                        "details": {
+                            "hint": {
+                                "code": "INVALID_FIELD_SHARING",
+                                "location": [
+                                    "Guest",
+                                    "id"
+                                ],
+                                "details": [
+                                    {
+                                        "value": "shareable",
+                                        "consistentSubgraphs": [
+                                            "accounts"
+                                        ],
+                                        "inconsistentSubgraphs": [
+                                            "monolith"
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "message": "INVALID_FIELD_SHARING: Non-shareable field \"Guest.name\" is resolved from multiple subgraphs: It is resolved from subgraph(s) \"accounts\" and \"monolith\". And defined as non-shareable in \"accounts\" and \"monolith\"",
+                        "details": {
+                            "hint": {
+                                "code": "INVALID_FIELD_SHARING",
+                                "location": [
+                                    "Guest",
+                                    "name"
+                                ],
+                                "details": [
+                                    {
+                                        "value": "shareable",
+                                        "consistentSubgraphs": [],
+                                        "inconsistentSubgraphs": [
+                                            "accounts",
+                                            "monolith"
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "message": "INVALID_FIELD_SHARING: Non-shareable field \"Guest.profilePicture\" is resolved from multiple subgraphs: It is resolved from subgraph(s) \"accounts\" and \"monolith\". And defined as non-shareable in \"accounts\" and \"monolith\"",
+                        "details": {
+                            "hint": {
+                                "code": "INVALID_FIELD_SHARING",
+                                "location": [
+                                    "Guest",
+                                    "profilePicture"
+                                ],
+                                "details": [
+                                    {
+                                        "value": "shareable",
+                                        "consistentSubgraphs": [],
+                                        "inconsistentSubgraphs": [
+                                            "accounts",
+                                            "monolith"
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "message": "INVALID_FIELD_SHARING: Non-shareable field \"Host.id\" is resolved from multiple subgraphs: It is resolved from subgraph(s) \"accounts\" and \"monolith\". And defined as non-shareable in \"monolith\"",
+                        "details": {
+                            "hint": {
+                                "code": "INVALID_FIELD_SHARING",
+                                "location": [
+                                    "Host",
+                                    "id"
+                                ],
+                                "details": [
+                                    {
+                                        "value": "shareable",
+                                        "consistentSubgraphs": [
+                                            "accounts"
+                                        ],
+                                        "inconsistentSubgraphs": [
+                                            "monolith"
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "message": "INVALID_FIELD_SHARING: Non-shareable field \"Host.name\" is resolved from multiple subgraphs: It is resolved from subgraph(s) \"accounts\" and \"monolith\". And defined as non-shareable in \"accounts\" and \"monolith\"",
+                        "details": {
+                            "hint": {
+                                "code": "INVALID_FIELD_SHARING",
+                                "location": [
+                                    "Host",
+                                    "name"
+                                ],
+                                "details": [
+                                    {
+                                        "value": "shareable",
+                                        "consistentSubgraphs": [],
+                                        "inconsistentSubgraphs": [
+                                            "accounts",
+                                            "monolith"
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "message": "INVALID_FIELD_SHARING: Non-shareable field \"Host.profilePicture\" is resolved from multiple subgraphs: It is resolved from subgraph(s) \"accounts\" and \"monolith\". And defined as non-shareable in \"accounts\" and \"monolith\"",
+                        "details": {
+                            "hint": {
+                                "code": "INVALID_FIELD_SHARING",
+                                "location": [
+                                    "Host",
+                                    "profilePicture"
+                                ],
+                                "details": [
+                                    {
+                                        "value": "shareable",
+                                        "consistentSubgraphs": [],
+                                        "inconsistentSubgraphs": [
+                                            "accounts",
+                                            "monolith"
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "message": "INVALID_FIELD_SHARING: Non-shareable field \"Host.profileDescription\" is resolved from multiple subgraphs: It is resolved from subgraph(s) \"accounts\" and \"monolith\". And defined as non-shareable in \"accounts\" and \"monolith\"",
+                        "details": {
+                            "hint": {
+                                "code": "INVALID_FIELD_SHARING",
+                                "location": [
+                                    "Host",
+                                    "profileDescription"
+                                ],
+                                "details": [
+                                    {
+                                        "value": "shareable",
+                                        "consistentSubgraphs": [],
+                                        "inconsistentSubgraphs": [
+                                            "accounts",
+                                            "monolith"
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    ],
+    "data": {
+        "publishSubgraph": null
+    }
+}

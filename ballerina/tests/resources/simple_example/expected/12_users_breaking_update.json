@@ -1,0 +1,39 @@
+{
+    "errors": [
+        {
+            "message": "Operation causes breaking changes",
+            "locations": [
+                {
+                    "line": 2,
+                    "column": 5
+                }
+            ],
+            "path": [
+                "publishSubgraph"
+            ],
+            "extensions": {
+                "errors": [
+                    {
+                        "message": "BREAKING: Removed 'email' from User.",
+                        "details": {
+                            "diff": {
+                                "severity": "BREAKING",
+                                "action": "REMOVED",
+                                "subject": "FIELD",
+                                "location": [
+                                    "User"
+                                ],
+                                "value": "email",
+                                "fromValue": null,
+                                "toValue": null
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    ],
+    "data": {
+        "publishSubgraph": null
+    }
+}

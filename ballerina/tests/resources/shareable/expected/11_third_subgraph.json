@@ -1,0 +1,33 @@
+{
+    "errors": [
+        {
+            "message": "Supergraph composition error",
+            "locations": [{ "line": 2, "column": 5 }],
+            "path": ["publishSubgraph"],
+            "extensions": {
+                "errors": [
+                    {
+                        "message": "INVALID_FIELD_SHARING: Non-shareable field \"Query.value\" is resolved from multiple subgraphs: It is resolved from subgraph(s) \"subg2\" and \"subg3\". And defined as non-shareable in \"subg2\" and \"subg3\"",
+                        "details": {
+                            "hint": {
+                                "code": "INVALID_FIELD_SHARING",
+                                "location": ["Query", "value"],
+                                "details": [
+                                    {
+                                        "value": "shareable",
+                                        "consistentSubgraphs": [],
+                                        "inconsistentSubgraphs": [
+                                            "subg2",
+                                            "subg3"
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    ],
+    "data": { "publishSubgraph": null }
+}

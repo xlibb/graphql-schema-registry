@@ -1,0 +1,6 @@
+[
+    "INCONSISTENT_UNION_MEMBER: Union type \"Foo\" includes member type \"Bar\" in some but not all defining subgraphs: \"Bar\" is defined in subgraph(s) \"subg1\" and \"subg3\" but not in subgraph(s) \"subg2\".",
+    "INCONSISTENT_UNION_MEMBER: Union type \"Foo\" includes member type \"Bux\" in some but not all defining subgraphs: \"Bux\" is defined in subgraph(s) \"subg1\" but not in subgraph(s) \"subg2\" and \"subg3\".",
+    "INCONSISTENT_UNION_MEMBER: Union type \"Foo\" includes member type \"Waldo\" in some but not all defining subgraphs: \"Waldo\" is defined in subgraph(s) \"subg2\" but not in subgraph(s) \"subg1\" and \"subg3\".",
+    "INCONSISTENT_UNION_MEMBER: Union type \"Foo\" includes member type \"Qux\" in some but not all defining subgraphs: \"Qux\" is defined in subgraph(s) \"subg3\" but not in subgraph(s) \"subg1\" and \"subg2\"."
+]

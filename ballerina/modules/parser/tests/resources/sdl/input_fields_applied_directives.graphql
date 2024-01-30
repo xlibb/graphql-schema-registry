@@ -1,0 +1,7 @@
+type Query {
+    search(criteria: SearchInput): String
+}
+
+input SearchInput {
+    keyword: String @deprecated
+}

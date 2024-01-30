@@ -1,0 +1,7 @@
+type Query {
+    string: String
+    bool: Boolean
+    float: Float
+    id: ID
+    int: Int
+}

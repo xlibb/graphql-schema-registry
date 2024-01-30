@@ -1,0 +1,10 @@
+type Query {
+    name: String
+}
+
+directive @bux (
+    foo: String = "Default String"
+    bar: Int
+    bux: Float = 10.5
+    bun: Boolean = true
+) on OBJECT

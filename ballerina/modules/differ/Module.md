@@ -1,0 +1,2 @@
+# Module Overview
+This module calculates the difference between two GraphQL Schema objects of type `parser:__Schema`. A difference is represented by the `SchemaDiff` type and can be an addition, a removal, or a modification of an object type, a description, a field, an argument, etc., between the two given schemas. It also categorizes each difference into three categories to indicate the severity of the difference: Breaking, Dangerous, or Safe.

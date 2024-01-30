@@ -1,0 +1,4 @@
+[
+    "INPUT_TYPE_MISMATCH: Type of input field \"Foo.name\" is inconsistent across subgraphs. In subgraph(s) \"subg1\" and \"subg4\", the input type is \"String\". In subgraph(s) \"subg2\", the input type is \"Int\". In subgraph(s) \"subg3\", the input type is \"ID\".",
+    "INPUT_TYPE_MISMATCH: Type of input field \"Foo.foo\" is inconsistent across subgraphs. In subgraph(s) \"subg1\", the input type is \"ID\". In subgraph(s) \"subg2\", the input type is \"String\". In subgraph(s) \"subg3\" and \"subg4\", the input type is \"Float\"."
+]

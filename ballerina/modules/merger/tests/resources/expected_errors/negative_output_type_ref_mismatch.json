@@ -1,0 +1,4 @@
+[
+    "OUTPUT_TYPE_MISMATCH: Type of field \"Query.name\" is inconsistent across subgraphs. In subgraph(s) \"subg1\" and \"subg4\", the output type is \"String\". In subgraph(s) \"subg2\", the output type is \"Int\". In subgraph(s) \"subg3\", the output type is \"ID\".",
+    "OUTPUT_TYPE_MISMATCH: Type of field \"Query.foo\" is inconsistent across subgraphs. In subgraph(s) \"subg1\", the output type is \"ID\". In subgraph(s) \"subg2\", the output type is \"String\". In subgraph(s) \"subg3\" and \"subg4\", the output type is \"Float\"."
+]

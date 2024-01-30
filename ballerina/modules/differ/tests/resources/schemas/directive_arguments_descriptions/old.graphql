@@ -1,0 +1,13 @@
+type Query {
+    name: String
+}
+
+directive @bux (
+    "Common description"
+    desc_common: String
+    desc_added: String
+    "Changed description prev"
+    desc_changed: String
+    "Description to be removed"
+    desc_removed: String
+) on OBJECT

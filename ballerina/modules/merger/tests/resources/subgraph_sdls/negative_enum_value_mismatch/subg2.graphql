@@ -1,0 +1,7 @@
+type Query {
+  age(status: Status): Int
+}
+
+enum Status {
+  COMPLETED
+}

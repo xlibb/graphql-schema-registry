@@ -1,0 +1,38 @@
+[
+    {
+        "severity": "DANGEROUS",
+        "action": "ADDED",
+        "subject": "INTERFACE_IMPLEMENTATION",
+        "location": ["Fux"],
+        "value": "Waldo",
+        "fromValue": null,
+        "toValue": null
+    },
+    {
+        "severity": "BREAKING",
+        "action": "REMOVED",
+        "subject": "INTERFACE_IMPLEMENTATION",
+        "location": ["Fux"],
+        "value": "Bar",
+        "fromValue": null,
+        "toValue": null
+    },
+    {
+        "severity": "DANGEROUS",
+        "action": "ADDED",
+        "subject": "INTERFACE_IMPLEMENTATION",
+        "location": ["Wux"],
+        "value": "Waldo",
+        "fromValue": null,
+        "toValue": null
+    },
+    {
+        "severity": "BREAKING",
+        "action": "REMOVED",
+        "subject": "INTERFACE_IMPLEMENTATION",
+        "location": ["Wux"],
+        "value": "Bar",
+        "fromValue": null,
+        "toValue": null
+    }
+]

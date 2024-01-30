@@ -1,0 +1,29 @@
+[
+    {
+        "severity": "SAFE",
+        "action": "REMOVED",
+        "subject": "DIRECTIVE_DESCRIPTION",
+        "location": ["@bar"],
+        "value": "Remove description",
+        "fromValue": null,
+        "toValue": null
+    },
+    {
+        "severity": "SAFE",
+        "action": "CHANGED",
+        "subject": "DIRECTIVE_DESCRIPTION",
+        "location": ["@bux"],
+        "value": null,
+        "fromValue": "Change description 1",
+        "toValue": "Change description 2"
+    },
+    {
+        "severity": "SAFE",
+        "action": "ADDED",
+        "subject": "DIRECTIVE_DESCRIPTION",
+        "location": ["@foo"],
+        "value": "Added description",
+        "fromValue": null,
+        "toValue": null
+    }
+]

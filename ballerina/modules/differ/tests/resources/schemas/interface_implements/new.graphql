@@ -1,0 +1,25 @@
+type Query {
+    name: String
+}
+
+interface Foo {
+    name: String
+}
+
+interface Bar {
+    addr: String
+}
+
+interface Waldo {
+    addr: String    
+}
+
+type Fux implements Foo & Waldo {
+    name: String
+    addr: String
+}
+
+interface Wux implements Foo & Waldo {
+    name: String
+    addr: String
+}

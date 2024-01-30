@@ -1,0 +1,7 @@
+type Query {
+    person: Person!
+}
+
+interface Person {
+    name: String
+}

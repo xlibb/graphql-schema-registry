@@ -1,0 +1,6 @@
+directive @foo on OBJECT
+directive @waldo on OBJECT
+
+type Query {
+    name: String
+}

@@ -1,0 +1,3 @@
+[
+    "INCONSISTENT_DEFAULT_VALUE_PRESENCE: Input field \"Foo.age\" has inconsistent default values across subgraphs: In subgraph(s) \"subg1\", the default value is '10'. In subgraph(s) \"subg2\" and \"subg3\", no default value is defined."
+]

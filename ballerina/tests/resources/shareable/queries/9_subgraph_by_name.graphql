@@ -1,0 +1,6 @@
+query Subgraph {
+    subgraph(name: "subg1") {
+        name
+        schema
+    }
+}

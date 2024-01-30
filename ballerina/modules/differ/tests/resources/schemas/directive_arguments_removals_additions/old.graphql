@@ -1,0 +1,8 @@
+type Query {
+    name: String
+}
+
+directive @bux(
+    foo: String
+    bar: String
+) on OBJECT

@@ -1,0 +1,10 @@
+type Query {
+    foo: String
+}
+
+scalar Foo
+
+enum Fux {
+    FAIL
+    COMPLETE
+}

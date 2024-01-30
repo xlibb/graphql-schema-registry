@@ -1,0 +1,29 @@
+[
+    {
+        "severity": "DANGEROUS",
+        "action": "ADDED",
+        "subject": "ARGUMENT_DEFAULT",
+        "location": ["Bar", "name", "bar"],
+        "value": "10",
+        "fromValue": null,
+        "toValue": null
+    },
+    {
+        "severity": "DANGEROUS",
+        "action": "REMOVED",
+        "subject": "ARGUMENT_DEFAULT",
+        "location": ["Bar", "name", "bux"],
+        "value": "10.5",
+        "fromValue": null,
+        "toValue": null
+    },
+    {
+        "severity": "DANGEROUS",
+        "action": "CHANGED",
+        "subject": "ARGUMENT_DEFAULT",
+        "location": ["Bar", "name", "bun"],
+        "value": null,
+        "fromValue": "true",
+        "toValue": "false"
+    }
+]

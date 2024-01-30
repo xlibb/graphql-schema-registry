@@ -1,0 +1,8 @@
+type Query {
+    search(criteria: SearchInput): String
+}
+
+input SearchInput {
+    "Keywords by client"
+    keyword: String
+}

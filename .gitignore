@@ -1,0 +1,12 @@
+# Ignore Gradle project-specific cache directory
+.gradle
+
+# Ignore IDE
+.vscode
+.idea
+
+# Ignore Gradle build output directory
+build
+bin
+ballerina-dist/**
+!ballerina-dist/.gitkeep

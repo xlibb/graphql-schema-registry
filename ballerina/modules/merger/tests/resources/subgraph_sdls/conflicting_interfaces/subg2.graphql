@@ -1,0 +1,14 @@
+type Query {
+    address: String
+}
+
+"Foo type description"
+interface Foo {
+    name: String
+    age: Int
+    isBux: [ID]
+}
+
+interface Bar {
+    name(isValid: Boolean!, page: [[Int!]!], query: String = "Def"): String
+}

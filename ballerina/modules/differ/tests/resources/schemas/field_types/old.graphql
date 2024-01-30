@@ -1,0 +1,20 @@
+type Query {
+    name: String
+}
+
+type Bar {
+    field_type_common_1: String
+    field_type_common_2: [String!]!
+    field_type_changed_1: String # DANGEROUS
+    field_type_changed_2: String! # BREAKING
+    field_type_changed_3: String # BREAKING
+    field_type_changed_4: [[ID!]!]! # BREAKING
+    field_type_changed_5: [String!] # DANGEROUS
+    field_type_changed_6: [String!]! # BREAKING
+    field_type_changed_7: [[String!]!]! # BREAKING
+    field_type_changed_8: [[String]] # DANGEROUS
+    field_type_changed_9: [[String!]!]! # BREAKING
+    field_type_changed_10: [[String!]]! # DANGEROUS
+    field_type_changed_11: [[String]!]! # EDGE CASE -> Ideal result should be 'BREAKING'
+    field_type_changed_12: [[String!]]! # EDGE CASE -> Ideal result should be 'BREAKING'
+}

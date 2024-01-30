@@ -1,0 +1,5 @@
+type Query {
+    name: Int
+    age: Int
+    foo: String
+}

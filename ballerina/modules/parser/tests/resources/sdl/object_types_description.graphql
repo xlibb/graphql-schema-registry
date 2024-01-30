@@ -1,0 +1,11 @@
+type Query {
+    person: Person!
+}
+
+"This represents a Person"
+type Person {
+    "This is the person's ID"
+    id: ID
+    "This is the person's name"
+    name: String
+}

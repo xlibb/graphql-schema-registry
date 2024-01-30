@@ -1,0 +1,17 @@
+type Query {
+    name: String
+}
+
+interface Bar {
+	avg: Float
+}
+
+interface Fox {
+    addr: String
+}
+
+type Foo implements Bar & Fox {
+    name: String
+	avg: Float
+    addr: String
+}

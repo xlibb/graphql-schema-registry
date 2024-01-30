@@ -1,0 +1,47 @@
+[
+    {
+        "severity": "DANGEROUS",
+        "action": "REMOVED",
+        "subject": "FIELD_DEPRECATION",
+        "location": ["Bar", "field_deprecation_2"],
+        "value": null,
+        "fromValue": null,
+        "toValue": null
+    },
+    {
+        "severity": "SAFE",
+        "action": "ADDED",
+        "subject": "FIELD_DEPRECATION",
+        "location": ["Bar", "field_deprecation_3"],
+        "value": null,
+        "fromValue": null,
+        "toValue": null
+    },
+    {
+        "severity": "SAFE",
+        "action": "CHANGED",
+        "subject": "FIELD_DEPRECATION",
+        "location": ["Bar", "field_deprecation_reason_2"],
+        "value": null,
+        "fromValue": "Remove reason",
+        "toValue": "No longer supported"
+    },
+    {
+        "severity": "SAFE",
+        "action": "CHANGED",
+        "subject": "FIELD_DEPRECATION",
+        "location": ["Bar", "field_deprecation_reason_3"],
+        "value": null,
+        "fromValue": "No longer supported",
+        "toValue": "Added reason"
+    },
+    {
+        "severity": "SAFE",
+        "action": "CHANGED",
+        "subject": "FIELD_DEPRECATION",
+        "location": ["Bar", "field_deprecation_reason_4"],
+        "value": null,
+        "fromValue": "Before change reason",
+        "toValue": "Changed reason"
+    }
+]

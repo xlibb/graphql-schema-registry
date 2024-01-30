@@ -1,0 +1,7 @@
+type Query {
+    query: String
+}
+
+enum Status {
+    ON_HOLD @deprecated(reason: "Added PAUSED")
+}

@@ -1,0 +1,5 @@
+[
+    "INVALID_FIELD_SHARING: Non-shareable field \"Query.age\" is resolved from multiple subgraphs: It is resolved from subgraph(s) \"subg2\", \"subg3\", \"subg4\" and \"subg1\". And defined as non-shareable in \"subg1\"",
+    "INVALID_FIELD_SHARING: Non-shareable field \"Query.foo\" is resolved from multiple subgraphs: It is resolved from subgraph(s) \"subg1\", \"subg2\", \"subg4\" and \"subg3\". And defined as non-shareable in \"subg3\"",
+    "INVALID_FIELD_SHARING: Non-shareable field \"Query.fox\" is resolved from multiple subgraphs: It is resolved from subgraph(s) \"subg1\" and \"subg3\". And defined as non-shareable in \"subg1\" and \"subg3\""
+]
