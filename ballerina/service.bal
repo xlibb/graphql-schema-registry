@@ -67,10 +67,14 @@ function getSchemaRegistryService(datasource:Datasource datasource) returns grap
     return schemaRegistryService;
 }
 
-public function main() returns error? {
+public function startRegistry(datasource:Datasource datasource, int port) returns error? {
     graphql:Listener graphqlListener = check new (port);
-    graphql:Service registryService = getSchemaRegistryService(check new MongodbDatasource());
+    graphql:Service registryService = getSchemaRegistryService(datasource);
     check graphqlListener.attach(registryService);
     check graphqlListener.'start();
     runtime:registerListener(graphqlListener);
+}
+
+public function main() returns error? {
+    check startRegistry(check new MongodbDatasource(), port);
 }
