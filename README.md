@@ -3,41 +3,54 @@
 Graphql Schema Registry self-hostable service for Federated GraphQL Services as an alternative to [Apollo studio](https://studio.apollographql.com/).
 
 ## Features
--  **Perform Dry Runs**: Verify a given Subgraph for Supergraph composition before publishing it.
--   **Publish Subgraph**: Publish a Subgraph to the Schema Registry for Supergraph composition.
--   **Prevent Breaking Changes**: Ensure Subgraphs don't cause breaking changes to the Supergraph.
--   **Automatic Versioning**: Automatically versions the Supergraph based on the changes that occurred to it in the format of `[Breaking].[Dangerous].[Safe]`. (Similar to Semantic Versioning)
--   **Get Supergraph Schema/API Schema**: Access Supergraph and its API Schema.
--   **Get Supergraph Differences**: Compare two Supergraphs and generate a diff between the two.
+
+- **Perform Dry Runs**: Verify a given Subgraph for Supergraph composition before publishing it.
+- **Publish Subgraph**: Publish a Subgraph to the Schema Registry for Supergraph composition.
+- **Prevent Breaking Changes**: Ensure Subgraphs don't cause breaking changes to the Supergraph.
+- **Automatic Versioning**: Automatically versions the Supergraph based on the changes that occurred to it in the format of `[Breaking].[Dangerous].[Safe]`. (Similar to Semantic Versioning)
+- **Get Supergraph Schema/API Schema**: Access Supergraph and its API Schema.
+- **Get Supergraph Differences**: Compare two Supergraphs and generate a diff between the two.
 - **Categorize Diff Type** - Automatically categorize the changes occured to a Schema into **Breaking**, **Dangerous** and **Safe**.
 - **Data-Agnostic**: Allows any datasource integration. (MongoDB, File-based storage and In-memory storage are supported by default)
--   **Get Registered Subgraph by Name**: Retrieve Subgraph from Registry.
+- **Get Registered Subgraph by Name**: Retrieve Subgraph from Registry.
+
 ## Installation
+
 ### Prerequisites
+
 [Download](https://adoptopenjdk.net/) and install Java SE Development Kit (JDK) version 17.
 
 ### Building
+
 1. Clone this repository using the following command.
-```
+
+```bash
 git clone https://github.com/xlibb/graphql-schema-registry
 ```
+
 2. Run the gradle build command `./gradlew build` from the repository root directory. This will generate the jar file `graphql_schema_registry.jar` in `ballerina/target/bin` directory.
 
 ### Configuration
+
 1. Create a `Config.toml` in the same directory as the built `graphql_schema_registry.jar` file. An example `Config.toml.example` can be found on the `ballerina` directory.
 2. Use the following content for the MongoDB configuration
-```
+
+```toml
 [mongoConfig]
 connection.url = "mongodb+srv://<username>:<password>@<mongo_cluster>.mongodb.net"
 databaseName = "graphql-schema-registry"
 ```
+
 ### Starting the Schema Registry
+
 Run the jar file using `java -jar graphql_schema_registry.jar`.
 
 ## Architecture
 
 ![Architecture for the GraphQL Schema Registry](/assets/images/architecture.jpg)
+
 ### Components
+
 | Name | Role |
 |--|--|
 | Parser | Parses GraphQL SDL and create a `parser:__Schema` record |
@@ -49,7 +62,9 @@ Run the jar file using `java -jar graphql_schema_registry.jar`.
 | GraphQL API | GraphQL API provides users access to the Schema Registry |
 
 ### GraphQL API
+
 GraphQL Schema for the Schema Registry
+
 ```graphql
 type Query {
   supergraph: Supergraph!
