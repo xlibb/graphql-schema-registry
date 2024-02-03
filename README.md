@@ -19,6 +19,7 @@ Graphql Schema Registry self-hostable service for Federated GraphQL Services as 
 ### Prerequisites
 
 [Download](https://adoptopenjdk.net/) and install Java SE Development Kit (JDK) version 17.
+[Download](https://ballerina.io/downloads/) and install Ballerina.
 
 ### Building
 
