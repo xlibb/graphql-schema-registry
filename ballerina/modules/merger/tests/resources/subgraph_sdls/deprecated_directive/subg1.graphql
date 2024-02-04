@@ -1,0 +1,21 @@
+extend schema @link(url: "https://specs.apollo.dev/federation/v2.0", import: ["@shareable"]) 
+
+type Query {
+    dep_name: String
+    toBeRemoved: Int @deprecated(reason: "Will be removed in the future")
+    inputEnum(enum: IntersectedEnum): String
+    shareableDeprecated: String @deprecated(reason: "First subgraph") @shareable
+}
+
+enum Status {
+    COMPLETED
+    FINISHED @deprecated
+    IN_PROGRESS
+    FAILED @deprecated
+}
+
+enum IntersectedEnum {
+    FOO
+    BAR
+    BUX
+}
