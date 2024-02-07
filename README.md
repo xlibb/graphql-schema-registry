@@ -6,6 +6,7 @@ Graphql Schema Registry self-hostable service for Federated GraphQL Services as 
 
 - **Perform Dry Runs**: Verify a given Subgraph for Supergraph composition before publishing it.
 - **Publish Subgraph**: Publish a Subgraph to the Schema Registry for Supergraph composition.
+- **Composition Errors/Hints**: Get detailed descriptions of errors and useful hints when composing the supergraph.
 - **Prevent Breaking Changes**: Ensure Subgraphs don't cause breaking changes to the Supergraph.
 - **Automatic Versioning**: Automatically versions the Supergraph based on the changes that occurred to it in the format of `[Breaking].[Dangerous].[Safe]`. (Similar to Semantic Versioning)
 - **Get Supergraph Schema/API Schema**: Access Supergraph and its API Schema.
