@@ -40,6 +40,12 @@ type DescriptionMergeResult record {|
     string? result;
 |};
 
+type DeprecationMergeResult record {|
+    *MergeResult;
+    boolean isDeprecated;
+    string? deprecationReason = ();
+|};
+
 type DefaultValueMergeResult record {|
     *MergeResult;
     anydata? result;
