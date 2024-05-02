@@ -614,7 +614,7 @@ public class Merger {
             }
 
             DescriptionMergeResult mergedDesc = self.mergeDescription(descriptionSources);
-            // Handle deprecations
+            DeprecationMergeResult mergedDeprecation = self.mergeDeprecations(deprecationSources);
 
             parser:__EnumValue mergedEnumValue = {
                 name: valueName,
@@ -622,6 +622,12 @@ public class Merger {
             };
 
             check self.applyJoinEnumDirective(mergedEnumValue, definingSubgraphs);
+
+            if mergedDeprecation.isDeprecated {
+                mergedEnumValue.isDeprecated = mergedDeprecation.isDeprecated;
+                mergedEnumValue.deprecationReason = mergedDeprecation.deprecationReason;
+                check self.applyDeprecatedDirective(mergedEnumValue.appliedDirectives, mergedDeprecation.deprecationReason);
+            }
 
             mergedEnumValues.push(mergedEnumValue);
         }
@@ -764,6 +770,16 @@ public class Merger {
                 hasInconsistentFields = fieldDefinitions.get(fieldName).length() != sources.length(),
                 outputTypeMismatches = typeMergeResult.sources
             );
+
+            DeprecationMergeResult mergedDeprecation = self.mergeDeprecations(deprecationSources);
+            if mergedDeprecation.isDeprecated {
+                mergedField.isDeprecated = mergedDeprecation.isDeprecated;
+                mergedField.deprecationReason = mergedDeprecation.deprecationReason;
+                check self.applyDeprecatedDirective(
+                    mergedField.appliedDirectives,
+                    mergedDeprecation.deprecationReason
+                );
+            }
 
             mergedFields[mergedField.name] = mergedField;
 
@@ -1138,6 +1154,16 @@ public class Merger {
         
     }
 
+    isolated function mergeDeprecations(DeprecationSource[] sources) returns DeprecationMergeResult {
+        Hint[] hints = [];
+        foreach DeprecationSource 'source in sources {
+            if 'source.definition[0] {
+                return { hints, isDeprecated: 'source.definition[0], deprecationReason: 'source.definition[1] };
+            }
+        }
+        return { hints, isDeprecated: false };
+    }
+
     isolated function getMergedOutputTypeReference(parser:__Type typeA, parser:__Type typeB) returns parser:__Type|InternalError|MergeError {
         parser:__Type? typeAWrappedType = typeA.ofType;
         parser:__Type? typeBWrappedType = typeB.ofType;
@@ -1350,6 +1376,17 @@ public class Merger {
                 { 
                     [NAME_FIELD]: name,
                     [URL_FIELD]: url
+                }
+            )
+        );
+    }
+
+    isolated function applyDeprecatedDirective(parser:__AppliedDirective[] appliedDirs, string? reason) returns InternalError? {
+        appliedDirs.push(
+            check self.getAppliedDirectiveFromName(
+                parser:DEPRECATED_DIR,
+                {
+                    reason
                 }
             )
         );
