@@ -7,7 +7,12 @@ export=["graphql_schema_registry"]
 keywords = ["graphql", "federation", "schema registry"]
 repository = "https://github.com/xlibb/graphql-schema-registry"
 license = ["Apache-2.0"]
-distribution = "2201.6.0"
+distribution = "2201.8.6"
+
+[[dependency]]
+org = "ballerina"
+name = "graphql"
+version = "1.11.0"
 
 [[platform.java17.dependency]]
 path = "../native/build/libs/schema-registry-native-1.0.0.jar"
