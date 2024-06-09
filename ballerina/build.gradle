@@ -96,11 +96,11 @@ task extractBallerinaDist(type: Copy) {
     onlyIf {
         !(file("${project.rootDir}/build/ballerina-${ballerinaLangVersion}-swan-lake/bin").exists())
     }
-    println "Extracting Ballerina distribution..."
-    def fileName = "ballerina-${ballerinaLangVersion}-swan-lake"
-    from zipTree("${project.rootDir}/ballerina-dist/${fileName}.zip")
-    into "${project.rootDir}/build"
     doLast {
+        println "Extracting Ballerina distribution..."
+        def fileName = "ballerina-${ballerinaLangVersion}-swan-lake"
+        from zipTree("${project.rootDir}/ballerina-dist/${fileName}.zip")
+        into "${project.rootDir}/build"
         println "Ballerina distribution extracted successfully."
     }
 }
